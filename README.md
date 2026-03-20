@@ -1,17 +1,17 @@
-# Chess
+# Ches
 
 ## Build and Run
 
 #### Requirements
 
-- **C++17**
+- **C++20**
 - [**CMake 3.14**](https://cmake.org/download/) - build system generator
 - [**raylib 5.5**](https://www.raylib.com/) - videogame programming library (auto fetched by CMake)
 
 ```bash
-git clone https://github.com/Ka-raS/Chess.git
-cd Chess
+git clone https://github.com/Ka-raS/ches.git
+cd ches
 cmake -B build
 cmake --build build
-./build/Chess
+./build/app/ches
 ```

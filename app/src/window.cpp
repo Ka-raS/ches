@@ -1,0 +1,59 @@
+#include <algorithm>
+#include <raylib.h>
+#include "window.hpp"
+#include "config.hpp"
+
+namespace ches
+{
+ 
+Window::Window() {
+    EnableEventWaiting();
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
+    InitWindow(config::WINDOW_WIDTH, config::WINDOW_HEIGHT, config::WINDOW_TITLE);
+
+    _renderTarget = LoadRenderTexture(config::WINDOW_WIDTH, config::WINDOW_HEIGHT);
+}
+
+Window::~Window() {
+    CloseWindow();
+}
+
+void Window::render() const {
+    // Draw to render target
+
+    BeginTextureMode(_renderTarget);
+    ClearBackground(config::BACKGROUND_COLOR);
+
+    // do some drawing here
+
+    EndTextureMode();
+
+    // Draw the scaled render target to screen
+
+    BeginDrawing();
+    ClearBackground(config::BACKGROUND_COLOR);
+
+    float screenWidth = GetScreenWidth();
+    float screenHeight = GetScreenHeight();
+    float scale = std::min(screenWidth / config::WINDOW_WIDTH, screenHeight / config::WINDOW_HEIGHT);
+    float destWeight = config::WINDOW_WIDTH * scale;
+    float destHeight = config::WINDOW_HEIGHT * scale;
+
+    constexpr Rectangle source = {
+        .x = 0, 
+        .y = 0, 
+        .width = config::WINDOW_WIDTH, 
+        .height = -config::WINDOW_HEIGHT
+    };
+    Rectangle dest = {
+        .x = (screenWidth - destWeight) / 2,
+        .y = (screenHeight - destHeight) / 2,
+        .width = destWeight,
+        .height = destHeight
+    };
+
+    DrawTexturePro(_renderTarget.texture, source, dest, {0, 0}, 0.0f, WHITE);
+    EndDrawing();
+}
+    
+} // namespace ches
