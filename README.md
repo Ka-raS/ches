@@ -13,5 +13,5 @@ git clone https://github.com/Ka-raS/ches.git
 cd ches
 cmake -B build
 cmake --build build
-./build/app/ches
+./build/ches
 ```

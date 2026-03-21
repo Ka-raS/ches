@@ -21,7 +21,7 @@ endif()
 
 # cheslib dependency
 
-add_subdirectory(lib/cheslib)
+add_subdirectory(lib/cheslib/)
 
 # ches project
 
@@ -31,6 +31,9 @@ add_executable(${PROJECT_NAME}
     src/window.cpp
 )
 
+target_link_libraries(${PROJECT_NAME} 
+    PRIVATE raylib
+    PRIVATE cheslib
+)
+
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
-target_link_libraries(${PROJECT_NAME} PUBLIC raylib)
-target_link_libraries(${PROJECT_NAME} PRIVATE cheslib)
