@@ -7,12 +7,12 @@ namespace ches {
 class Game {
   public:
     Game();
-    ~Game();
+    ~Game() = default;
     void run();
 
   private:
-    cheslib::Board _board;
     Window _window;
+    cheslib::Board _board;
 };
 
 } // namespace ches

@@ -6,9 +6,7 @@
 namespace ches {
 
 Game::Game() {
-}
-
-Game::~Game() {
+    
 }
 
 void Game::run() {

@@ -1,3 +1,4 @@
+#include <iostream>
 #include <algorithm>
 #include <raylib.h>
 #include "window.hpp"
@@ -7,29 +8,32 @@ namespace ches
 {
  
 Window::Window() {
-    EnableEventWaiting();
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(config::WINDOW_WIDTH, config::WINDOW_HEIGHT, config::WINDOW_TITLE);
-
+    EnableEventWaiting();
     _renderTarget = LoadRenderTexture(config::WINDOW_WIDTH, config::WINDOW_HEIGHT);
+    _drawables.reserve(5);
 }
 
 Window::~Window() {
+    UnloadRenderTexture(_renderTarget);
     CloseWindow();
+}
+
+void Window::addDrawable(const Drawable &drawable) {
+    _drawables.emplace_back(drawable);
 }
 
 void Window::render() const {
     // Draw to render target
-
     BeginTextureMode(_renderTarget);
     ClearBackground(config::BACKGROUND_COLOR);
-
-    // do some drawing here
-
+    for (const auto &drawable : _drawables) {
+        drawable.get().draw();
+    }
     EndTextureMode();
 
     // Draw the scaled render target to screen
-
     BeginDrawing();
     ClearBackground(config::BACKGROUND_COLOR);
 

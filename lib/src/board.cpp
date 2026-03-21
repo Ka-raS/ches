@@ -1,11 +1,12 @@
 #include "cheslib/board.hpp"
+#include "cheslib/constants.hpp"
 
 namespace cheslib {
 
 Board::Board() {
     // use info from bitboard to initialize squares
-    for (size_t row = 0; row < 64; row++) {
-        for (size_t col = 0; col < 64; col++) {
+    for (size_t row = 0; row < consts::BOARD_SIZE; row++) {
+        for (size_t col = 0; col < consts::BOARD_SIZE; col++) {
             _squares[row][col] = _bitBoard.pieceAt(row, col);
         }
     }
