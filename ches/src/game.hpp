@@ -1,6 +1,5 @@
 #pragma once
 #include "window.hpp"
-#include "cheslib/board.hpp"
 
 namespace ches {
 
@@ -12,7 +11,6 @@ class Game {
 
   private:
     Window _window;
-    cheslib::Board _board;
 };
 
 } // namespace ches

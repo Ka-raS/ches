@@ -1,9 +1,11 @@
 #pragma once
-#include "drawable.hpp"
 #include <vector>
 #include <raylib.h>
+#include "drawable.hpp"
 
 namespace ches {
+
+//nên có các hàm raylib draw wrapper để xử lý scaling 
 
 class Window {
   public:

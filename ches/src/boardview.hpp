@@ -1,6 +1,6 @@
 #pragma once
 
-#include "cheslib/board.hpp"
+#include "drawable.hpp"
 
 namespace ches {
 
