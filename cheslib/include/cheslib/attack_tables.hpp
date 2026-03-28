@@ -18,29 +18,8 @@ constexpr uint64_t queen_attacks(int sq, uint64_t occupancy);
 
 namespace {
 
-constexpr std::array<int, NUM_SQUARES> popcounts(const std::array<uint64_t, NUM_SQUARES> &masks) {
-    std::array<int, NUM_SQUARES> result = {0};
-
-    for (int sq = 0; sq < NUM_SQUARES; ++sq) {
-        result[sq] = std::popcount(masks[sq]);
-    }
-
-    return result;
-}
-
 constexpr bool is_inbounds(int x, int y) {
     return 0 <= x && x < BOARD_SIZE && 0 <= y && y < BOARD_SIZE;
-}
-
-constexpr std::array<size_t, NUM_SQUARES> occupancy_offsets(const std::array<int, NUM_SQUARES> &shifts) {
-    std::array<size_t, NUM_SQUARES> result = {0};
-
-    for (int sq = 1; sq < NUM_SQUARES; ++sq) {
-        size_t prev_size = 1ULL << shifts[sq - 1];
-        result[sq] = result[sq - 1] + prev_size;
-    }
-
-    return result;
 }
 
 template <size_t N> constexpr std::array<uint64_t, NUM_SQUARES> stepping_attacks(const std::array<int, N> &offsets) {
@@ -96,8 +75,6 @@ constexpr uint64_t sliding_attack_at(int sq, uint64_t blockers, const std::array
     for (int dir : directions) {
         int dx = dir % BOARD_SIZE;
         int dy = dir / BOARD_SIZE;
-        int nx = x + dx;
-        int ny = y + dy;
 
         for (int nx = x + dx, ny = y + dy; is_inbounds(nx, ny); nx += dx, ny += dy) {
             int next = ny * BOARD_SIZE + nx;
@@ -153,6 +130,27 @@ constexpr std::array<uint64_t, ATTACKS_N> sliding_attacks(
     return attacks;
 }
 
+constexpr std::array<int, NUM_SQUARES> popcounts(const std::array<uint64_t, NUM_SQUARES> &masks) {
+    std::array<int, NUM_SQUARES> result = {0};
+
+    for (int sq = 0; sq < NUM_SQUARES; ++sq) {
+        result[sq] = std::popcount(masks[sq]);
+    }
+
+    return result;
+}
+
+constexpr std::array<size_t, NUM_SQUARES> occupancy_offsets(const std::array<int, NUM_SQUARES> &shifts) {
+    std::array<size_t, NUM_SQUARES> result = {0};
+
+    for (int sq = 1; sq < NUM_SQUARES; ++sq) {
+        size_t prev_size = 1ULL << shifts[sq - 1];
+        result[sq] = result[sq - 1] + prev_size;
+    }
+
+    return result;
+}
+
 constexpr std::array<int, 8> KNIGHT_DIRS = {UP_RIGHT + UP,    UP_RIGHT + RIGHT, DOWN_RIGHT + RIGHT, DOWN_RIGHT + DOWN,
                                             DOWN_LEFT + DOWN, DOWN_LEFT + LEFT, UP_LEFT + LEFT,     UP_LEFT + UP};
 constexpr std::array<int, 8> KING_DIRS = {UP, UP_RIGHT, RIGHT, DOWN_RIGHT, DOWN, DOWN_LEFT, LEFT, UP_LEFT};
@@ -168,10 +166,8 @@ constexpr std::array<uint64_t, NUM_SQUARES> BLACK_PAWN_ATTACKS = stepping_attack
 
 constexpr std::array<uint64_t, NUM_SQUARES> ROOK_MASKS = sliding_blockers(ROOK_DIRS);
 constexpr std::array<uint64_t, NUM_SQUARES> BISHOP_MASKS = sliding_blockers(BISHOP_DIRS);
-
 constexpr std::array<int, NUM_SQUARES> ROOK_SHIFTS = popcounts(ROOK_MASKS);
 constexpr std::array<int, NUM_SQUARES> BISHOP_SHIFTS = popcounts(BISHOP_MASKS);
-
 constexpr std::array<size_t, NUM_SQUARES> ROOK_OFFSETS = occupancy_offsets(ROOK_SHIFTS);
 constexpr std::array<size_t, NUM_SQUARES> BISHOP_OFFSETS = occupancy_offsets(BISHOP_SHIFTS);
 
