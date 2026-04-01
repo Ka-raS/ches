@@ -3,26 +3,25 @@
 #include <vector>
 
 #include "cheslib/move.hpp"
-#include "cheslib/board.hpp"
-#include "cheslib/attack_tables.hpp"
-#include "cheslib/constants.hpp"
+#include "cheslib/types.hpp"
 
 namespace cheslib {
 
-class GameMaster {
+class ChesMaster {
   public:
-    GameMaster() {
+    ChesMaster() {
     }
 
     void reset() {
     }
 
     bool move(Move move) {
+        return true;
     }
 
-    Board get_board() const {
-        return _board;
-    }
+    // Board get_board() const {
+    //     return _board;
+    // }
 
     void get_all_moves() const {
     }
@@ -31,7 +30,7 @@ class GameMaster {
     }
 
   private:
-    Board _board;
+    // Board _board;
 };
 
 } // namespace cheslib
