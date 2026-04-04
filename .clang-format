@@ -1,3 +1,4 @@
 BasedOnStyle: Microsoft
 BreakBeforeBraces: Attach
 AlignAfterOpenBracket: BlockIndent
+AlwaysBreakTemplateDeclarations: true

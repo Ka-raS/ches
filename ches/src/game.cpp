@@ -4,12 +4,10 @@
 
 #include "config.hpp"
 #include "game.hpp"
-#include "cheslib/game_master.hpp"
 
 namespace ches {
 
 Game::Game() {
-    cheslib::GameMaster gameMaster;
 }
 
 void Game::run() {

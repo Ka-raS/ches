@@ -4,12 +4,15 @@
 
 namespace cheslib {
 
+/**
+ * `uint64_t` represents 64 squares on chessboard
+ * if bit=1 then a piece type is on the square
+ * see: https://www.chessprogramming.org/Bitboards
+ */
 using Bitboard = uint64_t;
 
 // clang-format off
-/**
- * Enum representing each square on the chessboard.
- */
+
 enum Square : uint8_t {
     SQUARE_A1, SQUARE_B1, SQUARE_C1, SQUARE_D1, SQUARE_E1, SQUARE_F1, SQUARE_G1, SQUARE_H1,
     SQUARE_A2, SQUARE_B2, SQUARE_C2, SQUARE_D2, SQUARE_E2, SQUARE_F2, SQUARE_G2, SQUARE_H2,
@@ -47,6 +50,16 @@ enum File : uint8_t {
     FILE_CNT
 };
 
+enum Piece : uint8_t {
+    PAWN,
+    KNIGHT,
+    BISHOP,
+    ROOK,
+    QUEEN,
+    KING,
+    PIECE_CNT
+};
+
 enum Direction : int8_t {
     UP = SQUARE_A1 + SQUARE_A2,
     RIGHT = SQUARE_A1 + SQUARE_B1,
@@ -59,18 +72,12 @@ enum Direction : int8_t {
     UP_LEFT = -DOWN_RIGHT
 };
 
-enum Piece : uint8_t {
-    PAWN,
-    KNIGHT,
-    BISHOP,
-    ROOK,
-    QUEEN,
-    KING,
-    PIECE_CNT
-};
-
 constexpr Square operator++(Square &sq) {
-    return sq = Square(sq + 1U);;
+    return sq = Square(sq + 1U);
+}
+
+constexpr Piece operator++(Piece &p) {
+    return p = Piece(p + 1U);
 }
 
 } // namespace cheslib
