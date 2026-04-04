@@ -7,8 +7,9 @@ if(NOT raylib_FOUND)
     include(FetchContent)
     FetchContent_Declare(
         raylib
-        DOWNLOAD_EXTRACT_TIMESTAMP OFF
         URL https://github.com/raysan5/raylib/archive/refs/tags/${RAYLIB_VERSION}.tar.gz
+        URL_HASH SHA256=aea98ecf5bc5c5e0b789a76de0083a21a70457050ea4cc2aec7566935f5e258e
+        DOWNLOAD_EXTRACT_TIMESTAMP OFF
         # TLS_VERIFY OFF # if cannot verify SSL certificate
     )
 

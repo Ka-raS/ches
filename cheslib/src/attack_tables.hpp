@@ -36,7 +36,7 @@ inline constexpr std::array<uint32_t, SQUARE_CNT> BISHOP_OFFSETS = occupancy_off
 
 // generated on 2026-04-01 using attack_precompute.hpp's find_magic()
 // the numbers mason what do they mean????
-inline constexpr std::array<Bitboard, SQUARE_CNT> ROOK_MAGICS = {
+inline constexpr std::array<uint64_t, SQUARE_CNT> ROOK_MAGICS = {
     0x0080002852814000ULL, 0x0040004020001000ULL, 0x0100100840200100ULL, 0x0100100114886100ULL, 0x0e00304820220004ULL,
     0x1200040200100108ULL, 0x4500089406004500ULL, 0x020002408404b201ULL, 0x0402002200884100ULL, 0x8000400040201009ULL,
     0x0008802000801008ULL, 0x01020010400a0420ULL, 0x3382808004000800ULL, 0x0022001002000904ULL, 0x8104000884010230ULL,
@@ -51,7 +51,7 @@ inline constexpr std::array<Bitboard, SQUARE_CNT> ROOK_MAGICS = {
     0x4020208421004200ULL, 0x0005510a20800043ULL, 0x00004000e0198301ULL, 0x01000b0120001041ULL, 0x1000900005002089ULL,
     0x2509000208001085ULL, 0x0002001001880402ULL, 0x0400081029009204ULL, 0x0000104404228502ULL
 };
-inline constexpr std::array<Bitboard, SQUARE_CNT> BISHOP_MAGICS = {
+inline constexpr std::array<uint64_t, SQUARE_CNT> BISHOP_MAGICS = {
     0x0041221096008100ULL, 0x2002848802084000ULL, 0x0004040404408000ULL, 0x1404404288000690ULL, 0x0404042200111000ULL,
     0x3050882049010010ULL, 0x0804010829041080ULL, 0x4028260050081808ULL, 0x0800100222480210ULL, 0x0000210404004048ULL,
     0x90410800840a9001ULL, 0x04100440488412a0ULL, 0x8000508820048001ULL, 0x0444008210400000ULL, 0x0000090401204844ULL,
@@ -97,11 +97,11 @@ constexpr Bitboard rook_attacks(Square from, Bitboard occupancy) {
     assert(from < SQUARE_CNT);
 
     Bitboard mask = detail::ROOK_MASKS[from];
-    Bitboard magic = detail::ROOK_MAGICS[from];
+    uint64_t magic = detail::ROOK_MAGICS[from];
     uint8_t shift = detail::ROOK_SHIFTS[from];
     uint32_t offset = detail::ROOK_OFFSETS[from];
 
-    size_t index = detail::magic_index(occupancy & mask, magic, shift);
+    size_t index = detail::magic_index(occupancy, mask, magic, shift);
     return detail::ROOK_ATTACKS[offset + index];
 }
 
@@ -109,11 +109,11 @@ constexpr Bitboard bishop_attacks(Square from, Bitboard occupancy) {
     assert(from < SQUARE_CNT);
 
     Bitboard mask = detail::BISHOP_MASKS[from];
-    Bitboard magic = detail::BISHOP_MAGICS[from];
+    uint64_t magic = detail::BISHOP_MAGICS[from];
     uint8_t shift = detail::BISHOP_SHIFTS[from];
     uint32_t offset = detail::BISHOP_OFFSETS[from];
 
-    size_t index = detail::magic_index(occupancy & mask, magic, shift);
+    size_t index = detail::magic_index(occupancy, mask, magic, shift);
     return detail::BISHOP_ATTACKS[offset + index];
 }
 

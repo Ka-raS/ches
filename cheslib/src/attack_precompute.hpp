@@ -9,13 +9,13 @@
 
 namespace cheslib::detail {
 
-std::array<Bitboard, SQUARE_CNT> magic_numbers(
+std::array<uint64_t, SQUARE_CNT> magic_numbers(
     const std::array<Bitboard, SQUARE_CNT> &masks, const std::array<uint8_t, SQUARE_CNT> &shifts,
     const std::array<Direction, 4> &directions
 );
 
-constexpr size_t magic_index(Bitboard occupancy, Bitboard magic, uint8_t shift) {
-    return (occupancy * magic) >> (64 - shift);
+constexpr size_t magic_index(Bitboard occupancy, Bitboard mask, uint64_t magic, uint8_t shift) {
+    return ((occupancy & mask) * magic) >> (64 - shift);
 }
 
 constexpr std::array<uint8_t, SQUARE_CNT> popcounts(const std::array<Bitboard, SQUARE_CNT> &masks) {
@@ -116,7 +116,7 @@ constexpr Bitboard occupancy_from_subset(
 
 template <size_t N>
 constexpr std::array<Bitboard, N> sliding_attacks(
-    const std::array<Bitboard, SQUARE_CNT> &masks, const std::array<Bitboard, SQUARE_CNT> &magics,
+    const std::array<Bitboard, SQUARE_CNT> &masks, const std::array<uint64_t, SQUARE_CNT> &magics,
     const std::array<uint8_t, SQUARE_CNT> &shifts, const std::array<uint32_t, SQUARE_CNT> &offsets,
     const std::array<Direction, 4> &directions
 ) {

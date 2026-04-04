@@ -7,7 +7,7 @@ namespace cheslib::detail {
 
 namespace {
 
-Bitboard find_magic(
+uint64_t find_magic(
     Square from, Bitboard mask, uint8_t shift, const std::array<Direction, 4> &directions, std::mt19937_64 &rng
 ) {
     constexpr size_t MAX_BLOCKERS = 12;
@@ -25,7 +25,7 @@ Bitboard find_magic(
     }
 
     while (true) {
-        const Bitboard magic = rng() & rng() & rng();
+        const uint64_t magic = rng() & rng() & rng();
 
         bool has_enough_bits = std::popcount((mask * magic) & 0xFF00000000000000ULL) >= 6;
         if (!has_enough_bits) {
@@ -58,11 +58,11 @@ Bitboard find_magic(
 
 } // namespace
 
-std::array<Bitboard, SQUARE_CNT> magic_numbers(
+std::array<uint64_t, SQUARE_CNT> magic_numbers(
     const std::array<Bitboard, SQUARE_CNT> &masks, const std::array<uint8_t, SQUARE_CNT> &shifts,
     const std::array<Direction, 4> &directions
 ) {
-    std::array<Bitboard, SQUARE_CNT> result{};
+    std::array<uint64_t, SQUARE_CNT> result{};
     std::mt19937_64 rng(std::random_device{}());
 
     for (Square sq = SQUARE_A1; sq < SQUARE_CNT; ++sq) {
