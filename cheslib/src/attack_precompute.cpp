@@ -38,7 +38,7 @@ uint64_t find_magic(
         Bitboard used_attacks[MAX_SUBSETS] = {0};
 
         for (size_t subset = 0; subset < subset_cnt; ++subset) {
-            size_t index = magic_index(occupancies[subset], magic, shift);
+            size_t index = magic_index(occupancies[subset], mask, magic, shift);
 
             if (!used_index[index]) {
                 used_index[index] = true;

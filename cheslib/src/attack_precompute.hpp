@@ -130,7 +130,7 @@ constexpr std::array<Bitboard, N> sliding_attacks(
         // iterate all occupancy subsets
         for (size_t subset = 0; subset < subset_cnt; ++subset) {
             Bitboard occupancy = occupancy_from_subset(subset, blocker_cnt, blocker_pos);
-            size_t index = magic_index(occupancy, magics[sq], shifts[sq]);
+            size_t index = magic_index(occupancy, masks[sq], magics[sq], shifts[sq]);
 
             attacks[offsets[sq] + index] = sliding_attack_at(sq, occupancy, directions);
         }

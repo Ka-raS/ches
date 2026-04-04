@@ -1,8 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 
+#include "attack_precompute.hpp"
 #include "attack_tables.hpp"
-#include "utils.hpp"
 #include "cheslib/types.hpp"
+#include "utils.hpp"
 
 namespace cheslib_test {
 
@@ -32,7 +33,7 @@ TEST_CASE("Pieces stepping attacks", "[attack_tables]") {
     SECTION("Pawn") {
         constexpr bool black = true;
         constexpr bool white = !black;
-        
+
         // edge files
         CHECK(pawn_attacks<white>(SQUARE_A2) == make_bitboard(SQUARE_B3));
         CHECK(pawn_attacks<black>(SQUARE_H7) == make_bitboard(SQUARE_G6));
@@ -103,8 +104,38 @@ TEST_CASE("Bishop sliding attacks", "[attack_tables]") {
 
 TEST_CASE("Constexpr checks", "[attack_tables]") {
     static_assert(std::popcount(knight_attacks(SQUARE_E4)) == 8);
+    static_assert(std::popcount(king_attacks(SQUARE_H1)) == 3);
     static_assert(pawn_attacks<false>(SQUARE_B2) == make_bitboard(SQUARE_A3, SQUARE_C3));
     static_assert(std::popcount(rook_attacks(SQUARE_A1, 0)) == 14);
+    static_assert(std::popcount(bishop_attacks(SQUARE_H2, 0)) == 7);
+    static_assert(std::popcount(queen_attacks(SQUARE_D5, 0)) == 27);
+}
+
+TEST_CASE("Sliding attacks random occupancy", "[attack_tables]") {
+    using namespace cheslib::detail;
+
+    Bitboard occupancy = 0x123456789ABCDEF0ULL;
+    auto reroll = [&occupancy]() {
+        occupancy ^= occupancy << 13;
+        occupancy ^= occupancy >> 7;
+        occupancy ^= occupancy << 17;
+    };
+
+    SECTION("Rook") {
+        for (Square sq = SQUARE_A1; sq < SQUARE_CNT; ++sq) {
+            Bitboard expected = sliding_attack_at(sq, occupancy, ROOK_DIRECTIONS);
+            CHECK(rook_attacks(sq, occupancy) == expected);
+            reroll();
+        }
+    }
+
+    SECTION("Bishop") {
+        for (Square sq = SQUARE_A1; sq < SQUARE_CNT; ++sq) {
+            Bitboard expected = sliding_attack_at(sq, occupancy, BISHOP_DIRECTIONS);
+            CHECK(bishop_attacks(sq, occupancy) == expected);
+            reroll();
+        }
+    }
 }
 
 } // namespace cheslib_test
