@@ -1,177 +1,22 @@
 #pragma once
 
-#include <array>
-#include <bit>
-#include <cassert>
-#include <cstdint>
-#include <cstdlib>
-
-#include "cheslib/types.hpp"
+#include "attack_precompute.hpp"
 
 namespace cheslib {
 
 constexpr Bitboard knight_attacks(Square from);
 constexpr Bitboard king_attacks(Square from);
-constexpr Bitboard white_pawn_attacks(Square from);
-constexpr Bitboard black_pawn_attacks(Square from);
 constexpr Bitboard rook_attacks(Square from, Bitboard occupancy);
 constexpr Bitboard bishop_attacks(Square from, Bitboard occupancy);
 
+constexpr Bitboard queen_attacks(Square from, Bitboard occupancy) {
+    return bishop_attacks(from, occupancy) | rook_attacks(from, occupancy);
+}
+
+template <bool IsBlack>
+constexpr Bitboard pawn_attacks(Square from);
+
 namespace detail {
-
-// generate new rook magic numbers
-std::array<Bitboard, SQUARE_CNT> rook_magics();
-
-// generate new bishop magic numbers
-std::array<Bitboard, SQUARE_CNT> bishop_magics();
-
-constexpr std::array<uint8_t, SQUARE_CNT> popcounts(const std::array<Bitboard, SQUARE_CNT> &masks) {
-    std::array<uint8_t, SQUARE_CNT> result = {0};
-
-    for (Square sq = SQUARE_A1; sq < SQUARE_CNT; ++sq) {
-        result[sq] = std::popcount(masks[sq]);
-    }
-
-    return result;
-}
-
-constexpr std::array<uint32_t, SQUARE_CNT> occupancy_offsets(const std::array<uint8_t, SQUARE_CNT> &shifts) {
-    std::array<uint32_t, SQUARE_CNT> result = {0};
-
-    for (Square sq = Square(1); sq < SQUARE_CNT; ++sq) {
-        uint32_t prev_size = 1U << shifts[sq - 1];
-        result[sq] = result[sq - 1] + prev_size;
-    }
-
-    return result;
-}
-
-constexpr Square add_square(Square from, int8_t step) {
-    Square to = Square(from + step);
-    if (to >= SQUARE_CNT) {
-        return SQUARE_CNT;
-    }
-
-    // check file wraparound
-    File from_file = File(from % (uint8_t)FILE_CNT);
-    File to_file = File(to % (uint8_t)FILE_CNT);
-    if (std::abs(to_file - from_file) > 2) {
-        return SQUARE_CNT;
-    }
-
-    return to;
-}
-
-template <size_t N> constexpr std::array<Bitboard, SQUARE_CNT> stepping_attacks(const std::array<int8_t, N> &steps) {
-    std::array<Bitboard, SQUARE_CNT> result = {0};
-
-    for (Square sq = SQUARE_A1; sq < SQUARE_CNT; ++sq) {
-        for (int8_t step : steps) {
-            Square next = add_square(sq, step);
-            if (next < SQUARE_CNT) {
-                result[sq] |= 1ULL << next;
-            }
-        }
-    }
-
-    return result;
-}
-
-constexpr std::array<Bitboard, SQUARE_CNT> sliding_blockers(const std::array<Direction, 4> &directions) {
-    std::array<Bitboard, SQUARE_CNT> result = {0};
-
-    for (Square sq = SQUARE_A1; sq < SQUARE_CNT; ++sq) {
-        for (Direction dir : directions) {
-            Square curr = add_square(sq, dir);
-            if (curr >= SQUARE_CNT) {
-                continue;
-            }
-
-            // exclude edge squares
-            Square next = add_square(curr, dir);
-            while (next < SQUARE_CNT) {
-                result[sq] |= 1ULL << curr;
-                curr = next;
-                next = add_square(curr, dir);
-            }
-        }
-    }
-
-    return result;
-}
-
-constexpr std::array<Square, 12> blockers_from_mask(Bitboard mask) {
-    std::array<Square, 12> blocker_squares{};
-    blocker_squares.fill(SQUARE_CNT);
-    size_t count = 0;
-
-    for (Square s = SQUARE_A1; s < SQUARE_CNT; ++s) {
-        bool has_blocker = mask & (1ULL << s);
-        if (has_blocker) {
-            blocker_squares[count++] = s;
-        }
-    }
-
-    return blocker_squares;
-}
-
-constexpr Bitboard occupancy_from_subset(
-    uint32_t subset, size_t blocker_cnt, const std::array<Square, 12> &blocker_squares
-) {
-    Bitboard occupancy = 0;
-    for (size_t i = 0; i < blocker_cnt; ++i) {
-        bool in_subset = subset & (1U << i);
-        if (in_subset && blocker_squares[i] < SQUARE_CNT) {
-            occupancy |= 1ULL << blocker_squares[i];
-        }
-    }
-    return occupancy;
-}
-
-template <size_t N>
-constexpr Bitboard sliding_attack_at(Square from, Bitboard occupancy, const std::array<Direction, N> &directions) {
-    Bitboard result = 0;
-
-    for (Direction dir : directions) {
-        Square curr = add_square(from, dir);
-
-        while (curr < SQUARE_CNT) {
-            result |= 1ULL << curr;
-            bool is_blocked = occupancy & (1ULL << curr);
-            if (is_blocked) {
-                break;
-            }
-            curr = add_square(curr, dir);
-        }
-    }
-
-    return result;
-}
-
-template <size_t N>
-constexpr std::array<Bitboard, N> sliding_attacks(
-    const std::array<Bitboard, SQUARE_CNT> &masks, const std::array<Bitboard, SQUARE_CNT> &magics,
-    const std::array<uint8_t, SQUARE_CNT> &shifts, const std::array<uint32_t, SQUARE_CNT> &offsets,
-    const std::array<Direction, 4> &directions
-) {
-    std::array<Bitboard, N> attacks = {0};
-
-    for (Square sq = SQUARE_A1; sq < SQUARE_CNT; ++sq) {
-        std::array<Square, 12> blocker_squares = blockers_from_mask(masks[sq]);
-        const size_t blocker_cnt = shifts[sq];
-        const size_t subset_cnt = 1U << blocker_cnt;
-
-        // iterate all occupancy subsets
-        for (size_t subset = 0; subset < subset_cnt; ++subset) {
-            Bitboard occupancy = occupancy_from_subset(subset, blocker_cnt, blocker_squares);
-
-            size_t index = occupancy * magics[sq] >> (64 - shifts[sq]);
-            attacks[offsets[sq] + index] = sliding_attack_at(sq, occupancy, directions);
-        }
-    }
-
-    return attacks;
-}
 
 inline constexpr std::array<int8_t, 8> KNIGHT_STEPS = {UP_RIGHT + UP,     UP_RIGHT + RIGHT, DOWN_RIGHT + RIGHT,
                                                        DOWN_RIGHT + DOWN, DOWN_LEFT + DOWN, DOWN_LEFT + LEFT,
@@ -182,11 +27,6 @@ inline constexpr std::array<int8_t, 2> BLACK_PAWN_STEPS = {DOWN_LEFT, DOWN_RIGHT
 inline constexpr std::array<Direction, 4> ROOK_DIRECTIONS = {UP, RIGHT, DOWN, LEFT};
 inline constexpr std::array<Direction, 4> BISHOP_DIRECTIONS = {UP_RIGHT, DOWN_RIGHT, DOWN_LEFT, UP_LEFT};
 
-inline constexpr std::array<Bitboard, SQUARE_CNT> KNIGHT_ATTACKS = stepping_attacks(KNIGHT_STEPS);
-inline constexpr std::array<Bitboard, SQUARE_CNT> KING_ATTACKS = stepping_attacks(KING_STEPS);
-inline constexpr std::array<Bitboard, SQUARE_CNT> WHITE_PAWN_ATTACKS = stepping_attacks(WHITE_PAWN_STEPS);
-inline constexpr std::array<Bitboard, SQUARE_CNT> BLACK_PAWN_ATTACKS = stepping_attacks(BLACK_PAWN_STEPS);
-
 inline constexpr std::array<Bitboard, SQUARE_CNT> ROOK_MASKS = sliding_blockers(ROOK_DIRECTIONS);
 inline constexpr std::array<Bitboard, SQUARE_CNT> BISHOP_MASKS = sliding_blockers(BISHOP_DIRECTIONS);
 inline constexpr std::array<uint8_t, SQUARE_CNT> ROOK_SHIFTS = popcounts(ROOK_MASKS);
@@ -194,7 +34,8 @@ inline constexpr std::array<uint8_t, SQUARE_CNT> BISHOP_SHIFTS = popcounts(BISHO
 inline constexpr std::array<uint32_t, SQUARE_CNT> ROOK_OFFSETS = occupancy_offsets(ROOK_SHIFTS);
 inline constexpr std::array<uint32_t, SQUARE_CNT> BISHOP_OFFSETS = occupancy_offsets(BISHOP_SHIFTS);
 
-// generated on 2026-04-01
+// generated on 2026-04-01 using attack_precompute.hpp's find_magic()
+// the numbers mason what do they mean????
 inline constexpr std::array<Bitboard, SQUARE_CNT> ROOK_MAGICS = {
     0x0080002852814000ULL, 0x0040004020001000ULL, 0x0100100840200100ULL, 0x0100100114886100ULL, 0x0e00304820220004ULL,
     0x1200040200100108ULL, 0x4500089406004500ULL, 0x020002408404b201ULL, 0x0402002200884100ULL, 0x8000400040201009ULL,
@@ -235,6 +76,11 @@ inline constexpr std::array<Bitboard, ROOK_SIZE> ROOK_ATTACKS =
 inline constexpr std::array<Bitboard, BISHOP_SIZE> BISHOP_ATTACKS =
     sliding_attacks<BISHOP_SIZE>(BISHOP_MASKS, BISHOP_MAGICS, BISHOP_SHIFTS, BISHOP_OFFSETS, BISHOP_DIRECTIONS);
 
+inline constexpr std::array<Bitboard, SQUARE_CNT> KNIGHT_ATTACKS = stepping_attacks(KNIGHT_STEPS);
+inline constexpr std::array<Bitboard, SQUARE_CNT> KING_ATTACKS = stepping_attacks(KING_STEPS);
+inline constexpr std::array<Bitboard, SQUARE_CNT> WHITE_PAWN_ATTACKS = stepping_attacks(WHITE_PAWN_STEPS);
+inline constexpr std::array<Bitboard, SQUARE_CNT> BLACK_PAWN_ATTACKS = stepping_attacks(BLACK_PAWN_STEPS);
+
 } // namespace detail
 
 constexpr Bitboard knight_attacks(Square from) {
@@ -247,16 +93,6 @@ constexpr Bitboard king_attacks(Square from) {
     return detail::KING_ATTACKS[from];
 }
 
-constexpr Bitboard white_pawn_attacks(Square from) {
-    assert(from < SQUARE_CNT);
-    return detail::WHITE_PAWN_ATTACKS[from];
-}
-
-constexpr Bitboard black_pawn_attacks(Square from) {
-    assert(from < SQUARE_CNT);
-    return detail::BLACK_PAWN_ATTACKS[from];
-}
-
 constexpr Bitboard rook_attacks(Square from, Bitboard occupancy) {
     assert(from < SQUARE_CNT);
 
@@ -265,7 +101,7 @@ constexpr Bitboard rook_attacks(Square from, Bitboard occupancy) {
     uint8_t shift = detail::ROOK_SHIFTS[from];
     uint32_t offset = detail::ROOK_OFFSETS[from];
 
-    size_t index = (occupancy & mask) * magic >> (64 - shift);
+    size_t index = detail::magic_index(occupancy & mask, magic, shift);
     return detail::ROOK_ATTACKS[offset + index];
 }
 
@@ -277,8 +113,14 @@ constexpr Bitboard bishop_attacks(Square from, Bitboard occupancy) {
     uint8_t shift = detail::BISHOP_SHIFTS[from];
     uint32_t offset = detail::BISHOP_OFFSETS[from];
 
-    size_t index = (occupancy & mask) * magic >> (64 - shift);
+    size_t index = detail::magic_index(occupancy & mask, magic, shift);
     return detail::BISHOP_ATTACKS[offset + index];
+}
+
+template <bool IsBlack>
+constexpr Bitboard pawn_attacks(Square from) {
+    assert(from < SQUARE_CNT);
+    return IsBlack ? detail::BLACK_PAWN_ATTACKS[from] : detail::WHITE_PAWN_ATTACKS[from];
 }
 
 } // namespace cheslib
