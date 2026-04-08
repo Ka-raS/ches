@@ -1,28 +1,30 @@
 #pragma once
 
 #include <cassert>
+#include <cstddef>
 #include <cstdint>
+#include <utility>
 
 #include "cheslib/types.hpp"
 
-namespace cheslib {
+namespace ches {
 
 enum MoveFlag : uint8_t {
-    QUIET_MOVE = 0,
-    DOUBLE_PAWN_PUSH = 1,
-    SHORT_CASTLE = 2,
-    LONG_CASTLE = 3,
-    CAPTURE = 4,
-    EN_PASSANT = 5,
+    QuietMove = 0,
+    DoublePawnPush = 1,
+    ShortCastle = 2,
+    LongCastle = 3,
+    Capture = 4,
+    EnPassant = 5,
 
-    KNIGHT_PROMO = 8,
-    BISHOP_PROMO = 9,
-    ROOK_PROMO = 10,
-    QUEEN_PROMO = 11,
-    KNIGHT_PROMO_CAP = 12,
-    BISHOP_PROMO_CAP = 13,
-    ROOK_PROMO_CAP = 14,
-    QUEEN_PROMO_CAP = 15
+    KnightPromo = 8,
+    BishopPromo = 9,
+    RookPromo = 10,
+    QueenPromo = 11,
+    KnightPromoCap = 12,
+    BishopPromoCap = 13,
+    RookPromoCap = 14,
+    QueenPromoCap = 15
 };
 
 constexpr MoveFlag operator--(MoveFlag &flag) {
@@ -41,12 +43,13 @@ constexpr MoveFlag operator--(MoveFlag &flag) {
  */
 class Move {
   public:
-    constexpr Move() : _data(0) {};
+    constexpr Move() : _data(0) {
+    }
 
     constexpr Move(Square from, Square to, MoveFlag flag) : _data(from | (to << 6) | (flag << 12)) {
-        assert(from < SQUARE_CNT);
-        assert(to < SQUARE_CNT);
-        assert(flag <= QUEEN_PROMO_CAP);
+        assert(from < SquareCNT);
+        assert(to < SquareCNT);
+        assert(flag <= QueenPromoCap);
     }
 
     constexpr Square from() const {
@@ -61,19 +64,22 @@ class Move {
         return MoveFlag((_data >> 12) & 0b1111);
     }
 
-    constexpr Piece promotion_piece() const {
-        uint8_t f = flag();
+    constexpr bool isPromotion() const {
+        return flag() & 0b1000;
+    }
+
+    constexpr PieceType promotion_piece() const {
+        MoveFlag f = flag();
         bool is_promo = f & 0b1000;
-        return is_promo ? Piece(KNIGHT + f & 0b11) : PIECE_CNT;
+        return is_promo ? PieceType((f & 0b11) + Knight) : PieceTypeCNT;
     }
 
     constexpr bool isCapture() const {
         return flag() & 0b0100;
     }
 
-    constexpr bool isCastle() const {
-        MoveFlag f = flag();
-        return f == SHORT_CASTLE || f == LONG_CASTLE;
+    constexpr bool operator==(Move other) const {
+        return _data == other._data;
     }
 
   private:
@@ -97,12 +103,23 @@ class MoveList {
         return _end == _moves;
     }
 
-    constexpr void clear() {
-        _end = _moves;
+    constexpr size_t size() const {
+        return _end - _moves;
     }
 
-    constexpr void add(Square from, Square to, MoveFlag flag) {
-        *_end++ = Move(from, to, flag);
+    template <typename... Args>
+    constexpr void add(Args &&...args) {
+        assert(size() < 256); // not happening
+        *_end++ = Move(std::forward<Args>(args)...);
+    }
+
+    constexpr bool has(Move target) const {
+        for (Move move : *this) {
+            if (move == target) {
+                return true;
+            }
+        }
+        return false;
     }
 
   private:
@@ -110,4 +127,4 @@ class MoveList {
     Move *_end;
 };
 
-} // namespace cheslib
+} // namespace ches

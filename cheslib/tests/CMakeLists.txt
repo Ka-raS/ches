@@ -1,4 +1,4 @@
-# Catch2 tests
+# Catch2 dependency
 
 set(Catch2_VERSION 3.13.0)
 find_package(Catch2 ${Catch2_VERSION} QUIET)
@@ -17,10 +17,13 @@ if(NOT Catch2_FOUND)
     FetchContent_MakeAvailable(Catch2)
 endif()
 
+# cheslib tests
+
 set(NAME cheslib_test)
 
 add_executable(${NAME}
-    test_attack_tables.cpp 
+    test_attack_tables.cpp
+    test_move_generation.cpp
 )
 
 target_include_directories(${NAME} PRIVATE ../src)

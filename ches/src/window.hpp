@@ -3,8 +3,6 @@
 #include <raylib.h>
 #include "drawable.hpp"
 
-namespace ches {
-
 //nên có các hàm raylib draw wrapper để xử lý scaling 
 
 class Window {
@@ -18,5 +16,3 @@ class Window {
     RenderTexture2D _renderTarget;
     std::vector<std::reference_wrapper<const Drawable>> _drawables;
 };
-
-} // namespace ches

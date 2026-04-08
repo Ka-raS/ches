@@ -1,6 +1,6 @@
 #include "game.hpp"
 
 int main() {
-    ches::Game game;
+    Game game;
     game.run();
 }

@@ -5,8 +5,6 @@
 #include "config.hpp"
 #include "game.hpp"
 
-namespace ches {
-
 Game::Game() {
 }
 
@@ -15,5 +13,3 @@ void Game::run() {
         _window.render();
     }
 }
-
-} // namespace ches

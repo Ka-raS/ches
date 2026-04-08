@@ -1,12 +1,8 @@
-#include <iostream>
-#include <algorithm>
-#include <raylib.h>
 #include "window.hpp"
 #include "config.hpp"
+#include <algorithm>
+#include <raylib.h>
 
-namespace ches
-{
- 
 Window::Window() {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(config::WINDOW_WIDTH, config::WINDOW_HEIGHT, config::WINDOW_TITLE);
@@ -43,12 +39,7 @@ void Window::render() const {
     float destWeight = config::WINDOW_WIDTH * scale;
     float destHeight = config::WINDOW_HEIGHT * scale;
 
-    constexpr Rectangle source = {
-        .x = 0, 
-        .y = 0, 
-        .width = config::WINDOW_WIDTH, 
-        .height = -config::WINDOW_HEIGHT
-    };
+    constexpr Rectangle source = {.x = 0, .y = 0, .width = config::WINDOW_WIDTH, .height = -config::WINDOW_HEIGHT};
     Rectangle dest = {
         .x = (screenWidth - destWeight) / 2,
         .y = (screenHeight - destHeight) / 2,
@@ -59,5 +50,3 @@ void Window::render() const {
     DrawTexturePro(_renderTarget.texture, source, dest, {0, 0}, 0.0f, WHITE);
     EndDrawing();
 }
-    
-} // namespace ches

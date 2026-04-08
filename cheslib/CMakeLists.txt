@@ -1,13 +1,11 @@
 cmake_minimum_required(VERSION 3.14)
 project(cheslib VERSION 0.1.0 LANGUAGES C CXX)
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-    enable_testing()
-endif()
-
 add_library(${PROJECT_NAME} STATIC
-    src/attack_precompute.cpp
+    src/attack_tables.cpp
+    src/move_generation.cpp
     src/position.cpp
+    src/zobrist.cpp
 )
 
 target_include_directories(${PROJECT_NAME} PUBLIC include/)
@@ -21,4 +19,16 @@ else() # GCC
     target_compile_options(${PROJECT_NAME} PUBLIC -fconstexpr-ops-limit=300000000)
 endif()
 
-add_subdirectory(tests)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    enable_testing()
+endif()
+
+if(CMAKE_TESTING_ENABLED)
+    add_subdirectory(tests)
+endif()
+
+option(CHESLIB_BUILD_TOOLS "Build cheslib helper tools" OFF)
+
+if(CHESLIB_BUILD_TOOLS)
+    add_subdirectory(tools)
+endif()

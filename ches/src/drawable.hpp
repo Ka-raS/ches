@@ -1,7 +1,5 @@
 #pragma once
 
-namespace ches {
-
 class Drawable {
   public:
     virtual ~Drawable();
@@ -10,5 +8,3 @@ class Drawable {
   protected:
     Drawable() = default;
 };
-
-} // namespace ches

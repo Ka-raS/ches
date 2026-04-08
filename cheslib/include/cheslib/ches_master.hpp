@@ -5,7 +5,7 @@
 #include "cheslib/move.hpp"
 #include "cheslib/types.hpp"
 
-namespace cheslib {
+namespace ches {
 
 class ChesMaster {
   public:
@@ -33,4 +33,4 @@ class ChesMaster {
     // Board _board;
 };
 
-} // namespace cheslib
+} // namespace ches

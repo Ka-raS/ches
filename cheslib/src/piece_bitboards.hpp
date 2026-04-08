@@ -6,7 +6,7 @@
 #include "cheslib/types.hpp"
 #include "utils.hpp"
 
-namespace cheslib {
+namespace ches {
 
 /**
  * TODO: write comments here
@@ -14,14 +14,16 @@ namespace cheslib {
  */
 class PieceBitboards {
   public:
+    constexpr PieceBitboards() : _pieces{0}, _side{0}, _all(0) {
+    }
+
     constexpr PieceBitboards(
-        Bitboard wpawns, Bitboard wknights, Bitboard wbishops, Bitboard wrooks, Bitboard wqueens, Bitboard wking,
-        Bitboard bpawns, Bitboard bknights, Bitboard bbishops, Bitboard brooks, Bitboard bqueens, Bitboard bking
+        Bitboard wpawn, Bitboard wknight, Bitboard wbishop, Bitboard wrook, Bitboard wqueen, Bitboard wking,
+        Bitboard bpawn, Bitboard bknight, Bitboard bbishop, Bitboard brook, Bitboard bqueen, Bitboard bking
     )
-        : _pieces{wpawns, wknights, wbishops, wrooks, wqueens, wking,
-                  bpawns, bknights, bbishops, brooks, bqueens, bking},
-          _white(wpawns | wknights | wbishops | wrooks | wqueens | wking),
-          _black(bpawns | bknights | bbishops | brooks | bqueens | bking), _all(_white | _black) {
+        : _pieces{wpawn, wknight, wbishop, wrook, wqueen, wking, bpawn, bknight, bbishop, brook, bqueen, bking},
+          _side{wpawn | wknight | wbishop | wrook | wqueen | wking, bpawn | bknight | bbishop | brook | bqueen | bking},
+          _all(_side[0] | _side[1]) {
         assert(std::popcount(wking) == 1);
         assert(std::popcount(bking) == 1);
     }
@@ -29,45 +31,62 @@ class PieceBitboards {
     static constexpr PieceBitboards initial() {
         return PieceBitboards(
             // clang-format off
-            make_bitboard(SQUARE_A2, SQUARE_B2, SQUARE_C2, SQUARE_D2, SQUARE_E2, SQUARE_F2, SQUARE_G2, SQUARE_H2),
-            make_bitboard(SQUARE_B1, SQUARE_G1),
-            make_bitboard(SQUARE_C1, SQUARE_F1),
-            make_bitboard(SQUARE_A1, SQUARE_H1),
-            make_bitboard(SQUARE_D1),
-            make_bitboard(SQUARE_E1),
+            to_bitboard(SquareA2, SquareB2, SquareC2, SquareD2, SquareE2, SquareF2, SquareG2, SquareH2),
+            to_bitboard(SquareB1, SquareG1),
+            to_bitboard(SquareC1, SquareF1),
+            to_bitboard(SquareA1, SquareH1),
+            to_bitboard(SquareD1),
+            to_bitboard(SquareE1),
 
-            make_bitboard(SQUARE_A7, SQUARE_B7, SQUARE_C7, SQUARE_D7, SQUARE_E7, SQUARE_F7, SQUARE_G7, SQUARE_H7),
-            make_bitboard(SQUARE_B8, SQUARE_G8),
-            make_bitboard(SQUARE_C8, SQUARE_F8),
-            make_bitboard(SQUARE_A8, SQUARE_H8),
-            make_bitboard(SQUARE_D8),
-            make_bitboard(SQUARE_E8)
+            to_bitboard(SquareA7, SquareB7, SquareC7, SquareD7, SquareE7, SquareF7, SquareG7, SquareH7),
+            to_bitboard(SquareB8, SquareG8),
+            to_bitboard(SquareC8, SquareF8),
+            to_bitboard(SquareA8, SquareH8),
+            to_bitboard(SquareD8),
+            to_bitboard(SquareE8)
             // clang-format on
         );
-    }
-
-    template <bool IsBlack>
-    constexpr Bitboard get(Piece piece) const {
-        assert(piece < PIECE_CNT);
-        constexpr size_t offset = IsBlack ? PIECE_CNT : 0;
-        return _pieces[offset + piece];
-    }
-
-    constexpr Bitboard white() const {
-        return _white;
-    }
-
-    constexpr Bitboard black() const {
-        return _black;
     }
 
     constexpr Bitboard all() const {
         return _all;
     }
 
+    template <Side Us>
+    constexpr Bitboard all() const {
+        return _side[Us];
+    }
+
+    template <Side Us>
+    constexpr Bitboard get(PieceType type) const {
+        Piece piece = piece_of<Us>(type);
+        return _pieces[piece];
+    }
+
+    constexpr Bitboard get(Piece piece) const {
+        return _pieces[piece];
+    }
+
+    constexpr void set(Square sq, Piece piece) {
+        assert(sq < SquareCNT);
+
+        set_square(_all, sq);
+        set_square(_pieces[piece], sq);
+        set_square(_side[side_of(piece)], sq);
+    }
+
+    constexpr void unset(Square sq, Piece piece) {
+        assert(sq < SquareCNT);
+
+        clear_square(_all, sq);
+        clear_square(_pieces[piece], sq);
+        clear_square(_side[side_of(piece)], sq);
+    }
+
   private:
-    Bitboard _pieces[12];
-    Bitboard _white, _black, _all;
+    Bitboard _pieces[PieceCNT];
+    Bitboard _side[2];
+    Bitboard _all;
 };
 
-} // namespace cheslib
+} // namespace ches

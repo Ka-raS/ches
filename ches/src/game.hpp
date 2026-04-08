@@ -1,8 +1,6 @@
 #pragma once
 #include "window.hpp"
 
-namespace ches {
-
 class Game {
   public:
     Game();
@@ -12,5 +10,3 @@ class Game {
   private:
     Window _window;
 };
-
-} // namespace ches
