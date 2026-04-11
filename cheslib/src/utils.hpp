@@ -18,7 +18,7 @@ constexpr void set_square(Bitboard &bb, Square sq) {
     bb |= (1ULL << sq);
 }
 
-constexpr void clear_square(Bitboard &bb, Square sq) {
+constexpr void unset_square(Bitboard &bb, Square sq) {
     assert(sq < SquareCNT);
     bb &= ~(1ULL << sq);
 }
@@ -37,6 +37,19 @@ constexpr Square pop_lsb(Bitboard &bb) {
     Square sq = Square(std::countr_zero(bb));
     bb &= (bb - 1);
     return sq;
+}
+
+template <Side Us>
+constexpr Square square_behind(Square sq) {
+    assert(SquareH1 < sq && sq < SquareCNT);
+    constexpr Direction backward = (Us == White) ? Down : Up;
+    return Square(sq + int(backward));
+}
+
+constexpr Square square_behind(Square sq, Side side) {
+    assert(SquareH1 < sq && sq < SquareCNT);
+    Direction backward = (side == White) ? Down : Up;
+    return Square(sq + (int)backward);
 }
 
 constexpr Square to_square(File file, Rank rank) {
@@ -75,6 +88,11 @@ constexpr Piece piece_of(PieceType type) {
     assert(type < PieceTypeCNT);
     constexpr int offset = (Us == White) ? 0 : PieceTypeCNT;
     return Piece(type + offset);
+}
+
+constexpr Piece piece_of(PieceType type, Side side) {
+    assert(type < PieceTypeCNT);
+    return Piece(type + side * (int)PieceTypeCNT);
 }
 
 constexpr Side side_of(Piece piece) {

@@ -23,7 +23,11 @@ set(NAME cheslib_test)
 
 add_executable(${NAME}
     test_attack_tables.cpp
+    test_do_undo_move.cpp
     test_move_generation.cpp
+    test_move.cpp
+    test_state.cpp
+    test_zobrist.cpp
 )
 
 target_include_directories(${NAME} PRIVATE ../src)

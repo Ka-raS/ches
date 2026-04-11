@@ -24,8 +24,6 @@ class PieceBitboards {
         : _pieces{wpawn, wknight, wbishop, wrook, wqueen, wking, bpawn, bknight, bbishop, brook, bqueen, bking},
           _side{wpawn | wknight | wbishop | wrook | wqueen | wking, bpawn | bknight | bbishop | brook | bqueen | bking},
           _all(_side[0] | _side[1]) {
-        assert(std::popcount(wking) == 1);
-        assert(std::popcount(bking) == 1);
     }
 
     static constexpr PieceBitboards initial() {
@@ -64,11 +62,12 @@ class PieceBitboards {
     }
 
     constexpr Bitboard get(Piece piece) const {
+        assert(piece < PieceCNT);
         return _pieces[piece];
     }
 
     constexpr void set(Square sq, Piece piece) {
-        assert(sq < SquareCNT);
+        assert(piece < PieceCNT);
 
         set_square(_all, sq);
         set_square(_pieces[piece], sq);
@@ -76,11 +75,11 @@ class PieceBitboards {
     }
 
     constexpr void unset(Square sq, Piece piece) {
-        assert(sq < SquareCNT);
+        assert(piece < PieceCNT);
 
-        clear_square(_all, sq);
-        clear_square(_pieces[piece], sq);
-        clear_square(_side[side_of(piece)], sq);
+        unset_square(_all, sq);
+        unset_square(_pieces[piece], sq);
+        unset_square(_side[side_of(piece)], sq);
     }
 
   private:

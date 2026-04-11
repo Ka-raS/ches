@@ -36,7 +36,8 @@ constexpr MoveFlag operator--(MoveFlag &flag) {
  * bit layout:
  *  0-5   : from square
  *  6-11  : to square
- *  12-13 : promotion piece
+ *
+ *  12-13 : special bits, if promotion move then it's promoted piece type
  *  14    : is capture
  *  15    : is promotion
  * see: https://www.chessprogramming.org/Encoding_Moves
@@ -53,28 +54,28 @@ class Move {
     }
 
     constexpr Square from() const {
-        return Square(_data & 0b111111);
+        return Square(_data & 0b11'1111);
     }
 
     constexpr Square to() const {
-        return Square((_data >> 6) & 0b111111);
+        return Square((_data >> 6) & 0b11'1111);
     }
 
     constexpr MoveFlag flag() const {
         return MoveFlag((_data >> 12) & 0b1111);
     }
 
-    constexpr bool isPromotion() const {
+    constexpr bool is_promotion() const {
         return flag() & 0b1000;
     }
 
     constexpr PieceType promotion_piece() const {
+        assert(is_promotion());
         MoveFlag f = flag();
-        bool is_promo = f & 0b1000;
-        return is_promo ? PieceType((f & 0b11) + Knight) : PieceTypeCNT;
+        return PieceType((f & 0b11) + Knight);
     }
 
-    constexpr bool isCapture() const {
+    constexpr bool is_capture() const {
         return flag() & 0b0100;
     }
 
@@ -99,7 +100,7 @@ class MoveList {
         return _end;
     }
 
-    constexpr bool is_empty() const {
+    constexpr bool empty() const {
         return _end == _moves;
     }
 
@@ -109,7 +110,7 @@ class MoveList {
 
     template <typename... Args>
     constexpr void add(Args &&...args) {
-        assert(size() < 256); // not happening
+        assert(size() < Size); // not happening
         *_end++ = Move(std::forward<Args>(args)...);
     }
 
@@ -123,7 +124,8 @@ class MoveList {
     }
 
   private:
-    Move _moves[256];
+    static constexpr size_t Size = 256;
+    Move _moves[Size];
     Move *_end;
 };
 

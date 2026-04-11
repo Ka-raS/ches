@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <bit>
 #include <cstdint>
 
 #include "cheslib/move.hpp"
@@ -8,7 +9,7 @@
 
 #include "history_stack.hpp"
 #include "piece_bitboards.hpp"
-#include "state_info.hpp"
+#include "state.hpp"
 #include "zobrist.hpp"
 
 namespace ches {
@@ -17,20 +18,12 @@ class Position {
   public:
     constexpr Position() = default;
 
-    constexpr Position(const PieceBitboards &pieces, StateInfo state) : _pieces(pieces), _state(state) {
-        _board.fill(PieceCNT);
-
-        for (Piece piece = WhitePawn; piece < PieceCNT; ++piece) {
-            Bitboard bb = pieces.get(piece);
-            while (bb) {
-                Square sq = pop_lsb(bb);
-                _board[sq] = piece;
-            }
-        }
+    Position(const PieceBitboards &pieces, State state)
+        : _pieces(pieces), _state(state), _board(init_board(pieces)), _key(zobrist_hash(_board, _state)) {
     }
 
-    static constexpr Position initial() {
-        return Position(PieceBitboards::initial(), StateInfo::initial());
+    static Position initial() {
+        return Position(PieceBitboards::initial(), State::initial());
     }
 
     void do_move(Move move);
@@ -41,7 +34,7 @@ class Position {
         return _pieces;
     }
 
-    constexpr StateInfo state() const {
+    constexpr State state() const {
         return _state;
     }
 
@@ -49,23 +42,43 @@ class Position {
         return _board;
     }
 
-  private:
-    template <Side Us>
-    void undo_moved_piece(Square from, Square to, bool is_promotion);
-
-    template <Side Us>
-    void undo_captured_piece(Square to, Piece captured, bool is_en_passant);
-
-    template <Side Us>
-    void undo_castling(MoveFlag flag);
+    constexpr int count(Piece piece) const {
+        return std::popcount(_pieces.get(piece));
+    }
 
   private:
-    static constexpr Square _rook_initial[2][2] = {{SquareA1, SquareH1}, {SquareA8, SquareH8}};
-    static constexpr Square _rook_castled[2][2] = {{SquareD1, SquareF1}, {SquareD8, SquareF8}};
+    static std::array<Piece, SquareCNT> init_board(const PieceBitboards &pieces);
 
+    inline void set_piece_no_hash(Square sq, Piece piece) {
+        assert(sq < SquareCNT);
+        assert(piece < PieceCNT);
+
+        _pieces.set(sq, piece);
+        _board[sq] = piece;
+    }
+
+    inline void unset_piece_no_hash(Square sq) {
+        assert(sq < SquareCNT);
+        assert(_board[sq] < PieceCNT);
+
+        _pieces.unset(sq, _board[sq]);
+        _board[sq] = PieceCNT;
+    }
+
+    inline void set_piece(Square sq, Piece piece) {
+        _key ^= zobrist_piece(piece, sq);
+        set_piece_no_hash(sq, piece);
+    }
+
+    inline void unset_piece(Square sq) {
+        _key ^= zobrist_piece(_board[sq], sq);
+        unset_piece_no_hash(sq);
+    }
+
+  private:
     PieceBitboards _pieces;
     std::array<Piece, SquareCNT> _board;
-    StateInfo _state;
+    State _state;
     ZKey _key;
     HistoryStack _history;
 };

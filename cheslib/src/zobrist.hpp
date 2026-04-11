@@ -6,7 +6,7 @@
 
 #include "cheslib/types.hpp"
 
-#include "state_info.hpp"
+#include "state.hpp"
 
 namespace ches {
 
@@ -16,66 +16,33 @@ using ZKey = uint64_t;
 
 namespace detail {
 
-extern const ZKey side_to_move_key;
-extern const std::array<ZKey, 4> castling_keys;
-extern const std::array<ZKey, FileCNT> en_passant_keys;
-extern const std::array<std::array<ZKey, SquareCNT>, PieceCNT> piece_keys;
+extern const ZKey zobrist_side_key;
+extern const std::array<ZKey, BothCastles + 1> zobrist_castling_keys;
+extern const std::array<ZKey, FileCNT + 1> zobrist_en_passant_keys;
+extern const std::array<ZKey, PieceCNT * (int)SquareCNT> zobrist_piece_keys;
 
 } // namespace detail
+
+ZKey zobrist_hash(const std::array<Piece, SquareCNT> &board, const State &state);
 
 inline ZKey zobrist_piece(Piece piece, Square sq) {
     assert(piece < PieceCNT);
     assert(sq < SquareCNT);
-    return detail::piece_keys[piece][sq];
+    return detail::zobrist_piece_keys[piece * (int)SquareCNT + sq];
 }
 
-inline ZKey zobrist_side_to_move() {
-    return detail::side_to_move_key;
+inline ZKey zobrist_side() {
+    return detail::zobrist_side_key;
 }
 
 inline ZKey zobrist_en_passant(File file) {
-    assert(file < FileCNT);
-    return detail::en_passant_keys[file];
+    assert(file <= FileCNT);
+    return detail::zobrist_en_passant_keys[file];
 }
 
-inline ZKey zobrist_castling(const StateInfo &state) {
-    ZKey key = 0;
-    const auto &keys = detail::castling_keys;
-
-    if (state.can_short_castle<White>()) {
-        key ^= keys[0];
-    }
-    if (state.can_long_castle<White>()) {
-        key ^= keys[1];
-    }
-    if (state.can_short_castle<Black>()) {
-        key ^= keys[2];
-    }
-    if (state.can_long_castle<Black>()) {
-        key ^= keys[3];
-    }
-
-    return key;
-}
-
-inline ZKey zobrist_hash(const std::array<Piece, SquareCNT> &board, const StateInfo &state) {
-    ZKey key = 0;
-
-    for (Square sq = SquareA1; sq < SquareCNT; ++sq) {
-        Piece piece = board[sq];
-        if (piece != PieceCNT) { // only if square occupied
-            key ^= detail::piece_keys[piece][sq];
-        }
-    }
-
-    if (state.side_to_move() == Black) {
-        key ^= detail::side_to_move_key;
-    }
-
-    key ^= zobrist_castling(state);
-    key ^= zobrist_en_passant(state.ep_file());
-
-    return key;
+inline ZKey zobrist_castling(CastleFlag flag) {
+    assert(flag <= BothCastles);
+    return detail::zobrist_castling_keys[flag];
 }
 
 } // namespace ches
