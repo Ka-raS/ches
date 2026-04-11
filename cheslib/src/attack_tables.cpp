@@ -18,9 +18,8 @@ consteval Square shift_square(Square from, int8_t step) {
     }
 
     // check file wraparound
-    File from_file = file_of(from);
-    File to_file = file_of(to);
-    if (std::abs(to_file - from_file) > 2) {
+    int d_file = file_of(from) - file_of(to);
+    if (d_file < -2 || d_file > 2) {
         return SquareCNT;
     }
 
@@ -109,7 +108,7 @@ consteval Bitboard occupancy_from_subset(
             continue;
         }
 
-        bool is_in_subset = subset & (1U << i);
+        bool is_in_subset = subset & (1ULL << i);
         if (is_in_subset) {
             set_square(occupancy, blocker_pos[i]);
         }
@@ -128,7 +127,7 @@ consteval std::array<Bitboard, N> sliding_attacks(
         const auto &[mask, magic, offset, shift] = magics[sq];
 
         const size_t blocker_cnt = shift;
-        const size_t subset_cnt = 1U << blocker_cnt;
+        const size_t subset_cnt = 1ULL << blocker_cnt;
         const auto blocker_pos = blocker_positions(mask);
 
         // iterate all occupancy subsets

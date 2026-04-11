@@ -73,7 +73,11 @@ void generate_castling_moves(MoveList &moves, const PieceBitboards &pieces, Stat
 // white pawn direction is > 0, black direction is < 0
 template <Direction Dir>
 constexpr Bitboard move_pawn(Bitboard bb) {
-    return (Dir > 0) ? (bb << Dir) : (bb >> -Dir);
+    if constexpr (Dir > 0) {
+        return bb << Dir;
+    } else {
+        return bb >> -Dir;
+    }
 };
 
 template <Side Us>

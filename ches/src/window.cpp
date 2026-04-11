@@ -33,8 +33,8 @@ void Window::render() const {
     BeginDrawing();
     ClearBackground(config::BACKGROUND_COLOR);
 
-    float screenWidth = GetScreenWidth();
-    float screenHeight = GetScreenHeight();
+    float screenWidth = (float)GetScreenWidth();
+    float screenHeight = (float)GetScreenHeight();
     float scale = std::min(screenWidth / config::WINDOW_WIDTH, screenHeight / config::WINDOW_HEIGHT);
     float destWeight = config::WINDOW_WIDTH * scale;
     float destHeight = config::WINDOW_HEIGHT * scale;
