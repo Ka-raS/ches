@@ -8,9 +8,7 @@ namespace ches::detail {
 
 namespace {
 
-consteval Square shift_square(Square from, int8_t step) {
-    assert(from < SquareCNT);
-
+consteval Square next_square(Square from, int8_t step) {
     // check rank wraparound
     Square to = Square(from + step);
     if (to >= SquareCNT) {
@@ -19,11 +17,11 @@ consteval Square shift_square(Square from, int8_t step) {
 
     // check file wraparound
     int d_file = file_of(from) - file_of(to);
-    if (d_file < -2 || d_file > 2) {
+    if (-2 <= d_file && d_file <= 2) {
+        return to;
+    } else {
         return SquareCNT;
     }
-
-    return to;
 }
 
 consteval std::array<Bitboard, SquareCNT> stepping_attacks(std::span<const int8_t> steps) {
@@ -31,7 +29,7 @@ consteval std::array<Bitboard, SquareCNT> stepping_attacks(std::span<const int8_
 
     for (Square sq = SquareA1; sq < SquareCNT; ++sq) {
         for (int8_t step : steps) {
-            Square next = shift_square(sq, step);
+            Square next = next_square(sq, step);
             if (next < SquareCNT) {
                 set_square(result[sq], next);
             }
@@ -45,17 +43,17 @@ consteval Bitboard sliding_blockers(Square from, const std::array<Direction, 4> 
     Bitboard result = 0;
 
     for (Direction dir : directions) {
-        Square curr = shift_square(from, dir);
+        Square curr = next_square(from, dir);
         if (curr >= SquareCNT) {
             continue;
         }
 
         // exclude edge squares
-        Square next = shift_square(curr, dir);
+        Square next = next_square(curr, dir);
         while (next < SquareCNT) {
             set_square(result, curr);
             curr = next;
-            next = shift_square(curr, dir);
+            next = next_square(curr, dir);
         }
     }
 
@@ -66,7 +64,7 @@ consteval Bitboard sliding_attack_at(Square from, Bitboard occupancy, const std:
     Bitboard result = 0;
 
     for (Direction dir : directions) {
-        Square curr = shift_square(from, dir);
+        Square curr = next_square(from, dir);
 
         while (curr < SquareCNT) {
             set_square(result, curr);
@@ -74,47 +72,11 @@ consteval Bitboard sliding_attack_at(Square from, Bitboard occupancy, const std:
             if (is_blocked) {
                 break;
             }
-            curr = shift_square(curr, dir);
+            curr = next_square(curr, dir);
         }
     }
 
     return result;
-}
-
-constexpr size_t MaxBlockers = 12; // of rook
-constexpr size_t MaxSubsets = 1U << MaxBlockers;
-
-consteval std::array<Square, MaxBlockers> blocker_positions(Bitboard mask) {
-    std::array<Square, MaxBlockers> positions{};
-    positions.fill(SquareCNT);
-    size_t count = 0;
-
-    for (Square sq = SquareA1; sq < SquareCNT; ++sq) {
-        if (has_square(mask, sq)) {
-            positions[count++] = sq;
-        }
-    }
-
-    return positions;
-}
-
-consteval Bitboard occupancy_from_subset(
-    size_t subset, size_t blocker_cnt, const std::array<Square, MaxBlockers> &blocker_pos
-) {
-    Bitboard occupancy = 0;
-
-    for (size_t i = 0; i < blocker_cnt; ++i) {
-        if (blocker_pos[i] >= SquareCNT) {
-            continue;
-        }
-
-        bool is_in_subset = subset & (1ULL << i);
-        if (is_in_subset) {
-            set_square(occupancy, blocker_pos[i]);
-        }
-    }
-
-    return occupancy;
 }
 
 template <size_t N>
@@ -125,18 +87,15 @@ consteval std::array<Bitboard, N> sliding_attacks(
 
     for (Square sq = SquareA1; sq < SquareCNT; ++sq) {
         const auto &[mask, magic, offset, shift] = magics[sq];
-
-        const size_t blocker_cnt = shift;
-        const size_t subset_cnt = 1ULL << blocker_cnt;
-        const auto blocker_pos = blocker_positions(mask);
+        Bitboard occupancy = 0;
 
         // iterate all occupancy subsets
-        for (size_t subset = 0; subset < subset_cnt; ++subset) {
-            Bitboard occupancy = occupancy_from_subset(subset, blocker_cnt, blocker_pos);
+        // see: https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
+        do {
             size_t index = magics[sq].index(occupancy);
-
             attacks[offset + index] = sliding_attack_at(sq, occupancy, directions);
-        }
+            occupancy = (occupancy - mask) & mask;
+        } while (occupancy);
     }
 
     return attacks;
@@ -149,11 +108,11 @@ consteval std::array<MagicInfo, SquareCNT> magic_infos(
 
     for (Square sq = SquareA1; sq < SquareCNT; ++sq) {
         uint32_t offset;
-        if (sq == SquareA1) {
-            offset = 0;
-        } else {
+        if (sq > SquareA1) {
             const uint32_t prev_table_size = 1U << result[sq - 1].shift;
             offset = result[sq - 1].offset + prev_table_size;
+        } else {
+            offset = 0;
         }
 
         uint64_t magic = magic_numbers[sq];

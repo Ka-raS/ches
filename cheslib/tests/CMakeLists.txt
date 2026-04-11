@@ -26,8 +26,8 @@ add_executable(cheslib_test
 )
 
 target_include_directories(cheslib_test PRIVATE ../src)
-
 target_link_libraries(cheslib_test PRIVATE cheslib Catch2::Catch2WithMain)
+target_compile_features(cheslib_test PRIVATE cxx_std_20)
 
 include(Catch)
 catch_discover_tests(cheslib_test)
