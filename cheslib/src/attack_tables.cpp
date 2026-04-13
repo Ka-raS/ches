@@ -4,7 +4,7 @@
 #include "attack_tables.hpp"
 #include "utils.hpp"
 
-namespace ches::detail {
+namespace cheslib::detail {
 
 namespace {
 
@@ -183,4 +183,4 @@ constexpr std::array<Bitboard, 5248> BishopAttacks = sliding_attacks<5248>(Bisho
 static_assert(RookAttacks.size() == RookMagics.back().offset + (1ULL << RookMagics.back().shift));
 static_assert(BishopAttacks.size() == BishopMagics.back().offset + (1ULL << BishopMagics.back().shift));
 
-} // namespace ches::detail
+} // namespace cheslib::detail

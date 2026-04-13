@@ -1,7 +1,7 @@
 #include "move_generation.hpp"
 #include "attack_tables.hpp"
 
-namespace ches {
+namespace cheslib {
 
 namespace {
 
@@ -195,4 +195,4 @@ MoveList generate_pseudo_legals(const Position &position) {
     return moves;
 }
 
-} // namespace ches
+} // namespace cheslib

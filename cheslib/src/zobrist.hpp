@@ -8,7 +8,7 @@
 
 #include "state.hpp"
 
-namespace ches {
+namespace cheslib {
 
 // Zobrist hash key
 // see: https://www.chessprogramming.org/Zobrist_Hashing
@@ -19,7 +19,7 @@ namespace detail {
 extern const ZKey zobrist_side_key;
 extern const std::array<ZKey, BothCastles + 1> zobrist_castling_keys;
 extern const std::array<ZKey, FileCNT + 1> zobrist_en_passant_keys;
-extern const std::array<ZKey, PieceCNT * (int)SquareCNT> zobrist_piece_keys;
+extern const std::array<ZKey, PieceCNT *(int)SquareCNT> zobrist_piece_keys;
 
 } // namespace detail
 
@@ -45,4 +45,4 @@ inline ZKey zobrist_castling(CastleFlag flag) {
     return detail::zobrist_castling_keys[flag];
 }
 
-} // namespace ches
+} // namespace cheslib

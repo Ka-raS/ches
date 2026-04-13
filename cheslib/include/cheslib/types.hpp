@@ -2,7 +2,7 @@
 
 #include <cstdint>
 
-namespace ches {
+namespace cheslib {
 
 /**
  * `uint64_t` represents 64 squares on chessboard
@@ -115,4 +115,4 @@ constexpr Piece operator++(Piece &p) {
     return p = Piece(p + 1);
 }
 
-} // namespace ches
+} // namespace cheslib

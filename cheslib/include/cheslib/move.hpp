@@ -7,7 +7,7 @@
 
 #include "cheslib/types.hpp"
 
-namespace ches {
+namespace cheslib {
 
 enum MoveFlag : uint8_t {
     QuietMove = 0,
@@ -129,4 +129,4 @@ class MoveList {
     Move *_end;
 };
 
-} // namespace ches
+} // namespace cheslib

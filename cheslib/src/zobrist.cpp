@@ -1,6 +1,6 @@
 #include "zobrist.hpp"
 
-namespace ches {
+namespace cheslib {
 
 namespace {
 

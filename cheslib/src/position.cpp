@@ -4,7 +4,7 @@
 #include "utils.hpp"
 #include "zobrist.hpp"
 
-namespace ches {
+namespace cheslib {
 
 namespace {
 
@@ -147,4 +147,4 @@ void Position::undo_move() {
     _key = key;
 }
 
-} // namespace ches
+} // namespace cheslib

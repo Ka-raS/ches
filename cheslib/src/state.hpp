@@ -7,7 +7,7 @@
 
 #include "utils.hpp"
 
-namespace ches {
+namespace cheslib {
 
 enum CastleFlag : uint8_t {
     NoCastles = 0,
@@ -105,4 +105,4 @@ class State {
     uint16_t _data;
 };
 
-} // namespace ches
+} // namespace cheslib

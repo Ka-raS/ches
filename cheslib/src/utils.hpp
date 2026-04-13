@@ -6,7 +6,7 @@
 
 #include "cheslib/types.hpp"
 
-namespace ches {
+namespace cheslib {
 
 constexpr bool has_square(Bitboard bb, Square sq) {
     assert(sq < SquareCNT);
@@ -105,4 +105,4 @@ constexpr PieceType type_of(Piece piece) {
     return PieceType(piece % (int)PieceTypeCNT);
 }
 
-} // namespace ches
+} // namespace cheslib

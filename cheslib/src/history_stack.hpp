@@ -8,7 +8,7 @@
 #include "state.hpp"
 #include "zobrist.hpp"
 
-namespace ches {
+namespace cheslib {
 
 struct Undo {
     ZKey key;
@@ -47,4 +47,4 @@ class HistoryStack {
     Undo *_top;
 };
 
-} // namespace ches
+} // namespace cheslib

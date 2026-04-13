@@ -6,7 +6,7 @@
 #include "cheslib/types.hpp"
 #include "utils.hpp"
 
-namespace ches {
+namespace cheslib {
 
 /**
  * TODO: write comments here
@@ -88,4 +88,4 @@ class PieceBitboards {
     Bitboard _all;
 };
 
-} // namespace ches
+} // namespace cheslib

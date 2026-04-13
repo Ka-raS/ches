@@ -4,8 +4,8 @@
 
 #include "position.hpp"
 
-namespace ches {
+namespace cheslib {
 
 MoveList generate_pseudo_legals(const Position &position);
 
-} // namespace ches
+} // namespace cheslib

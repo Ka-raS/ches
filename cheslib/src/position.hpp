@@ -12,7 +12,7 @@
 #include "state.hpp"
 #include "zobrist.hpp"
 
-namespace ches {
+namespace cheslib {
 
 class Position {
   public:
@@ -83,4 +83,4 @@ class Position {
     HistoryStack _history;
 };
 
-} // namespace ches
+} // namespace cheslib

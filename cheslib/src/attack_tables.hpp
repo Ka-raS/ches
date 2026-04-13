@@ -7,7 +7,7 @@
 
 #include "cheslib/types.hpp"
 
-namespace ches {
+namespace cheslib {
 
 namespace detail {
 
@@ -65,4 +65,4 @@ inline Bitboard queen_attacks(Square from, Bitboard occupancy) {
     return bishop_attacks(from, occupancy) | rook_attacks(from, occupancy);
 }
 
-} // namespace ches
+} // namespace cheslib
