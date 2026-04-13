@@ -4,7 +4,7 @@
 #include "attack_tables.hpp"
 #include "utils.hpp"
 
-namespace cheslib::detail {
+namespace cheslib::attack_tables::detail {
 
 namespace {
 
@@ -171,8 +171,9 @@ constexpr std::array<Direction, 4> BishopDirections = {UpRight, DownRight, DownL
 
 constexpr std::array<Bitboard, SquareCNT> KnightAttacks = stepping_attacks(KnightSteps);
 constexpr std::array<Bitboard, SquareCNT> KingAttacks = stepping_attacks(KingSteps);
-constexpr std::array<Bitboard, SquareCNT> WhitePawnAttacks = stepping_attacks(WhitePawnSteps);
-constexpr std::array<Bitboard, SquareCNT> BlackPawnAttacks = stepping_attacks(BlackPawnSteps);
+constexpr std::array<std::array<Bitboard, SquareCNT>, 2> PawnAttacks = {
+    stepping_attacks(WhitePawnSteps), stepping_attacks(BlackPawnSteps)
+};
 
 constexpr std::array<Magic, SquareCNT> RookMagics = magic_infos(RookMagicNumbers, RookDirections);
 constexpr std::array<Magic, SquareCNT> BishopMagics = magic_infos(BishopMagicNumbers, BishopDirections);
@@ -183,4 +184,4 @@ constexpr std::array<Bitboard, 5248> BishopAttacks = sliding_attacks<5248>(Bisho
 static_assert(RookAttacks.size() == RookMagics.back().offset + (1ULL << RookMagics.back().shift));
 static_assert(BishopAttacks.size() == BishopMagics.back().offset + (1ULL << BishopMagics.back().shift));
 
-} // namespace cheslib::detail
+} // namespace cheslib::attack_tables::detail

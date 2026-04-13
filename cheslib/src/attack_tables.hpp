@@ -7,7 +7,7 @@
 
 #include "cheslib/types.hpp"
 
-namespace cheslib {
+namespace cheslib::attack_tables {
 
 namespace detail {
 
@@ -24,8 +24,7 @@ struct Magic {
 
 extern const std::array<Bitboard, SquareCNT> KnightAttacks;
 extern const std::array<Bitboard, SquareCNT> KingAttacks;
-extern const std::array<Bitboard, SquareCNT> WhitePawnAttacks;
-extern const std::array<Bitboard, SquareCNT> BlackPawnAttacks;
+extern const std::array<std::array<Bitboard, SquareCNT>, 2> PawnAttacks; // [Side][Square]
 extern const std::array<Magic, SquareCNT> RookMagics;
 extern const std::array<Magic, SquareCNT> BishopMagics;
 extern const std::array<Bitboard, 102400> RookAttacks;
@@ -33,36 +32,35 @@ extern const std::array<Bitboard, 5248> BishopAttacks;
 
 } // namespace detail
 
-inline Bitboard knight_attacks(Square from) {
+inline Bitboard knight(Square from) {
     assert(from < SquareCNT);
     return detail::KnightAttacks[from];
 }
 
-inline Bitboard king_attacks(Square from) {
+inline Bitboard king(Square from) {
     assert(from < SquareCNT);
     return detail::KingAttacks[from];
 }
 
-inline Bitboard rook_attacks(Square from, Bitboard occupancy) {
+inline Bitboard rook(Square from, Bitboard occupancy) {
     assert(from < SquareCNT);
     const auto &magic = detail::RookMagics[from];
     return detail::RookAttacks[magic.offset + magic.index(occupancy)];
 }
 
-inline Bitboard bishop_attacks(Square from, Bitboard occupancy) {
+inline Bitboard bishop(Square from, Bitboard occupancy) {
     assert(from < SquareCNT);
     const auto &magic = detail::BishopMagics[from];
     return detail::BishopAttacks[magic.offset + magic.index(occupancy)];
 }
 
-template <Side Us>
-inline Bitboard pawn_attacks(Square from) {
+inline Bitboard pawn(Square from, Side us) {
     assert(from < SquareCNT);
-    return (Us == White) ? detail::WhitePawnAttacks[from] : detail::BlackPawnAttacks[from];
+    return detail::PawnAttacks[us][from];
 }
 
-inline Bitboard queen_attacks(Square from, Bitboard occupancy) {
-    return bishop_attacks(from, occupancy) | rook_attacks(from, occupancy);
+inline Bitboard queen(Square from, Bitboard occupancy) {
+    return bishop(from, occupancy) | rook(from, occupancy);
 }
 
-} // namespace cheslib
+} // namespace cheslib::attack_tables

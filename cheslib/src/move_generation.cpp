@@ -8,15 +8,15 @@ namespace {
 Bitboard non_pawn_attacks(PieceType type, Square from, Bitboard occupancy) {
     switch (type) {
     case Knight:
-        return knight_attacks(from);
+        return attack_tables::knight(from);
     case Bishop:
-        return bishop_attacks(from, occupancy);
+        return attack_tables::bishop(from, occupancy);
     case Rook:
-        return rook_attacks(from, occupancy);
+        return attack_tables::rook(from, occupancy);
     case Queen:
-        return queen_attacks(from, occupancy);
+        return attack_tables::queen(from, occupancy);
     case King:
-        return king_attacks(from);
+        return attack_tables::king(from);
     default:
         return 0;
     }
@@ -122,7 +122,7 @@ void generate_en_croissants(MoveList &moves, Bitboard our_pawns, File ep_file) {
     const Square ep_square = to_square(ep_file, (Us == White) ? Rank6 : Rank3);
 
     // enemy at Square ep_square attack us <=> us attack enemy at Square en_passant
-    const Bitboard us_attacked = pawn_attacks<Side(!Us)>(ep_square);
+    const Bitboard us_attacked = attack_tables::pawn(ep_square, Side(!Us));
     Bitboard our_attackers = our_pawns & us_attacked;
 
     while (our_attackers) {
