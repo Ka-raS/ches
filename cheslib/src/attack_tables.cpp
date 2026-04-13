@@ -81,7 +81,7 @@ consteval Bitboard sliding_attack_at(Square from, Bitboard occupancy, const std:
 
 template <size_t N>
 consteval std::array<Bitboard, N> sliding_attacks(
-    const std::array<MagicInfo, SquareCNT> &magics, const std::array<Direction, 4> &directions
+    const std::array<Magic, SquareCNT> &magics, const std::array<Direction, 4> &directions
 ) {
     std::array<Bitboard, N> attacks = {0};
 
@@ -101,10 +101,10 @@ consteval std::array<Bitboard, N> sliding_attacks(
     return attacks;
 }
 
-consteval std::array<MagicInfo, SquareCNT> magic_infos(
+consteval std::array<Magic, SquareCNT> magic_infos(
     const std::array<uint64_t, SquareCNT> &magic_numbers, const std::array<Direction, 4> &directions
 ) {
-    std::array<MagicInfo, SquareCNT> result;
+    std::array<Magic, SquareCNT> result;
 
     for (Square sq = SquareA1; sq < SquareCNT; ++sq) {
         uint32_t offset;
@@ -174,8 +174,8 @@ constexpr std::array<Bitboard, SquareCNT> KingAttacks = stepping_attacks(KingSte
 constexpr std::array<Bitboard, SquareCNT> WhitePawnAttacks = stepping_attacks(WhitePawnSteps);
 constexpr std::array<Bitboard, SquareCNT> BlackPawnAttacks = stepping_attacks(BlackPawnSteps);
 
-constexpr std::array<MagicInfo, SquareCNT> RookMagics = magic_infos(RookMagicNumbers, RookDirections);
-constexpr std::array<MagicInfo, SquareCNT> BishopMagics = magic_infos(BishopMagicNumbers, BishopDirections);
+constexpr std::array<Magic, SquareCNT> RookMagics = magic_infos(RookMagicNumbers, RookDirections);
+constexpr std::array<Magic, SquareCNT> BishopMagics = magic_infos(BishopMagicNumbers, BishopDirections);
 constexpr std::array<Bitboard, 102400> RookAttacks = sliding_attacks<102400>(RookMagics, RookDirections);
 constexpr std::array<Bitboard, 5248> BishopAttacks = sliding_attacks<5248>(BishopMagics, BishopDirections);
 

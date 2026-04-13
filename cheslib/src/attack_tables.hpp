@@ -11,7 +11,7 @@ namespace ches {
 
 namespace detail {
 
-struct MagicInfo {
+struct Magic {
     Bitboard mask;
     uint64_t magic;
     uint32_t offset;
@@ -26,8 +26,8 @@ extern const std::array<Bitboard, SquareCNT> KnightAttacks;
 extern const std::array<Bitboard, SquareCNT> KingAttacks;
 extern const std::array<Bitboard, SquareCNT> WhitePawnAttacks;
 extern const std::array<Bitboard, SquareCNT> BlackPawnAttacks;
-extern const std::array<MagicInfo, SquareCNT> RookMagics;
-extern const std::array<MagicInfo, SquareCNT> BishopMagics;
+extern const std::array<Magic, SquareCNT> RookMagics;
+extern const std::array<Magic, SquareCNT> BishopMagics;
 extern const std::array<Bitboard, 102400> RookAttacks;
 extern const std::array<Bitboard, 5248> BishopAttacks;
 
