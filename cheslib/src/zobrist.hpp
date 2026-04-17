@@ -14,35 +14,43 @@ namespace cheslib {
 // see: https://www.chessprogramming.org/Zobrist_Hashing
 using ZKey = uint64_t;
 
+namespace zobrist {
+
+ZKey hash(const std::array<Piece, SquareCNT> &board, const State &state);
+inline ZKey piece(Piece piece, Square sq);
+inline ZKey side();
+inline ZKey en_passant(File file);
+inline ZKey castling(CastleFlag flag);
+
 namespace detail {
 
-extern const ZKey zobrist_side_key;
-extern const std::array<ZKey, BothCastles + 1> zobrist_castling_keys;
-extern const std::array<ZKey, FileCNT + 1> zobrist_en_passant_keys;
-extern const std::array<ZKey, PieceCNT *(int)SquareCNT> zobrist_piece_keys;
+extern const ZKey side_key;
+extern const std::array<ZKey, BothCastles + 1> castling_keys;
+extern const std::array<ZKey, FileCNT + 1> en_passant_keys;
+extern const std::array<ZKey, PieceCNT *(int)SquareCNT> piece_keys;
 
 } // namespace detail
 
-ZKey zobrist_hash(const std::array<Piece, SquareCNT> &board, const State &state);
-
-inline ZKey zobrist_piece(Piece piece, Square sq) {
+inline ZKey piece(Piece piece, Square sq) {
     assert(piece < PieceCNT);
     assert(sq < SquareCNT);
-    return detail::zobrist_piece_keys[piece * (int)SquareCNT + sq];
+    return detail::piece_keys[piece * (int)SquareCNT + sq];
 }
 
-inline ZKey zobrist_side() {
-    return detail::zobrist_side_key;
+inline ZKey side() {
+    return detail::side_key;
 }
 
-inline ZKey zobrist_en_passant(File file) {
+inline ZKey en_passant(File file) {
     assert(file <= FileCNT);
-    return detail::zobrist_en_passant_keys[file];
+    return detail::en_passant_keys[file];
 }
 
-inline ZKey zobrist_castling(CastleFlag flag) {
+inline ZKey castling(CastleFlag flag) {
     assert(flag <= BothCastles);
-    return detail::zobrist_castling_keys[flag];
+    return detail::castling_keys[flag];
 }
+
+} // namespace zobrist
 
 } // namespace cheslib

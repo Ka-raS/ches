@@ -4,13 +4,6 @@
 
 namespace cheslib {
 
-/**
- * `uint64_t` represents 64 squares on chessboard
- * if bit=1 then a piece type is on the square
- * see: https://www.chessprogramming.org/Bitboards
- */
-using Bitboard = uint64_t;
-
 // clang-format off
 
 enum Square : uint8_t {
@@ -83,36 +76,24 @@ enum Piece : uint8_t {
     PieceCNT
 };
 
-enum Direction : int8_t {
-    Up = SquareA1 + SquareA2,
-    Right = SquareA1 + SquareB1,
-    Down = -Up,
-    Left = -Right,
-
-    UpRight = Up + Right,
-    DownRight = Down + Right,
-    DownLeft = -UpRight,
-    UpLeft = -DownRight
-};
-
 constexpr Square operator++(Square &sq) {
-    return sq = Square(sq + 1);
+    return sq = Square(sq + 1U);
 }
 
 constexpr Rank operator++(Rank &r) {
-    return r = Rank(r + 1);
+    return r = Rank(r + 1U);
 }
 
 constexpr File operator++(File &f) {
-    return f = File(f + 1);
+    return f = File(f + 1U);
 }
 
 constexpr PieceType operator++(PieceType &p) {
-    return p = PieceType(p + 1);
+    return p = PieceType(p + 1U);
 }
 
 constexpr Piece operator++(Piece &p) {
-    return p = Piece(p + 1);
+    return p = Piece(p + 1U);
 }
 
 } // namespace cheslib

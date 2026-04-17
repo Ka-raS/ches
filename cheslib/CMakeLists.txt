@@ -1,6 +1,6 @@
 add_library(cheslib STATIC
-    src/attack_tables.cpp
-    src/move_generation.cpp
+    src/attacks.cpp
+    src/movegen.cpp
     src/position.cpp
     src/zobrist.cpp
 )

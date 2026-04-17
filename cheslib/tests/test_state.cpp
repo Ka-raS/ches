@@ -2,7 +2,7 @@
 
 #include "state.hpp"
 
-using namespace ches;
+using namespace cheslib;
 
 TEST_CASE("State: Correct initial values", "[state]") {
     const State s = State::initial();

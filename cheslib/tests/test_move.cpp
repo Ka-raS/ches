@@ -3,7 +3,7 @@
 #include "cheslib/move.hpp"
 #include "cheslib/types.hpp"
 
-using namespace ches;
+using namespace cheslib;
 
 TEST_CASE("Move: Contructor encodes, methods decode", "[move]") {
     SECTION("Quiet move") {
@@ -44,16 +44,16 @@ TEST_CASE("Move: Contructor encodes, methods decode", "[move]") {
     }
 }
 
-TEST_CASE("Move: Move::promotion_piece() decodes promotion flags", "[move]") {
-    CHECK(Move(SquareA7, SquareA8, KnightPromo).promotion_piece() == Knight);
-    CHECK(Move(SquareA7, SquareA8, BishopPromo).promotion_piece() == Bishop);
-    CHECK(Move(SquareA7, SquareA8, RookPromo).promotion_piece() == Rook);
-    CHECK(Move(SquareA7, SquareA8, QueenPromo).promotion_piece() == Queen);
+TEST_CASE("Move: Move::promo_piece() decodes promotion flags", "[move]") {
+    CHECK(Move(SquareA7, SquareA8, KnightPromo).promo_piece() == Knight);
+    CHECK(Move(SquareA7, SquareA8, BishopPromo).promo_piece() == Bishop);
+    CHECK(Move(SquareA7, SquareA8, RookPromo).promo_piece() == Rook);
+    CHECK(Move(SquareA7, SquareA8, QueenPromo).promo_piece() == Queen);
 
-    CHECK(Move(SquareA7, SquareB8, KnightPromoCap).promotion_piece() == Knight);
-    CHECK(Move(SquareA7, SquareB8, BishopPromoCap).promotion_piece() == Bishop);
-    CHECK(Move(SquareA7, SquareB8, RookPromoCap).promotion_piece() == Rook);
-    CHECK(Move(SquareA7, SquareB8, QueenPromoCap).promotion_piece() == Queen);
+    CHECK(Move(SquareA7, SquareB8, KnightPromoCap).promo_piece() == Knight);
+    CHECK(Move(SquareA7, SquareB8, BishopPromoCap).promo_piece() == Bishop);
+    CHECK(Move(SquareA7, SquareB8, RookPromoCap).promo_piece() == Rook);
+    CHECK(Move(SquareA7, SquareB8, QueenPromoCap).promo_piece() == Queen);
 }
 
 TEST_CASE("Move: Equality", "[move]") {
@@ -63,6 +63,18 @@ TEST_CASE("Move: Equality", "[move]") {
 
     CHECK(a == b);
     CHECK_FALSE(a == c);
+}
+
+TEST_CASE("Move: constexpr", "[move]") {
+    constexpr Move m(SquareA7, SquareB8, QueenPromoCap);
+
+    STATIC_CHECK(m.from() == SquareA7);
+    STATIC_CHECK(m.to() == SquareB8);
+    STATIC_CHECK(m.flag() == QueenPromoCap);
+    STATIC_CHECK(m.promo_piece() == Queen);
+    STATIC_CHECK(m.is_promotion());
+    STATIC_CHECK(m.is_capture());
+    STATIC_CHECK_FALSE(m == Move{});
 }
 
 TEST_CASE("MoveList: Check functionality", "[move_list]") {
@@ -76,7 +88,6 @@ TEST_CASE("MoveList: Check functionality", "[move_list]") {
     moves.add(SquareG1, SquareF3, QuietMove);
     moves.add(SquareD1, SquareD8, Capture);
 
-    CHECK_FALSE(moves.empty());
     CHECK(moves.size() == 3);
 
     const Move *it = moves.begin();
@@ -90,4 +101,29 @@ TEST_CASE("MoveList: Check functionality", "[move_list]") {
     CHECK(moves.has(m2));
     CHECK(moves.has(m3));
     CHECK_FALSE(moves.has(Move(SquareA2, SquareA3, QuietMove)));
+}
+
+TEST_CASE("MoveList: constexpr", "[move_list]") {
+    constexpr Move move_0(SquareE2, SquareE4, DoublePawnPush);
+    constexpr Move move_1(SquareG1, SquareF3, QuietMove);
+    constexpr Move move_2(SquareD1, SquareD8, Capture);
+
+    constexpr MoveList moves = [=]() {
+        MoveList ml{};
+        ml.add(move_0);
+        ml.add(move_1);
+        ml.add(move_2);
+        return ml;
+    }();
+
+    STATIC_CHECK(moves.size() == 3);
+    STATIC_CHECK(moves.end() - moves.begin() == moves.size());
+    STATIC_CHECK(moves[0] == move_0);
+    STATIC_CHECK(moves[1] == move_1);
+    STATIC_CHECK(moves[2] == move_2);
+
+    STATIC_CHECK(moves.has(move_0));
+    STATIC_CHECK(moves.has(move_1));
+    STATIC_CHECK(moves.has(move_2));
+    STATIC_CHECK_FALSE(moves.has(Move(SquareA2, SquareA3, QuietMove)));
 }

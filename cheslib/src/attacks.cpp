@@ -1,10 +1,8 @@
-#include <array>
 #include <span>
 
-#include "attack_tables.hpp"
-#include "utils.hpp"
+#include "attacks.hpp"
 
-namespace cheslib::attack_tables::detail {
+namespace cheslib::attacks::detail {
 
 namespace {
 
@@ -16,7 +14,7 @@ consteval Square next_square(Square from, int8_t step) {
     }
 
     // check file wraparound
-    int d_file = file_of(from) - file_of(to);
+    int d_file = utils::file_of(from) - utils::file_of(to);
     if (-2 <= d_file && d_file <= 2) {
         return to;
     } else {
@@ -27,11 +25,11 @@ consteval Square next_square(Square from, int8_t step) {
 consteval std::array<Bitboard, SquareCNT> stepping_attacks(std::span<const int8_t> steps) {
     std::array<Bitboard, SquareCNT> result = {0};
 
-    for (Square sq = SquareA1; sq < SquareCNT; ++sq) {
+    for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         for (int8_t step : steps) {
             Square next = next_square(sq, step);
             if (next < SquareCNT) {
-                set_square(result[sq], next);
+                utils::set_square(result[sq], next);
             }
         }
     }
@@ -51,10 +49,34 @@ consteval Bitboard sliding_blockers(Square from, const std::array<Direction, 4> 
         // exclude edge squares
         Square next = next_square(curr, dir);
         while (next < SquareCNT) {
-            set_square(result, curr);
+            utils::set_square(result, curr);
             curr = next;
             next = next_square(curr, dir);
         }
+    }
+
+    return result;
+}
+
+consteval std::array<Magic, SquareCNT> magic_infos(
+    const std::array<uint64_t, SquareCNT> &magic_numbers, const std::array<Direction, 4> &directions
+) {
+    std::array<Magic, SquareCNT> result;
+
+    for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
+        uint32_t offset;
+        if (sq > SquareA1) {
+            const uint32_t prev_table_size = 1U << result[sq - 1].shift;
+            offset = result[sq - 1].offset + prev_table_size;
+        } else {
+            offset = 0;
+        }
+
+        uint64_t magic = magic_numbers[sq];
+        Bitboard mask = sliding_blockers(sq, directions);
+        uint8_t shift = std::popcount(mask);
+
+        result[sq] = Magic{mask, magic, offset, shift};
     }
 
     return result;
@@ -67,8 +89,8 @@ consteval Bitboard sliding_attack_at(Square from, Bitboard occupancy, const std:
         Square curr = next_square(from, dir);
 
         while (curr < SquareCNT) {
-            set_square(result, curr);
-            bool is_blocked = has_square(occupancy, curr);
+            utils::set_square(result, curr);
+            bool is_blocked = utils::has_square(occupancy, curr);
             if (is_blocked) {
                 break;
             }
@@ -85,7 +107,7 @@ consteval std::array<Bitboard, N> sliding_attacks(
 ) {
     std::array<Bitboard, N> attacks = {0};
 
-    for (Square sq = SquareA1; sq < SquareCNT; ++sq) {
+    for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         const auto &[mask, magic, offset, shift] = magics[sq];
         Bitboard occupancy = 0;
 
@@ -99,30 +121,6 @@ consteval std::array<Bitboard, N> sliding_attacks(
     }
 
     return attacks;
-}
-
-consteval std::array<Magic, SquareCNT> magic_infos(
-    const std::array<uint64_t, SquareCNT> &magic_numbers, const std::array<Direction, 4> &directions
-) {
-    std::array<Magic, SquareCNT> result;
-
-    for (Square sq = SquareA1; sq < SquareCNT; ++sq) {
-        uint32_t offset;
-        if (sq > SquareA1) {
-            const uint32_t prev_table_size = 1U << result[sq - 1].shift;
-            offset = result[sq - 1].offset + prev_table_size;
-        } else {
-            offset = 0;
-        }
-
-        uint64_t magic = magic_numbers[sq];
-        Bitboard mask = sliding_blockers(sq, directions);
-        uint8_t shift = std::popcount(mask);
-
-        result[sq] = {mask, magic, offset, shift};
-    }
-
-    return result;
 }
 
 // generated on 2026-04-06 using tools/find_magics.cpp
@@ -171,9 +169,8 @@ constexpr std::array<Direction, 4> BishopDirections = {UpRight, DownRight, DownL
 
 constexpr std::array<Bitboard, SquareCNT> KnightAttacks = stepping_attacks(KnightSteps);
 constexpr std::array<Bitboard, SquareCNT> KingAttacks = stepping_attacks(KingSteps);
-constexpr std::array<std::array<Bitboard, SquareCNT>, 2> PawnAttacks = {
-    stepping_attacks(WhitePawnSteps), stepping_attacks(BlackPawnSteps)
-};
+constexpr std::array<Bitboard, SquareCNT> WhitePawnAttacks = stepping_attacks(WhitePawnSteps);
+constexpr std::array<Bitboard, SquareCNT> BlackPawnAttacks = stepping_attacks(BlackPawnSteps);
 
 constexpr std::array<Magic, SquareCNT> RookMagics = magic_infos(RookMagicNumbers, RookDirections);
 constexpr std::array<Magic, SquareCNT> BishopMagics = magic_infos(BishopMagicNumbers, BishopDirections);
@@ -184,4 +181,4 @@ constexpr std::array<Bitboard, 5248> BishopAttacks = sliding_attacks<5248>(Bisho
 static_assert(RookAttacks.size() == RookMagics.back().offset + (1ULL << RookMagics.back().shift));
 static_assert(BishopAttacks.size() == BishopMagics.back().offset + (1ULL << BishopMagics.back().shift));
 
-} // namespace cheslib::attack_tables::detail
+} // namespace cheslib::attacks::detail

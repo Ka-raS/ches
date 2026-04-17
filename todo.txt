@@ -1,0 +1,6 @@
+- utils.hpp naming sucks, maybe merge with types.hpp, or split *.hpp
+- check if constexpr functions are actually constexpr
+- noexcept them alll
+- Pieces._board can be <PieceType, 64>, maybe more performant
+- switch to the 4bit flag version of Move for easy switch case
+- C++20 modules to constexpr attacks, zobrists, and remove Position.cpp 4 last lines

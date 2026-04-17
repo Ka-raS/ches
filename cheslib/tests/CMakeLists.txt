@@ -17,11 +17,13 @@ endif()
 # cheslib tests
 
 add_executable(cheslib_test
-    test_attack_tables.cpp
-    test_do_undo_move.cpp
-    test_move_generation.cpp
+    test_attacks.cpp
     test_move.cpp
+    test_movegen.cpp
+    test_pieces.cpp
+    test_position.cpp
     test_state.cpp
+    test_utils.cpp
     test_zobrist.cpp
 )
 

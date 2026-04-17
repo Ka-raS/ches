@@ -7,7 +7,17 @@
 
 #include "cheslib/types.hpp"
 
-namespace cheslib::attack_tables {
+#include "utils.hpp"
+
+namespace cheslib::attacks {
+
+template <Side Us>
+inline Bitboard pawn(Square from);
+inline Bitboard knight(Square from);
+inline Bitboard king(Square from);
+inline Bitboard rook(Square from, Bitboard occupancy);
+inline Bitboard bishop(Square from, Bitboard occupancy);
+inline Bitboard queen(Square from, Bitboard occupancy);
 
 namespace detail {
 
@@ -24,13 +34,20 @@ struct Magic {
 
 extern const std::array<Bitboard, SquareCNT> KnightAttacks;
 extern const std::array<Bitboard, SquareCNT> KingAttacks;
-extern const std::array<std::array<Bitboard, SquareCNT>, 2> PawnAttacks; // [Side][Square]
+extern const std::array<Bitboard, SquareCNT> WhitePawnAttacks;
+extern const std::array<Bitboard, SquareCNT> BlackPawnAttacks;
 extern const std::array<Magic, SquareCNT> RookMagics;
 extern const std::array<Magic, SquareCNT> BishopMagics;
 extern const std::array<Bitboard, 102400> RookAttacks;
 extern const std::array<Bitboard, 5248> BishopAttacks;
 
 } // namespace detail
+
+template <Side Us>
+inline Bitboard pawn(Square from) {
+    assert(from < SquareCNT);
+    return (Us == White) ? detail::WhitePawnAttacks[from] : detail::BlackPawnAttacks[from];
+}
 
 inline Bitboard knight(Square from) {
     assert(from < SquareCNT);
@@ -54,13 +71,8 @@ inline Bitboard bishop(Square from, Bitboard occupancy) {
     return detail::BishopAttacks[magic.offset + magic.index(occupancy)];
 }
 
-inline Bitboard pawn(Square from, Side us) {
-    assert(from < SquareCNT);
-    return detail::PawnAttacks[us][from];
-}
-
 inline Bitboard queen(Square from, Bitboard occupancy) {
     return bishop(from, occupancy) | rook(from, occupancy);
 }
 
-} // namespace cheslib::attack_tables
+} // namespace cheslib::attacks
