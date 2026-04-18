@@ -16,15 +16,15 @@ namespace cheslib {
 using Bitboard = uint64_t;
 
 enum Direction : int8_t {
-    Up = SquareA2 - SquareA1,
-    Right = SquareB1 - SquareA1,
-    Down = -Up,
-    Left = -Right,
+    North = SquareA2 - SquareA1,
+    East = SquareB1 - SquareA1,
+    South = -North,
+    West = -East,
 
-    UpRight = Up + Right,
-    DownRight = Down + Right,
-    DownLeft = -UpRight,
-    UpLeft = -DownRight
+    NorthEast = North + East,
+    SouthEast = South + East,
+    SouthWest = -NorthEast,
+    NorthWest = -SouthEast
 };
 
 namespace utils {
@@ -59,7 +59,7 @@ constexpr Square square_behind(Square sq) {
         assert(sq <= SquareH7);
     }
 
-    constexpr Direction backward = (Us == White) ? Down : Up;
+    constexpr Direction backward = (Us == White) ? South : North;
     return Square(sq + int(backward));
 }
 

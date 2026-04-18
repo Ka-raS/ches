@@ -157,13 +157,14 @@ constexpr std::array<uint64_t, SquareCNT> BishopMagicNumbers = {
     0x00000801d1020a13, 0x00402008310d0209, 0x02001002b0041083, 0x0021200410484240
 };
 
-constexpr std::array<int8_t, 8> KnightSteps = {UpRight + Up,    UpRight + Right, DownRight + Right, DownRight + Down,
-                                               DownLeft + Down, DownLeft + Left, UpLeft + Left,     UpLeft + Up};
-constexpr std::array<int8_t, 8> KingSteps = {Up, UpRight, Right, DownRight, Down, DownLeft, Left, UpLeft};
-constexpr std::array<int8_t, 2> WhitePawnSteps = {UpLeft, UpRight};
-constexpr std::array<int8_t, 2> BlackPawnSteps = {DownLeft, DownRight};
-constexpr std::array<Direction, 4> RookDirections = {Up, Right, Down, Left};
-constexpr std::array<Direction, 4> BishopDirections = {UpRight, DownRight, DownLeft, UpLeft};
+constexpr std::array<int8_t, 8> KnightSteps = {NorthEast + North, NorthEast + East,  SouthEast + East,
+                                               SouthEast + South, SouthWest + South, SouthWest + West,
+                                               NorthWest + West,  NorthWest + North};
+constexpr std::array<int8_t, 8> KingSteps = {North, NorthEast, East, SouthEast, South, SouthWest, West, NorthWest};
+constexpr std::array<int8_t, 2> WhitePawnSteps = {NorthWest, NorthEast};
+constexpr std::array<int8_t, 2> BlackPawnSteps = {SouthWest, SouthEast};
+constexpr std::array<Direction, 4> RookDirections = {North, East, South, West};
+constexpr std::array<Direction, 4> BishopDirections = {NorthEast, SouthEast, SouthWest, NorthWest};
 
 }; // namespace
 

@@ -103,7 +103,7 @@ void generate_single_pawn_pushes(MoveList &moves, Bitboard pushed_1) {
 
 template <Side Us>
 void generate_double_pawn_pushes(MoveList &moves, Bitboard pushed_1, Bitboard empty) {
-    constexpr Direction forward = (Us == White) ? Up : Down;
+    constexpr Direction forward = (Us == White) ? North : South;
     constexpr Bitboard destination = (Us == White) ? utils::bitboard_of(Rank4) : utils::bitboard_of(Rank5);
 
     Bitboard pushed_2 = empty & destination & move_pawn<forward>(pushed_1);
@@ -131,12 +131,12 @@ void generate_en_croissants(MoveList &moves, Bitboard our_pawns, File ep_file) {
 
 template <Side Us, Direction Dir>
 void generate_pawn_captures(MoveList &moves, Bitboard our_pawns, Bitboard enemy) {
-    assert(Dir == Right || Dir == Left);
+    assert(Dir == East || Dir == West);
 
     constexpr bool is_white = Us == White;
-    constexpr Direction capture_dir = Direction(Dir + (is_white ? Up : Down));
+    constexpr Direction capture_dir = Direction(Dir + (is_white ? North : South));
     constexpr Bitboard promo_bb = is_white ? utils::bitboard_of(Rank8) : utils::bitboard_of(Rank1);
-    constexpr Bitboard mask = (Dir == Right) ? ~utils::bitboard_of(FileA) : ~utils::bitboard_of(FileH);
+    constexpr Bitboard mask = (Dir == East) ? ~utils::bitboard_of(FileA) : ~utils::bitboard_of(FileH);
 
     const Bitboard captures = enemy & mask & move_pawn<capture_dir>(our_pawns);
     Bitboard normal_captures = captures & ~promo_bb;
@@ -159,7 +159,7 @@ void generate_pawn_captures(MoveList &moves, Bitboard our_pawns, Bitboard enemy)
 template <Side Us>
 void generate_pawn_moves(MoveList &moves, const Pieces &pieces, State state) {
     constexpr bool is_white = (Us == White);
-    constexpr Direction forward = (Us == White) ? Up : Down;
+    constexpr Direction forward = (Us == White) ? North : South;
 
     const Bitboard empty = ~pieces.all();
     const Bitboard enemy = pieces.all<Side(!Us)>();
@@ -168,8 +168,8 @@ void generate_pawn_moves(MoveList &moves, const Pieces &pieces, State state) {
 
     generate_single_pawn_pushes<Us>(moves, pushed_1);
     generate_double_pawn_pushes<Us>(moves, pushed_1, empty);
-    generate_pawn_captures<Us, Left>(moves, our_pawns, enemy);
-    generate_pawn_captures<Us, Right>(moves, our_pawns, enemy);
+    generate_pawn_captures<Us, West>(moves, our_pawns, enemy);
+    generate_pawn_captures<Us, East>(moves, our_pawns, enemy);
     if (state.has_en_passant()) {
         generate_en_croissants<Us>(moves, our_pawns, state.en_passant());
     }
