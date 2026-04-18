@@ -5,7 +5,7 @@
 #### Requirements
 
 - **C++20**
-- [**CMake 4.3**](https://cmake.org/download/) - build system generator
+- [**CMake 3.18**](https://cmake.org/download/) - build system generator
 - [**raylib 5.5**](https://www.raylib.com/) - videogame programming library (auto fetched by CMake)
 
 ```bash
