@@ -19,6 +19,8 @@ inline Bitboard rook(Square from, Bitboard occupancy);
 inline Bitboard bishop(Square from, Bitboard occupancy);
 inline Bitboard queen(Square from, Bitboard occupancy);
 
+// implementation
+
 namespace detail {
 
 struct Magic {
@@ -61,13 +63,13 @@ inline Bitboard king(Square from) {
 
 inline Bitboard rook(Square from, Bitboard occupancy) {
     assert(from < SquareCNT);
-    const auto &magic = detail::RookMagics[from];
+    const detail::Magic &magic = detail::RookMagics[from];
     return detail::RookAttacks[magic.offset + magic.index(occupancy)];
 }
 
 inline Bitboard bishop(Square from, Bitboard occupancy) {
     assert(from < SquareCNT);
-    const auto &magic = detail::BishopMagics[from];
+    const detail::Magic &magic = detail::BishopMagics[from];
     return detail::BishopAttacks[magic.offset + magic.index(occupancy)];
 }
 

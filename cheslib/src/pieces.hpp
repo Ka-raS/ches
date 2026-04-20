@@ -49,7 +49,8 @@ constexpr Pieces::Pieces() : _bitboards{0}, _side{0}, _all(0) {
     _board.fill(PieceCNT);
 }
 
-constexpr Pieces::Pieces(std::array<Piece, SquareCNT> &&board) : _board(std::move(board)), _bitboards{0}, _side{0}, _all(0) {
+constexpr Pieces::Pieces(std::array<Piece, SquareCNT> &&board)
+    : _board(std::move(board)), _bitboards{0}, _side{0}, _all(0) {
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         Piece piece = _board[sq];
         if (piece < PieceCNT) {
@@ -122,7 +123,7 @@ constexpr Bitboard Pieces::get(Piece piece) const {
 }
 
 template <Side Us>
-constexpr void Pieces::put(Square sq, Piece piece) {
+constexpr void Pieces::put(const Square sq, const Piece piece) {
     assert(piece < PieceCNT);
     assert(utils::side_of(piece) == Us);
     assert(_board[sq] == PieceCNT);
@@ -134,7 +135,7 @@ constexpr void Pieces::put(Square sq, Piece piece) {
 }
 
 template <Side Us>
-constexpr Piece Pieces::remove(Square sq) {
+constexpr Piece Pieces::remove(const Square sq) {
     const Piece piece = _board[sq];
     assert(piece < PieceCNT);
     assert(utils::side_of(piece) == Us);

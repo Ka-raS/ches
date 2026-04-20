@@ -49,7 +49,7 @@ constexpr File file_of(Square sq);
 constexpr Rank rank_of(Square sq);
 constexpr Side side_of(Piece piece);
 
-// definitions
+// implementation
 
 template <Side Us>
 constexpr Square square_behind(Square sq) {

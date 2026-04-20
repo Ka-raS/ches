@@ -16,11 +16,13 @@ using ZKey = uint64_t;
 
 namespace zobrist {
 
-ZKey hash(const std::array<Piece, SquareCNT> &board, const State &state);
+ZKey hash(const std::array<Piece, SquareCNT> &board, State state);
 inline ZKey piece(Piece piece, Square sq);
 inline ZKey side();
 inline ZKey en_passant(File file);
 inline ZKey castling(CastleFlag flag);
+
+// implementation
 
 namespace detail {
 

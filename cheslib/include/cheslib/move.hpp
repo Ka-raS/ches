@@ -65,11 +65,8 @@ class MoveList {
     constexpr const Move *begin() const;
     constexpr const Move *end() const;
     constexpr bool has(Move target) const;
+    constexpr void add(Square from, Square to, MoveFlag flag);
     constexpr Move operator[](size_t idx) const;
-
-    template <typename... Args>
-        requires std::constructible_from<Move, Args...>
-    constexpr void add(Args &&...args);
 
   private:
     static constexpr size_t s_size = 256;
@@ -141,11 +138,9 @@ constexpr bool MoveList::has(Move target) const {
     return false;
 }
 
-template <typename... Args>
-    requires std::constructible_from<Move, Args...>
-constexpr void MoveList::add(Args &&...args) {
-    assert(size() < s_size); // not happening
-    _moves[_size] = Move(std::forward<Args>(args)...);
+constexpr void MoveList::add(Square from, Square to, MoveFlag flag) {
+    assert(size() < s_size);
+    _moves[_size] = Move(from, to, flag);
     ++_size;
 }
 

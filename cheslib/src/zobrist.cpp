@@ -45,16 +45,16 @@ constexpr std::array<ZKey, BothCastles + 1> castling_keys = rng<BothCastles + 1>
 constexpr std::array<ZKey, FileCNT + 1> en_passant_keys = rng<FileCNT + 1>(castling_keys.back(), FileCNT);
 
 constexpr std::array<ZKey, (int)PieceCNT * SquareCNT> piece_keys =
-    rng<(int)PieceCNT * SquareCNT>(en_passant_keys[FileCNT - 1]);
+    rng<(int)PieceCNT * SquareCNT>(en_passant_keys[FileH]);
 
 } // namespace detail
 
-ZKey hash(const std::array<Piece, SquareCNT> &board, const State &state) {
+ZKey hash(const std::array<Piece, SquareCNT> &board, const State state) {
     ZKey key = 0;
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         Piece piece = board[sq];
-        if (piece < PieceCNT) { // only if square occupied
+        if (piece < PieceCNT) {
             key ^= detail::piece_keys[piece * (int)SquareCNT + sq];
         }
     }

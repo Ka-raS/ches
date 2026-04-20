@@ -30,7 +30,7 @@ void generate_non_pawn_moves(MoveList &moves, const Pieces &pieces) {
     for (PieceType type = Knight; type <= King; ++type) {
         Bitboard bb = pieces.get<Us>(type);
         while (bb) {
-            Square from = utils::pop_lsb(bb);
+            const Square from = utils::pop_lsb(bb);
             Bitboard attacks = not_us & non_pawn_attacks(type, from, all);
 
             while (attacks) {
@@ -43,7 +43,7 @@ void generate_non_pawn_moves(MoveList &moves, const Pieces &pieces) {
 }
 
 template <Side Us>
-void generate_castling_moves(MoveList &moves, const Pieces &pieces, State state) {
+void generate_castling_moves(MoveList &moves, const Pieces &pieces, const State state) {
     const Bitboard all = pieces.all();
 
     if constexpr (Us == White) {
@@ -81,7 +81,7 @@ constexpr Bitboard move_pawn(Bitboard bb) {
 };
 
 template <Side Us>
-void generate_single_pawn_pushes(MoveList &moves, Bitboard pushed_1) {
+void generate_single_pawn_pushes(MoveList &moves, const Bitboard pushed_1) {
     constexpr Bitboard promo_bb = (Us == White) ? utils::bitboard_of(Rank8) : utils::bitboard_of(Rank1);
 
     Bitboard promo_push = pushed_1 & promo_bb;
@@ -102,7 +102,7 @@ void generate_single_pawn_pushes(MoveList &moves, Bitboard pushed_1) {
 }
 
 template <Side Us>
-void generate_double_pawn_pushes(MoveList &moves, Bitboard pushed_1, Bitboard empty) {
+void generate_double_pawn_pushes(MoveList &moves, const Bitboard pushed_1, const Bitboard empty) {
     constexpr Direction forward = (Us == White) ? North : South;
     constexpr Bitboard destination = (Us == White) ? utils::bitboard_of(Rank4) : utils::bitboard_of(Rank5);
 
@@ -115,7 +115,7 @@ void generate_double_pawn_pushes(MoveList &moves, Bitboard pushed_1, Bitboard em
 }
 
 template <Side Us>
-void generate_en_croissants(MoveList &moves, Bitboard our_pawns, File ep_file) {
+void generate_en_croissants(MoveList &moves, const Bitboard our_pawns, const File ep_file) {
     assert(ep_file < FileCNT);
     const Square ep_square = utils::square_of(ep_file, (Us == White) ? Rank6 : Rank3);
 
@@ -130,7 +130,7 @@ void generate_en_croissants(MoveList &moves, Bitboard our_pawns, File ep_file) {
 }
 
 template <Side Us, Direction Dir>
-void generate_pawn_captures(MoveList &moves, Bitboard our_pawns, Bitboard enemy) {
+void generate_pawn_captures(MoveList &moves, const Bitboard our_pawns, const Bitboard enemy) {
     assert(Dir == East || Dir == West);
 
     constexpr bool is_white = Us == White;
@@ -157,7 +157,7 @@ void generate_pawn_captures(MoveList &moves, Bitboard our_pawns, Bitboard enemy)
 }
 
 template <Side Us>
-void generate_pawn_moves(MoveList &moves, const Pieces &pieces, State state) {
+void generate_pawn_moves(MoveList &moves, const Pieces &pieces, const State state) {
     constexpr bool is_white = (Us == White);
     constexpr Direction forward = (Us == White) ? North : South;
 

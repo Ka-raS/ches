@@ -104,17 +104,17 @@ TEST_CASE("MoveList: Check functionality", "[move_list]") {
 }
 
 TEST_CASE("MoveList: constexpr", "[move_list]") {
+    constexpr MoveList moves = []() {
+        MoveList ml{};
+        ml.add(SquareE2, SquareE4, DoublePawnPush);
+        ml.add(SquareG1, SquareF3, QuietMove);
+        ml.add(SquareD1, SquareD8, Capture);
+        return ml;
+    }();
+
     constexpr Move move_0(SquareE2, SquareE4, DoublePawnPush);
     constexpr Move move_1(SquareG1, SquareF3, QuietMove);
     constexpr Move move_2(SquareD1, SquareD8, Capture);
-
-    constexpr MoveList moves = [=]() {
-        MoveList ml{};
-        ml.add(move_0);
-        ml.add(move_1);
-        ml.add(move_2);
-        return ml;
-    }();
 
     STATIC_CHECK(moves.size() == 3);
     STATIC_CHECK(moves.end() - moves.begin() == moves.size());

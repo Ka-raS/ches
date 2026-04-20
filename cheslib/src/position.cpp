@@ -117,11 +117,13 @@ void Position::undo_move_of() {
         _pieces.put<Us>(from, moved);
     }
 
-    if (move.is_capture()) { // undo captured piece
+    // undo captured piece
+    if (move.is_capture()) {
         Square enemy = (flag == EnPassant) ? utils::square_behind<Us>(to) : to;
         _pieces.put<Side(!Us)>(enemy, captured);
 
-    } else if (flag == ShortCastle || flag == LongCastle) { // undo castled rook
+        // undo castled rook
+    } else if (flag == ShortCastle || flag == LongCastle) {
         bool is_short = flag == ShortCastle;
         Square rookTo = RookCastled[Us][is_short];
         Square rookFrom = RookInitial[Us][is_short];

@@ -22,7 +22,7 @@ consteval Square next_square(Square from, int8_t step) {
     }
 }
 
-consteval std::array<Bitboard, SquareCNT> stepping_attacks(std::span<const int8_t> steps) {
+consteval std::array<Bitboard, SquareCNT> stepping_attacks(const std::span<const int8_t> steps) {
     std::array<Bitboard, SquareCNT> result = {0};
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
@@ -37,7 +37,7 @@ consteval std::array<Bitboard, SquareCNT> stepping_attacks(std::span<const int8_
     return result;
 }
 
-consteval Bitboard sliding_blockers(Square from, const std::array<Direction, 4> &directions) {
+consteval Bitboard sliding_blockers(const Square from, const std::array<Direction, 4> &directions) {
     Bitboard result = 0;
 
     for (Direction dir : directions) {
@@ -65,8 +65,8 @@ consteval std::array<Magic, SquareCNT> magic_infos(
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         uint32_t offset;
-        if (sq > SquareA1) {
-            const uint32_t prev_table_size = 1U << result[sq - 1].shift;
+        if (sq != SquareA1) {
+            uint32_t prev_table_size = 1U << result[sq - 1].shift;
             offset = result[sq - 1].offset + prev_table_size;
         } else {
             offset = 0;
@@ -82,7 +82,9 @@ consteval std::array<Magic, SquareCNT> magic_infos(
     return result;
 }
 
-consteval Bitboard sliding_attack_at(Square from, Bitboard occupancy, const std::array<Direction, 4> &directions) {
+consteval Bitboard sliding_attack_at(
+    const Square from, const Bitboard occupancy, const std::array<Direction, 4> &directions
+) {
     Bitboard result = 0;
 
     for (Direction dir : directions) {
