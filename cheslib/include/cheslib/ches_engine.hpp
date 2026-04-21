@@ -7,9 +7,9 @@
 
 namespace cheslib {
 
-class ChesMaster {
+class ChesEngine {
   public:
-    ChesMaster() {
+    ChesEngine() {
     }
 
     void reset() {

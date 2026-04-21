@@ -43,7 +43,7 @@ void Position::do_move_of(const Move move) {
         Piece captured = PieceCNT;
 
         if (move.is_capture()) {
-            const Square capture_sq = (move_flag == EnPassant) ? utils::square_behind<Us>(to) : to;
+            Square capture_sq = (move_flag == EnPassant) ? utils::square_behind<Us>(to) : to;
             captured = _pieces.remove<Side(!Us)>(capture_sq);
             _key ^= zobrist::piece(captured, capture_sq);
         }
@@ -67,7 +67,7 @@ void Position::do_move_of(const Move move) {
     }
 
     { // move rook if castling
-        const bool is_short = move_flag == ShortCastle;
+        bool is_short = move_flag == ShortCastle;
         if (is_short || move_flag == LongCastle) {
             constexpr Piece rook = utils::piece_of<Us>(Rook);
             Square rook_to = RookCastled[Us][is_short];
@@ -79,16 +79,16 @@ void Position::do_move_of(const Move move) {
     }
 
     { // castling state
-        const CastleFlag old_castles = old_state.castle_flag();
-        const CastleFlag new_castles = CastleFlag(old_castles & ~(castling_mask[from] | castling_mask[to]));
+        CastleFlag old_castles = old_state.castle_flag();
+        CastleFlag new_castles = CastleFlag(old_castles & ~(castling_mask[from] | castling_mask[to]));
         _state.set_castles(new_castles);
         _key ^= zobrist::castling(old_castles);
         _key ^= zobrist::castling(new_castles);
     }
 
     { // en passant state
-        const File old_ep = old_state.en_passant();
-        const File new_ep = (move_flag == DoublePawnPush) ? utils::file_of(from) : FileCNT;
+        File old_ep = old_state.en_passant();
+        File new_ep = (move_flag == DoublePawnPush) ? utils::file_of(from) : FileCNT;
         _state.set_en_passant(new_ep);
         _key ^= zobrist::en_passant(old_ep);
         _key ^= zobrist::en_passant(new_ep);

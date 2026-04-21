@@ -30,7 +30,7 @@ class HistoryStack {
     size_t _size;
 };
 
-constexpr HistoryStack::HistoryStack() : _size(0) {
+constexpr HistoryStack::HistoryStack() : _undos{}, _size(0) {
 }
 
 constexpr size_t HistoryStack::size() const {

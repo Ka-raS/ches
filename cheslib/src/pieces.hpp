@@ -45,7 +45,7 @@ class Pieces {
     Bitboard _all;
 };
 
-constexpr Pieces::Pieces() : _bitboards{0}, _side{0}, _all(0) {
+constexpr Pieces::Pieces() : _board{}, _bitboards{0}, _side{0}, _all(0) {
     _board.fill(PieceCNT);
 }
 

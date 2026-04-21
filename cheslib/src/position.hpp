@@ -40,7 +40,7 @@ class Position {
 };
 
 inline Position::Position(Pieces &&pieces, State state)
-    : _pieces(std::move(pieces)), _state(state), _key(zobrist::hash(_pieces.board(), _state)) {
+    : _pieces(std::move(pieces)), _state(state), _key(zobrist::hash(_pieces.board(), _state)), _history() {
 }
 
 inline Position Position::initial() {

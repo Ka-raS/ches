@@ -33,3 +33,7 @@ target_compile_features(cheslib_test PRIVATE cxx_std_20)
 
 include(Catch)
 catch_discover_tests(cheslib_test)
+add_custom_target(run_cheslib_tests ALL
+    COMMAND ${CMAKE_CTEST_COMMAND}
+    DEPENDS cheslib_test
+)
