@@ -23,8 +23,8 @@ class Position {
     constexpr State state() const;
     constexpr ZKey key() const;
 
-    inline void do_move(Move move);
-    inline void undo_move();
+    void do_move(Move move);
+    void undo_move();
 
   private:
     template <Side Us>
@@ -57,22 +57,6 @@ constexpr State Position::state() const {
 
 constexpr ZKey Position::key() const {
     return _key;
-}
-
-inline void Position::do_move(Move move) {
-    if (_state.side_to_move() == White) {
-        do_move_of<White>(move);
-    } else {
-        do_move_of<Black>(move);
-    }
-}
-
-inline void Position::undo_move() {
-    if (_state.side_to_move() == White) {
-        undo_move_of<Black>();
-    } else {
-        undo_move_of<White>();
-    }
 }
 
 } // namespace cheslib

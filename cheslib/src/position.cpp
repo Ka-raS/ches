@@ -6,6 +6,22 @@
 
 namespace cheslib {
 
+void Position::do_move(Move move) {
+    if (_state.side_to_move() == White) {
+        do_move_of<White>(move);
+    } else {
+        do_move_of<Black>(move);
+    }
+}
+
+void Position::undo_move() {
+    if (_state.side_to_move() == White) {
+        undo_move_of<Black>();
+    } else {
+        undo_move_of<White>();
+    }
+}
+
 namespace {
 
 // left index: side
@@ -133,11 +149,5 @@ void Position::undo_move_of() {
     _state = state;
     _key = key;
 }
-
-// explicit instantiate for inlined do_move/undo_move
-template void Position::do_move_of<White>(Move);
-template void Position::do_move_of<Black>(Move);
-template void Position::undo_move_of<White>();
-template void Position::undo_move_of<Black>();
 
 } // namespace cheslib

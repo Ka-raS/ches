@@ -3,4 +3,5 @@
 - noexcept them alll
 - Pieces._board can be <PieceType, 64>, maybe more performant
 - switch to the 4bit flag version of Move for easy switch case
-- C++20 modules to constexpr attacks, zobrists, and remove Position.cpp 4 last lines
+- C++20 modules to constexpr attacks and zobrists
+- clang tidy
