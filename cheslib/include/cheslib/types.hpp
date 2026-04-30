@@ -4,9 +4,8 @@
 
 namespace cheslib {
 
-// clang-format off
-
 enum Square : uint8_t {
+    // clang-format off
     SquareA1, SquareB1, SquareC1, SquareD1, SquareE1, SquareF1, SquareG1, SquareH1,
     SquareA2, SquareB2, SquareC2, SquareD2, SquareE2, SquareF2, SquareG2, SquareH2,
     SquareA3, SquareB3, SquareC3, SquareD3, SquareE3, SquareF3, SquareG3, SquareH3,
@@ -16,8 +15,8 @@ enum Square : uint8_t {
     SquareA7, SquareB7, SquareC7, SquareD7, SquareE7, SquareF7, SquareG7, SquareH7,
     SquareA8, SquareB8, SquareC8, SquareD8, SquareE8, SquareF8, SquareG8, SquareH8,
     SquareCNT
+    // clang-format on
 };
-// clang-format on
 
 enum Rank : uint8_t {
     Rank1,

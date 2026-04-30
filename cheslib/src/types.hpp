@@ -2,7 +2,6 @@
 
 #include <bit>
 #include <cassert>
-#include <cstdlib>
 
 #include "cheslib/types.hpp"
 
@@ -14,6 +13,12 @@ namespace cheslib {
  * see: https://www.chessprogramming.org/Bitboards
  */
 using Bitboard = uint64_t;
+
+/**
+ * Zobrist hash key
+ * see: https://www.chessprogramming.org/Zobrist_Hashing
+ */
+using ZKey = uint64_t;
 
 enum Direction : int8_t {
     North = SquareA2 - SquareA1,
@@ -27,7 +32,22 @@ enum Direction : int8_t {
     NorthWest = -SouthEast
 };
 
-namespace utils {
+enum CastleFlag : uint8_t {
+    NoCastles = 0,
+
+    WhiteShortCastles = 0b0001,
+    WhiteLongCastles = 0b0010,
+    BlackShortCastles = 0b0100,
+    BlackLongCastles = 0b1000,
+
+    ShortCastles = WhiteShortCastles | BlackShortCastles,
+    LongCastles = WhiteLongCastles | BlackLongCastles,
+    WhiteCastles = WhiteShortCastles | WhiteLongCastles,
+    BlackCastles = BlackShortCastles | BlackLongCastles,
+    BothCastles = WhiteCastles | BlackCastles,
+};
+
+namespace types {
 
 template <Side Us>
 constexpr Square square_behind(Square sq);
@@ -49,7 +69,7 @@ constexpr File file_of(Square sq);
 constexpr Rank rank_of(Square sq);
 constexpr Side side_of(Piece piece);
 
-// implementation
+// definitions
 
 template <Side Us>
 constexpr Square square_behind(Square sq) {
@@ -70,6 +90,7 @@ constexpr Square square_of(File file, Rank rank) {
 }
 
 constexpr Square pop_lsb(Bitboard &bb) {
+    assert(bb != 0);
     Square sq = Square(std::countr_zero(bb));
     bb &= (bb - 1);
     return sq;
@@ -137,6 +158,6 @@ constexpr Side side_of(Piece piece) {
     return Side(piece >= BlackPawn);
 }
 
-} // namespace utils
+} // namespace types
 
 } // namespace cheslib
