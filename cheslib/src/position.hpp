@@ -1,32 +1,34 @@
 #pragma once
 
-#include <array>
-#include <cstdint>
-
+#include "cheslib/array.hpp"
 #include "cheslib/move.hpp"
-#include "cheslib/types.hpp"
 
-#include "history.hpp"
 #include "pieces.hpp"
 #include "state.hpp"
-#include "zobrist.hpp"
+#include "types.hpp"
 
 namespace cheslib {
 
 class Position {
   public:
-    constexpr Position() = default;
-    inline Position(Pieces &&pieces, State state);
-    static inline Position initial();
+    Position(Pieces &&pieces, State state);
+    static Position initial();
 
-    constexpr const Pieces &pieces() const;
-    constexpr State state() const;
-    constexpr ZKey key() const;
+    const Pieces &pieces() const;
+    State state() const;
+    ZKey key() const;
 
     void do_move(Move move);
     void undo_move();
 
   private:
+    struct HistoryEntry {
+        ZKey key;
+        Move move;
+        State state;
+        Piece captured;
+    };
+
     template <Side Us>
     void do_move_of(Move move);
     template <Side Us>
@@ -36,27 +38,7 @@ class Position {
     Pieces _pieces;
     State _state;
     ZKey _key;
-    HistoryStack _history;
+    Array<HistoryEntry, 512> _history;
 };
-
-inline Position::Position(Pieces &&pieces, State state)
-    : _pieces(std::move(pieces)), _state(state), _key(zobrist::hash(_pieces.board(), _state)), _history() {
-}
-
-inline Position Position::initial() {
-    return Position(Pieces::initial(), State::initial());
-}
-
-constexpr const Pieces &Position::pieces() const {
-    return _pieces;
-}
-
-constexpr State Position::state() const {
-    return _state;
-}
-
-constexpr ZKey Position::key() const {
-    return _key;
-}
 
 } // namespace cheslib

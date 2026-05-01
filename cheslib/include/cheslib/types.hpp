@@ -18,6 +18,10 @@ enum Square : uint8_t {
     // clang-format on
 };
 
+constexpr Square operator++(Square &sq) {
+    return sq = Square(sq + 1U);
+}
+
 enum Rank : uint8_t {
     Rank1,
     Rank2,
@@ -75,24 +79,23 @@ enum Piece : uint8_t {
     PieceCNT
 };
 
-constexpr Square operator++(Square &sq) {
-    return sq = Square(sq + 1U);
-}
+enum MoveFlag : uint8_t {
+    QuietMove = 0,
+    DoublePawnPush = 0b001,
+    ShortCastle = 0b010,
+    LongCastle = 0b011,
+    Capture = 0b100,
+    EnPassant = 0b101,
 
-constexpr Rank operator++(Rank &r) {
-    return r = Rank(r + 1U);
-}
+    KnightPromo = 0b1000,
+    BishopPromo = 0b1001,
+    RookPromo = 0b1010,
+    QueenPromo = 0b1011,
 
-constexpr File operator++(File &f) {
-    return f = File(f + 1U);
-}
-
-constexpr PieceType operator++(PieceType &p) {
-    return p = PieceType(p + 1U);
-}
-
-constexpr Piece operator++(Piece &p) {
-    return p = Piece(p + 1U);
-}
+    KnightPromoCap = KnightPromo | Capture,
+    BishopPromoCap = BishopPromo | Capture,
+    RookPromoCap = RookPromo | Capture,
+    QueenPromoCap = QueenPromo | Capture
+};
 
 } // namespace cheslib

@@ -1,13 +1,11 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include "cheslib/types.hpp"
-
-#include "utils.hpp"
+#include "types.hpp"
 
 using namespace cheslib;
-using namespace cheslib::utils;
+using namespace cheslib::types;
 
-TEST_CASE("Utils: square_behind", "[utils]") {
+TEST_CASE("Types: square_behind", "[types]") {
     SECTION("White") {
         CHECK(square_behind<White>(SquareA2) == SquareA1);
         CHECK(square_behind<White>(SquareH8) == SquareH7);
@@ -21,14 +19,14 @@ TEST_CASE("Utils: square_behind", "[utils]") {
     }
 }
 
-TEST_CASE("Utils: square_of", "[utils]") {
+TEST_CASE("Types: square_of", "[types]") {
     CHECK(square_of(FileA, Rank1) == SquareA1);
     CHECK(square_of(FileH, Rank8) == SquareH8);
     CHECK(square_of(FileD, Rank4) == SquareD4);
     CHECK(square_of(FileC, Rank2) == SquareC2);
 }
 
-TEST_CASE("Utils: pop_lsb", "[utils]") {
+TEST_CASE("Types: pop_lsb", "[types]") {
     Bitboard bb = (1ULL << SquareD1) | (1ULL << SquareF1);
 
     CHECK(pop_lsb(bb) == SquareD1);
@@ -38,14 +36,14 @@ TEST_CASE("Utils: pop_lsb", "[utils]") {
     CHECK(bb == 0);
 }
 
-TEST_CASE("Utils: bitboard_of squares", "[utils]") {
+TEST_CASE("Types: bitboard_of squares", "[types]") {
     CHECK(bitboard_of(SquareA1) == 1ULL);
     CHECK(bitboard_of(SquareH8) == (1ULL << SquareH8));
     CHECK(bitboard_of(SquareA1, SquareH8) == ((1ULL << SquareA1) | (1ULL << SquareH8)));
     CHECK(bitboard_of(SquareC3, SquareF6) == ((1ULL << SquareC3) | (1ULL << SquareF6)));
 }
 
-TEST_CASE("Utils: bitboard_of ranks", "[utils]") {
+TEST_CASE("Types: bitboard_of ranks", "[types]") {
     constexpr Bitboard rank_1 = 0xFFULL;
     CHECK(bitboard_of(Rank1) == rank_1);
     CHECK(bitboard_of(Rank8) == (rank_1 << SquareA8));
@@ -53,7 +51,7 @@ TEST_CASE("Utils: bitboard_of ranks", "[utils]") {
     CHECK(bitboard_of(Rank3, Rank5) == ((rank_1 << SquareA3) | (rank_1 << SquareA5)));
 }
 
-TEST_CASE("Utils: bitboard_of files", "[utils]") {
+TEST_CASE("Types: bitboard_of files", "[types]") {
     constexpr Bitboard fileA = 0x0101010101010101ULL;
     constexpr Bitboard fileH = 0x8080808080808080ULL;
     CHECK(bitboard_of(FileA) == fileA);
@@ -62,7 +60,7 @@ TEST_CASE("Utils: bitboard_of files", "[utils]") {
     CHECK(bitboard_of(FileC, FileF) == ((fileA << 2) | (fileA << 5)));
 }
 
-TEST_CASE("Utils: has_square", "[utils]") {
+TEST_CASE("Types: has_square", "[types]") {
     const Bitboard bb = bitboard_of(SquareA1, SquareE4, SquareH8);
     CHECK(has_square(bb, SquareA1));
     CHECK(has_square(bb, SquareE4));
@@ -72,7 +70,7 @@ TEST_CASE("Utils: has_square", "[utils]") {
     CHECK_FALSE(has_square(bb, SquareD4));
 }
 
-TEST_CASE("Utils: set_square and unset_square", "[utils]") {
+TEST_CASE("Types: set_square and unset_square", "[types]") {
     Bitboard bb = 0;
     set_square(bb, SquareB2);
     CHECK(bb == bitboard_of(SquareB2));
@@ -88,7 +86,7 @@ TEST_CASE("Utils: set_square and unset_square", "[utils]") {
     CHECK(bb == 0);
 }
 
-TEST_CASE("Utils: piece_of", "[utils]") {
+TEST_CASE("Types: piece_of", "[types]") {
     CHECK(piece_of<White>(Pawn) == WhitePawn);
     CHECK(piece_of<White>(Knight) == WhiteKnight);
     CHECK(piece_of<White>(Bishop) == WhiteBishop);
@@ -104,7 +102,7 @@ TEST_CASE("Utils: piece_of", "[utils]") {
     CHECK(piece_of<Black>(King) == BlackKing);
 }
 
-TEST_CASE("Utils: type_of", "[utils]") {
+TEST_CASE("Types: type_of", "[types]") {
     CHECK(type_of(WhitePawn) == Pawn);
     CHECK(type_of(WhiteKnight) == Knight);
     CHECK(type_of(WhiteBishop) == Bishop);
@@ -120,7 +118,7 @@ TEST_CASE("Utils: type_of", "[utils]") {
     CHECK(type_of(BlackKing) == King);
 }
 
-TEST_CASE("Utils: file_of and rank_of", "[utils]") {
+TEST_CASE("Types: file_of and rank_of", "[types]") {
     CHECK(file_of(SquareA1) == FileA);
     CHECK(file_of(SquareB3) == FileB);
     CHECK(file_of(SquareH8) == FileH);
@@ -137,7 +135,7 @@ TEST_CASE("Utils: file_of and rank_of", "[utils]") {
     CHECK(rank_of(SquareH1) == Rank1);
 }
 
-TEST_CASE("Utils: side_of", "[utils]") {
+TEST_CASE("Types: side_of", "[types]") {
     CHECK(side_of(WhitePawn) == White);
     CHECK(side_of(WhiteKnight) == White);
     CHECK(side_of(WhiteBishop) == White);
@@ -153,7 +151,7 @@ TEST_CASE("Utils: side_of", "[utils]") {
     CHECK(side_of(BlackKing) == Black);
 }
 
-TEST_CASE("Utils: constexpr", "[utils]") {
+TEST_CASE("Types: constexpr", "[types]") {
     STATIC_CHECK(file_of(SquareH8) == FileH);
     STATIC_CHECK(rank_of(SquareD4) == Rank4);
     STATIC_CHECK(side_of(BlackPawn) == Black);

@@ -1,2 +1,0 @@
-add_executable(find_magics find_magics.cpp)
-target_compile_features(find_magics PRIVATE cxx_std_20)

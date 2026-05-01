@@ -39,10 +39,9 @@ TEST_CASE("State: Equality", "[state]") {
 
 TEST_CASE("State: State::set_castles() changes only castling rights", "[state]") {
     State s(BothCastles, FileG, Black, 44);
+    s.revoke_castles(WhiteLongCastles);
 
-    s.set_castles(WhiteLongCastles);
-
-    CHECK(s.castle_flag() == WhiteLongCastles);
+    CHECK_FALSE(s.castle_flag() & WhiteLongCastles);
     CHECK(s.en_passant() == FileG);
     CHECK(s.side_to_move() == Black);
     CHECK(s.rule50_count() == 44);
@@ -102,11 +101,11 @@ TEST_CASE("State: Doing random stuffs idk", "[state]") {
 
     s.reset_rule50();
     s.switch_side();
-    s.set_castles(BlackCastles);
     s.set_en_passant(FileE);
+    s.revoke_castles(WhiteCastles);
 
     CHECK(s.rule50_count() == 0);
     CHECK(s.side_to_move() == White);
-    CHECK(s.castle_flag() == BlackCastles);
     CHECK(s.en_passant() == FileE);
+    CHECK_FALSE(s.castle_flag() & WhiteCastles);
 }

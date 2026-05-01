@@ -1,28 +1,21 @@
-#include <array>
-#include <bit>
-
 #include <catch2/catch_test_macros.hpp>
 
-#include "cheslib/move.hpp"
-#include "cheslib/types.hpp"
-
-#include "pieces.hpp"
 #include "position.hpp"
-#include "state.hpp"
-#include "utils.hpp"
 
 using namespace cheslib;
 
 namespace {
 
-int count_piece(const std::array<Piece, SquareCNT> &board, Piece piece) {
-    int count = 0;
-    for (Piece p : board) {
-        if (p == piece) {
-            ++count;
-        }
-    }
-    return count;
+const Pieces NoPieces = []() {
+    std::array<Piece, SquareCNT> board{};
+    board.fill(PieceCNT);
+    return board;
+}();
+
+int count(const Pieces &pieces, Piece piece) {
+    Bitboard bb = types::side_of(piece) == White ? pieces.get<White>(types::type_of(piece))
+                                                 : pieces.get<Black>(types::type_of(piece));
+    return std::popcount(bb);
 }
 
 void check_consistency(const Position &pos) {
@@ -33,16 +26,26 @@ void check_consistency(const Position &pos) {
     Bitboard white = 0;
     Bitboard black = 0;
 
-    for (Piece piece = Piece(0); piece < PieceCNT; ++piece) {
-        const Bitboard bb = pieces.get(piece);
-        CHECK(pieces.count(piece) == count_piece(board, piece));
-
-        all |= bb;
-        if (utils::side_of(piece) == White) {
-            white |= bb;
-        } else {
-            black |= bb;
+    auto count_board = [](const std::array<Piece, SquareCNT> &board, Piece piece) {
+        int count = 0;
+        for (Piece p : board) {
+            if (p == piece) {
+                ++count;
+            }
         }
+        return count;
+    };
+
+    for (PieceType type = Pawn; type <= King; ++type) {
+        Bitboard white_bb = pieces.get<White>(type);
+        Bitboard black_bb = pieces.get<Black>(type);
+
+        CHECK(count_board(board, types::piece_of<White>(type)) == std::popcount(white_bb));
+        CHECK(count_board(board, types::piece_of<Black>(type)) == std::popcount(black_bb));
+
+        all |= white_bb | black_bb;
+        white |= white_bb;
+        black |= black_bb;
     }
 
     CHECK(all == pieces.all());
@@ -51,12 +54,14 @@ void check_consistency(const Position &pos) {
     CHECK((white & black) == 0);
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
-        const Piece board_piece = board[sq];
-        const bool occupied_on_board = board_piece < PieceCNT;
+        const Piece piece = board[sq];
+        const bool has_piece = piece < PieceCNT;
 
-        CHECK(utils::has_square(all, sq) == occupied_on_board);
-        if (occupied_on_board) {
-            CHECK(utils::has_square(pieces.get(board_piece), sq));
+        CHECK(types::has_square(all, sq) == has_piece);
+        if (has_piece) {
+            Bitboard bb = types::side_of(piece) == White ? pieces.get<White>(types::type_of(piece))
+                                                         : pieces.get<Black>(types::type_of(piece));
+            CHECK(types::has_square(bb, sq));
         }
     }
 }
@@ -115,7 +120,7 @@ TEST_CASE("Position: Double pawn push updates en passant", "[position]") {
 
 TEST_CASE("Position: Capture restores captured piece", "[position]") {
     const Position pos_init = []() {
-        Pieces pieces{};
+        Pieces pieces = NoPieces;
         pieces.put<White>(SquareE1, WhiteKing);
         pieces.put<Black>(SquareE8, BlackKing);
         pieces.put<White>(SquareA1, WhiteRook);
@@ -133,7 +138,7 @@ TEST_CASE("Position: Capture restores captured piece", "[position]") {
 
         CHECK(board[SquareA1] == PieceCNT);
         CHECK(board[SquareA8] == WhiteRook);
-        CHECK(pieces.count(BlackKnight) == 0);
+        CHECK(count(pieces, BlackKnight) == 0);
         CHECK(state.side_to_move() == Black);
         CHECK(state.rule50_count() == 0);
         check_consistency(pos);
@@ -146,7 +151,7 @@ TEST_CASE("Position: Capture restores captured piece", "[position]") {
 
 TEST_CASE("Position: En passant is reversible", "[position]") {
     const Position pos_init = []() {
-        Pieces pieces{};
+        Pieces pieces = NoPieces;
         pieces.put<White>(SquareE1, WhiteKing);
         pieces.put<Black>(SquareE8, BlackKing);
         pieces.put<White>(SquareE5, WhitePawn);
@@ -177,7 +182,7 @@ TEST_CASE("Position: En passant is reversible", "[position]") {
 
 TEST_CASE("Position: Short castle moves king and rook", "[position]") {
     const Position pos_init = []() {
-        Pieces pieces{};
+        Pieces pieces = NoPieces;
         pieces.put<White>(SquareE1, WhiteKing);
         pieces.put<White>(SquareH1, WhiteRook);
         pieces.put<Black>(SquareE8, BlackKing);
@@ -208,7 +213,7 @@ TEST_CASE("Position: Short castle moves king and rook", "[position]") {
 
 TEST_CASE("Position: Promotion capture is reversible", "[position]") {
     const Position pos_init = []() {
-        Pieces pieces{};
+        Pieces pieces = NoPieces;
         pieces.put<White>(SquareE1, WhiteKing);
         pieces.put<Black>(SquareE8, BlackKing);
         pieces.put<White>(SquareA7, WhitePawn);
@@ -226,9 +231,9 @@ TEST_CASE("Position: Promotion capture is reversible", "[position]") {
 
         CHECK(board[SquareA7] == PieceCNT);
         CHECK(board[SquareB8] == WhiteQueen);
-        CHECK(pieces.count(BlackRook) == 0);
-        CHECK(pieces.count(WhitePawn) == 0);
-        CHECK(pieces.count(WhiteQueen) == 1);
+        CHECK(count(pieces, BlackRook) == 0);
+        CHECK(count(pieces, WhitePawn) == 0);
+        CHECK(count(pieces, WhiteQueen) == 1);
         CHECK(state.side_to_move() == Black);
         CHECK(state.rule50_count() == 0);
         check_consistency(pos);
@@ -241,7 +246,7 @@ TEST_CASE("Position: Promotion capture is reversible", "[position]") {
 
 TEST_CASE("Position: Castling rights updated", "[position]") {
     const Position pos_init = []() {
-        Pieces pieces{};
+        Pieces pieces = NoPieces;
         pieces.put<White>(SquareE1, WhiteKing);
         pieces.put<White>(SquareA1, WhiteRook);
         pieces.put<White>(SquareH1, WhiteRook);
@@ -291,7 +296,7 @@ TEST_CASE("Position: Multiple dos then undos", "[position]") {
 
 TEST_CASE("Position: Capturing rook revokes castling right", "[position]") {
     const Position pos_init = []() {
-        Pieces pieces{};
+        Pieces pieces = NoPieces;
         pieces.put<White>(SquareE1, WhiteKing);
         pieces.put<White>(SquareH1, WhiteRook);
         pieces.put<Black>(SquareE8, BlackKing);

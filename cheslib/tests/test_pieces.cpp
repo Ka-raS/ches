@@ -1,27 +1,40 @@
-#include <bit>
-
 #include <catch2/catch_test_macros.hpp>
 
 #include "pieces.hpp"
-#include "utils.hpp"
 
 using namespace cheslib;
 
+namespace {
+
+const Pieces InitPieces = Pieces::initial();
+const Pieces NoPieces = []() {
+    std::array<Piece, SquareCNT> board{};
+    board.fill(PieceCNT);
+    return board;
+}();
+
+int count(const Pieces &pieces, Piece piece) {
+    Bitboard bb = types::side_of(piece) == White ? pieces.get<White>(types::type_of(piece))
+                                                 : pieces.get<Black>(types::type_of(piece));
+    return std::popcount(bb);
+}
+
+} // namespace
+
 TEST_CASE("Pieces: default constructor", "[pieces]") {
-    const Pieces pieces{};
-    CHECK(pieces.all() == 0);
-    CHECK(pieces.all<White>() == 0);
-    CHECK(pieces.all<Black>() == 0);
+    CHECK(NoPieces.all() == 0);
+    CHECK(NoPieces.all<White>() == 0);
+    CHECK(NoPieces.all<Black>() == 0);
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
-        CHECK(pieces.at(sq) == PieceCNT);
+        CHECK(NoPieces.at(sq) == PieceCNT);
     }
-    for (Piece p : pieces.board()) {
+    for (Piece p : NoPieces.board()) {
         CHECK(p == PieceCNT);
     }
 }
 
 TEST_CASE("Pieces: initial position", "[pieces]") {
-    const Pieces pieces = Pieces::initial();
+    const Pieces pieces = InitPieces;
 
     CHECK(std::popcount(pieces.all()) == 32);
     CHECK(std::popcount(pieces.all<White>()) == 16);
@@ -35,20 +48,20 @@ TEST_CASE("Pieces: initial position", "[pieces]") {
     CHECK(pieces.at(SquareH1) == WhiteRook);
     CHECK(pieces.at(SquareA8) == BlackRook);
     CHECK(pieces.at(SquareH8) == BlackRook);
-    CHECK(pieces.get(WhiteKing) == utils::bitboard_of(SquareE1));
-    CHECK(pieces.get(BlackKing) == utils::bitboard_of(SquareE8));
+    CHECK(pieces.get<White>(King) == types::bitboard_of(SquareE1));
+    CHECK(pieces.get<Black>(King) == types::bitboard_of(SquareE8));
 
     for (File f = FileA; f <= FileH; ++f) {
-        Square wPawnSq = utils::square_of(f, Rank2);
-        Square bPawnSq = utils::square_of(f, Rank7);
+        Square wPawnSq = types::square_of(f, Rank2);
+        Square bPawnSq = types::square_of(f, Rank7);
         CHECK(pieces.at(wPawnSq) == WhitePawn);
         CHECK(pieces.at(bPawnSq) == BlackPawn);
     }
 
-    CHECK(pieces.count(WhitePawn) == 8);
-    CHECK(pieces.count(BlackPawn) == 8);
-    CHECK(pieces.get<White>(Pawn) == utils::bitboard_of(Rank2));
-    CHECK(pieces.get<Black>(Pawn) == utils::bitboard_of(Rank7));
+    CHECK(count(pieces, WhitePawn) == 8);
+    CHECK(count(pieces, BlackPawn) == 8);
+    CHECK(pieces.get<White>(Pawn) == types::bitboard_of(Rank2));
+    CHECK(pieces.get<Black>(Pawn) == types::bitboard_of(Rank7));
 }
 
 TEST_CASE("Pieces: custom board construction", "[pieces]") {
@@ -64,12 +77,12 @@ TEST_CASE("Pieces: custom board construction", "[pieces]") {
     CHECK(std::popcount(pieces.all<Black>()) == 1);
     CHECK(pieces.at(SquareE4) == WhiteKnight);
     CHECK(pieces.at(SquareD5) == BlackQueen);
-    CHECK(pieces.get(WhiteKnight) == utils::bitboard_of(SquareE4));
-    CHECK(pieces.get(BlackQueen) == utils::bitboard_of(SquareD5));
+    CHECK(pieces.get<White>(Knight) == types::bitboard_of(SquareE4));
+    CHECK(pieces.get<Black>(Queen) == types::bitboard_of(SquareD5));
 }
 
 TEST_CASE("Pieces: put and remove operations", "[pieces]") {
-    Pieces pieces;
+    Pieces pieces = NoPieces;
 
     SECTION("Put a white piece on empty board") {
         pieces.put<White>(SquareE4, WhiteBishop);
@@ -77,7 +90,7 @@ TEST_CASE("Pieces: put and remove operations", "[pieces]") {
         CHECK(std::popcount(pieces.all()) == 1);
         CHECK(std::popcount(pieces.all<White>()) == 1);
         CHECK(std::popcount(pieces.all<Black>()) == 0);
-        CHECK(pieces.get(WhiteBishop) == utils::bitboard_of(SquareE4));
+        CHECK(pieces.get<White>(Bishop) == types::bitboard_of(SquareE4));
     }
 
     SECTION("Put a black piece on empty board") {
@@ -86,7 +99,7 @@ TEST_CASE("Pieces: put and remove operations", "[pieces]") {
         CHECK(std::popcount(pieces.all()) == 1);
         CHECK(std::popcount(pieces.all<White>()) == 0);
         CHECK(std::popcount(pieces.all<Black>()) == 1);
-        CHECK(pieces.get(BlackRook) == utils::bitboard_of(SquareD5));
+        CHECK(pieces.get<Black>(Rook) == types::bitboard_of(SquareD5));
     }
 
     SECTION("Remove a piece") {
@@ -96,7 +109,7 @@ TEST_CASE("Pieces: put and remove operations", "[pieces]") {
         CHECK(pieces.at(SquareE4) == PieceCNT);
         CHECK(std::popcount(pieces.all()) == 0);
         CHECK(std::popcount(pieces.all<White>()) == 0);
-        CHECK(pieces.get(WhiteBishop) == 0);
+        CHECK(pieces.get<White>(Bishop) == 0);
     }
 
     SECTION("Put multiple pieces, then remove one") {
@@ -107,13 +120,13 @@ TEST_CASE("Pieces: put and remove operations", "[pieces]") {
         pieces.remove<White>(SquareE4);
         CHECK(std::popcount(pieces.all()) == 2);
         CHECK(pieces.at(SquareE4) == PieceCNT);
-        CHECK(pieces.get(WhiteBishop) == 0);
-        CHECK(pieces.get(WhiteKnight) == utils::bitboard_of(SquareC3));
+        CHECK(pieces.get<White>(Bishop) == 0);
+        CHECK(pieces.get<White>(Knight) == types::bitboard_of(SquareC3));
     }
 }
 
 TEST_CASE("Pieces: move operation", "[pieces]") {
-    Pieces pieces{};
+    Pieces pieces = NoPieces;
     pieces.put<White>(SquareE2, WhitePawn);
     pieces.put<Black>(SquareE7, BlackPawn);
 
@@ -123,7 +136,7 @@ TEST_CASE("Pieces: move operation", "[pieces]") {
         CHECK(pieces.at(SquareE4) == WhitePawn);
         CHECK(std::popcount(pieces.all<White>()) == 1);
         CHECK(std::popcount(pieces.all<Black>()) == 1);
-        CHECK(pieces.get(WhitePawn) == utils::bitboard_of(SquareE4));
+        CHECK(pieces.get<White>(Pawn) == types::bitboard_of(SquareE4));
     }
 
     SECTION("Move black pawn forward") {
@@ -131,32 +144,32 @@ TEST_CASE("Pieces: move operation", "[pieces]") {
         CHECK(pieces.at(SquareE7) == PieceCNT);
         CHECK(pieces.at(SquareE5) == BlackPawn);
         CHECK(std::popcount(pieces.all<Black>()) == 1);
-        CHECK(pieces.get(BlackPawn) == utils::bitboard_of(SquareE5));
+        CHECK(pieces.get<Black>(Pawn) == types::bitboard_of(SquareE5));
     }
 }
 
 TEST_CASE("Pieces: bitboard consistency after multiple operations", "[pieces]") {
-    Pieces pieces = Pieces::initial();
+    Pieces pieces = InitPieces;
 
     // remove a white pawn
     pieces.remove<White>(SquareE2);
     CHECK(std::popcount(pieces.all<White>()) == 15);
     CHECK(std::popcount(pieces.all()) == 31);
-    CHECK(pieces.get(WhitePawn) == (utils::bitboard_of(Rank2) & ~utils::bitboard_of(SquareE2)));
+    CHECK(pieces.get<White>(Pawn) == (types::bitboard_of(Rank2) & ~types::bitboard_of(SquareE2)));
 
     // move a black knight
     pieces.move<Black>(SquareB8, SquareC6);
     CHECK(pieces.at(SquareB8) == PieceCNT);
     CHECK(pieces.at(SquareC6) == BlackKnight);
-    CHECK(pieces.get(BlackKnight) == utils::bitboard_of(SquareC6, SquareG8));
+    CHECK(pieces.get<Black>(Knight) == types::bitboard_of(SquareC6, SquareG8));
 }
 
 TEST_CASE("Pieces: alternating pawns", "[pieces]") {
-    Pieces pieces;
+    Pieces pieces = NoPieces;
 
     // put pawns
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
-        if (utils::rank_of(sq) % 2 == 0) {
+        if (types::rank_of(sq) % 2 == 0) {
             pieces.put<White>(sq, WhitePawn);
         } else {
             pieces.put<Black>(sq, BlackPawn);
@@ -166,12 +179,12 @@ TEST_CASE("Pieces: alternating pawns", "[pieces]") {
     CHECK(std::popcount(pieces.all()) == 64);
     CHECK(std::popcount(pieces.all<White>()) == 32);
     CHECK(std::popcount(pieces.all<Black>()) == 32);
-    CHECK(pieces.get(WhitePawn) == utils::bitboard_of(Rank1, Rank3, Rank5, Rank7));
-    CHECK(pieces.get(BlackPawn) == utils::bitboard_of(Rank2, Rank4, Rank6, Rank8));
+    CHECK(pieces.get<White>(Pawn) == types::bitboard_of(Rank1, Rank3, Rank5, Rank7));
+    CHECK(pieces.get<Black>(Pawn) == types::bitboard_of(Rank2, Rank4, Rank6, Rank8));
 
     // remove pawns
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
-        if (utils::rank_of(sq) % 2 == 0) {
+        if (types::rank_of(sq) % 2 == 0) {
             pieces.remove<White>(sq);
         } else {
             pieces.remove<Black>(sq);
@@ -182,25 +195,8 @@ TEST_CASE("Pieces: alternating pawns", "[pieces]") {
     CHECK(pieces.all<White>() == 0);
     CHECK(pieces.all<Black>() == 0);
 
-    for (Piece p = Piece(0); p < PieceCNT; ++p) {
-        CHECK(pieces.get(p) == 0);
+    for (PieceType type = Pawn; type <= King; ++type) {
+        CHECK(pieces.get<White>(type) == 0);
+        CHECK(pieces.get<Black>(type) == 0);
     }
-}
-
-TEST_CASE("Pieces: constepxr", "[pieces]") {
-    constexpr Pieces pieces = []() {
-        std::array<Piece, SquareCNT> board;
-        board.fill(PieceCNT);
-        board[SquareE4] = WhiteKnight;
-        board[SquareD5] = BlackQueen;
-        return Pieces(std::move(board));
-    }();
-
-    STATIC_CHECK(std::popcount(pieces.all()) == 2);
-    STATIC_CHECK(std::popcount(pieces.all<White>()) == 1);
-    STATIC_CHECK(std::popcount(pieces.all<Black>()) == 1);
-    STATIC_CHECK(pieces.at(SquareE4) == WhiteKnight);
-    STATIC_CHECK(pieces.at(SquareD5) == BlackQueen);
-    STATIC_CHECK(pieces.get(WhiteKnight) == utils::bitboard_of(SquareE4));
-    STATIC_CHECK(pieces.get(BlackQueen) == utils::bitboard_of(SquareD5));
 }

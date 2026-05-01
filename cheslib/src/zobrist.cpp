@@ -34,20 +34,15 @@ consteval std::array<ZKey, N> rng(uint64_t seed, size_t discard = N) {
     return arr;
 }
 
+constexpr ZKey SideKey = XorShift64(0xCAFEBABEDEADBEEF).next();
+
+constexpr std::array<ZKey, BothCastles + 1> CastlingKeys = rng<BothCastles + 1>(SideKey);
+
+constexpr std::array<ZKey, FileCNT + 1> EnPassantKeys = rng<FileCNT + 1>(CastlingKeys.back(), FileCNT);
+
+constexpr std::array<ZKey, (int)PieceCNT * SquareCNT> PieceKeys = rng<(int)PieceCNT * SquareCNT>(EnPassantKeys[FileH]);
+
 } // namespace
-
-namespace detail {
-
-constexpr ZKey side_key = XorShift64(0xCAFEBABEDEADBEEF).next();
-
-constexpr std::array<ZKey, BothCastles + 1> castling_keys = rng<BothCastles + 1>(side_key);
-
-constexpr std::array<ZKey, FileCNT + 1> en_passant_keys = rng<FileCNT + 1>(castling_keys.back(), FileCNT);
-
-constexpr std::array<ZKey, (int)PieceCNT * SquareCNT> piece_keys =
-    rng<(int)PieceCNT * SquareCNT>(en_passant_keys[FileH]);
-
-} // namespace detail
 
 ZKey hash(const std::array<Piece, SquareCNT> &board, const State state) {
     ZKey key = 0;
@@ -55,18 +50,38 @@ ZKey hash(const std::array<Piece, SquareCNT> &board, const State state) {
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         Piece piece = board[sq];
         if (piece < PieceCNT) {
-            key ^= detail::piece_keys[piece * (int)SquareCNT + sq];
+            key ^= PieceKeys[piece * (int)SquareCNT + sq];
         }
     }
 
     if (state.side_to_move() == Black) {
-        key ^= detail::side_key;
+        key ^= SideKey;
     }
 
-    key ^= detail::castling_keys[state.castle_flag()];
-    key ^= detail::en_passant_keys[state.en_passant()];
+    key ^= CastlingKeys[state.castle_flag()];
+    key ^= EnPassantKeys[state.en_passant()];
 
     return key;
+}
+
+ZKey piece(Piece piece, Square sq) {
+    assert(piece < PieceCNT);
+    assert(sq < SquareCNT);
+    return PieceKeys[piece * (int)SquareCNT + sq];
+}
+
+ZKey side() {
+    return SideKey;
+}
+
+ZKey en_passant(File file) {
+    assert(file <= FileCNT);
+    return EnPassantKeys[file];
+}
+
+ZKey castling(CastleFlag flag) {
+    assert(flag <= BothCastles);
+    return CastlingKeys[flag];
 }
 
 } // namespace cheslib::zobrist

@@ -1,12 +1,12 @@
 #pragma once
 
+#include "cheslib/array.hpp"
 #include "cheslib/move.hpp"
 
-#include "pieces.hpp"
-#include "state.hpp"
+#include "position.hpp"
 
 namespace cheslib::movegen {
 
-MoveList pseudo_legals(const Pieces &pieces, State state);
+Array<Move, 256> pseudo_legals(const Position &position);
 
 } // namespace cheslib::movegen

@@ -1,25 +1,33 @@
-add_library(cheslib STATIC
-    src/attacks.cpp
-    src/movegen.cpp
-    src/position.cpp
-    src/zobrist.cpp
-)
+add_library(cheslib STATIC)
 
 target_include_directories(cheslib PUBLIC include/)
 target_compile_features(cheslib PRIVATE cxx_std_20)
 
-if(MSVC)
-    target_compile_options(cheslib PRIVATE /constexpr:steps100000000)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    target_compile_options(cheslib PRIVATE -fconstexpr-ops-limit=100000000)
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    target_compile_options(cheslib PRIVATE -fconstexpr-steps=100000000)
-endif()
+target_sources(cheslib PRIVATE
+    src/attacks.cpp
+    src/move.cpp
+    src/movegen.cpp
+    src/pieces.cpp
+    src/position.cpp
+    src/state.cpp
+    src/zobrist.cpp
+)
 
-if(CMAKE_TESTING_ENABLED)
+target_compile_options(cheslib
+    PUBLIC
+        $<$<CXX_COMPILER_ID:GNU>:-mbmi2>
+        $<$<CXX_COMPILER_ID:Clang>:-mbmi2>
+        $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
+    PRIVATE
+        $<$<CXX_COMPILER_ID:GNU>:-fconstexpr-ops-limit=200000000>
+        $<$<CXX_COMPILER_ID:Clang>:-fconstexpr-steps=200000000>
+        $<$<CXX_COMPILER_ID:MSVC>:/constexpr:steps200000000>
+)
+
+set_property(TARGET cheslib PROPERTY INTERPROCEDURAL_OPTIMIZATION
+    $<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>
+)
+
+if(BUILD_TESTING)
     add_subdirectory(tests)
-endif()
-
-if(CHESLIB_BUILD_TOOLS)
-    add_subdirectory(tools)
 endif()

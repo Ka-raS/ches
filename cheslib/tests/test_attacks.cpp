@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "attacks.hpp"
-#include "types.hpp"
 
 using namespace ::cheslib;
 

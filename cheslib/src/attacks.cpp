@@ -1,6 +1,4 @@
 #include <array>
-#include <cassert>
-#include <cstdint>
 #include <span>
 
 #include <immintrin.h>

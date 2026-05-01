@@ -1,7 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "cheslib/move.hpp"
-#include "cheslib/types.hpp"
 
 using namespace cheslib;
 
@@ -63,67 +62,4 @@ TEST_CASE("Move: Equality", "[move]") {
 
     CHECK(a == b);
     CHECK_FALSE(a == c);
-}
-
-TEST_CASE("Move: constexpr", "[move]") {
-    constexpr Move m(SquareA7, SquareB8, QueenPromoCap);
-
-    STATIC_CHECK(m.from() == SquareA7);
-    STATIC_CHECK(m.to() == SquareB8);
-    STATIC_CHECK(m.flag() == QueenPromoCap);
-    STATIC_CHECK(m.promo_piece() == Queen);
-    STATIC_CHECK(m.is_promotion());
-    STATIC_CHECK(m.is_capture());
-    STATIC_CHECK_FALSE(m == Move{});
-}
-
-TEST_CASE("MoveList: Check functionality", "[move_list]") {
-    MoveList moves{};
-
-    const Move m1(SquareE2, SquareE4, DoublePawnPush);
-    const Move m2(SquareG1, SquareF3, QuietMove);
-    const Move m3(SquareD1, SquareD8, Capture);
-
-    moves.add(SquareE2, SquareE4, DoublePawnPush);
-    moves.add(SquareG1, SquareF3, QuietMove);
-    moves.add(SquareD1, SquareD8, Capture);
-
-    CHECK(moves.size() == 3);
-
-    const Move *it = moves.begin();
-    CHECK(*it == m1);
-    ++it;
-    CHECK(*it == m2);
-    ++it;
-    CHECK(*it == m3);
-
-    CHECK(moves.has(m1));
-    CHECK(moves.has(m2));
-    CHECK(moves.has(m3));
-    CHECK_FALSE(moves.has(Move(SquareA2, SquareA3, QuietMove)));
-}
-
-TEST_CASE("MoveList: constexpr", "[move_list]") {
-    constexpr MoveList moves = []() {
-        MoveList ml{};
-        ml.add(SquareE2, SquareE4, DoublePawnPush);
-        ml.add(SquareG1, SquareF3, QuietMove);
-        ml.add(SquareD1, SquareD8, Capture);
-        return ml;
-    }();
-
-    constexpr Move move_0(SquareE2, SquareE4, DoublePawnPush);
-    constexpr Move move_1(SquareG1, SquareF3, QuietMove);
-    constexpr Move move_2(SquareD1, SquareD8, Capture);
-
-    STATIC_CHECK(moves.size() == 3);
-    STATIC_CHECK(moves.end() - moves.begin() == moves.size());
-    STATIC_CHECK(moves[0] == move_0);
-    STATIC_CHECK(moves[1] == move_1);
-    STATIC_CHECK(moves[2] == move_2);
-
-    STATIC_CHECK(moves.has(move_0));
-    STATIC_CHECK(moves.has(move_1));
-    STATIC_CHECK(moves.has(move_2));
-    STATIC_CHECK_FALSE(moves.has(Move(SquareA2, SquareA3, QuietMove)));
 }

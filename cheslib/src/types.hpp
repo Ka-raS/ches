@@ -47,6 +47,26 @@ enum CastleFlag : uint8_t {
     BothCastles = WhiteCastles | BlackCastles,
 };
 
+constexpr Rank operator++(Rank &r) {
+    return r = Rank(r + 1U);
+}
+
+constexpr File operator++(File &f) {
+    return f = File(f + 1U);
+}
+
+constexpr PieceType operator++(PieceType &p) {
+    return p = PieceType(p + 1U);
+}
+
+constexpr Piece operator++(Piece &p) {
+    return p = Piece(p + 1U);
+}
+
+constexpr MoveFlag operator++(MoveFlag &flag) {
+    return flag = MoveFlag(flag + 1U);
+}
+
 namespace types {
 
 template <Side Us>
