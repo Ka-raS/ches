@@ -12,7 +12,6 @@ namespace cheslib {
 class Pieces {
   public:
     Pieces(std::array<Piece, SquareCNT> &&board);
-    static Pieces initial();
 
     const std::array<Piece, SquareCNT> &board() const;
     Piece at(Square sq) const;

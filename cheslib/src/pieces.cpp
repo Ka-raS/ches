@@ -14,32 +14,6 @@ Pieces::Pieces(std::array<Piece, SquareCNT> &&board) : _board(std::move(board)),
     }
 }
 
-Pieces Pieces::initial() {
-    std::array<Piece, SquareCNT> board;
-    board.fill(PieceCNT);
-
-    board[SquareE1] = WhiteKing;
-    board[SquareE8] = BlackKing;
-    board[SquareD1] = WhiteQueen;
-    board[SquareD8] = BlackQueen;
-
-    board[SquareA1] = board[SquareH1] = WhiteRook;
-    board[SquareA8] = board[SquareH8] = BlackRook;
-    board[SquareC1] = board[SquareF1] = WhiteBishop;
-    board[SquareC8] = board[SquareF8] = BlackBishop;
-    board[SquareB1] = board[SquareG1] = WhiteKnight;
-    board[SquareB8] = board[SquareG8] = BlackKnight;
-
-    for (Square sq = SquareA2; sq <= SquareH2; ++sq) {
-        board[sq] = WhitePawn;
-    }
-    for (Square sq = SquareA7; sq <= SquareH7; ++sq) {
-        board[sq] = BlackPawn;
-    }
-
-    return Pieces(std::move(board));
-}
-
 const std::array<Piece, SquareCNT> &Pieces::board() const {
     return _board;
 }

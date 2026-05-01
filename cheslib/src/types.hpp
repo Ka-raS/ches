@@ -1,7 +1,6 @@
 #pragma once
 
 #include <bit>
-#include <cassert>
 
 #include "cheslib/types.hpp"
 
@@ -85,8 +84,6 @@ constexpr void unset_square(Bitboard &bb, std::same_as<Square> auto... squares);
 template <Side Us>
 constexpr Piece piece_of(PieceType type);
 constexpr PieceType type_of(Piece piece);
-constexpr File file_of(Square sq);
-constexpr Rank rank_of(Square sq);
 constexpr Side side_of(Piece piece);
 
 // definitions
@@ -161,16 +158,6 @@ constexpr PieceType type_of(Piece piece) {
     assert(piece < PieceCNT);
     unsigned offset = (piece < BlackPawn) ? 0 : BlackPawn;
     return PieceType(piece - offset);
-}
-
-constexpr File file_of(Square sq) {
-    assert(sq < SquareCNT);
-    return File(sq & 7); // sq % 8
-}
-
-constexpr Rank rank_of(Square sq) {
-    assert(sq < SquareCNT);
-    return Rank(sq >> 3); // sq / 8
 }
 
 constexpr Side side_of(Piece piece) {

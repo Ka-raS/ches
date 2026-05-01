@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 
 namespace cheslib {
@@ -17,10 +18,6 @@ enum Square : uint8_t {
     SquareCNT
     // clang-format on
 };
-
-constexpr Square operator++(Square &sq) {
-    return sq = Square(sq + 1U);
-}
 
 enum Rank : uint8_t {
     Rank1,
@@ -97,5 +94,23 @@ enum MoveFlag : uint8_t {
     RookPromoCap = RookPromo | Capture,
     QueenPromoCap = QueenPromo | Capture
 };
+
+constexpr Square operator++(Square &sq) {
+    return sq = Square(sq + 1U);
+}
+
+namespace types {
+
+constexpr File file_of(Square sq) {
+    assert(sq < SquareCNT);
+    return File(sq & 7); // sq % 8
+}
+
+constexpr Rank rank_of(Square sq) {
+    assert(sq < SquareCNT);
+    return Rank(sq >> 3); // sq / 8
+}
+
+} // namespace types
 
 } // namespace cheslib
