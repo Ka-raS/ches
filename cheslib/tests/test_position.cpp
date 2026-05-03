@@ -13,8 +13,7 @@ const Pieces NoPieces = []() {
 }();
 
 int count(const Pieces &pieces, Piece piece) {
-    Bitboard bb = types::side_of(piece) == White ? pieces.get<White>(types::type_of(piece))
-                                                 : pieces.get<Black>(types::type_of(piece));
+    Bitboard bb = pieces.get(piece);
     return std::popcount(bb);
 }
 
@@ -37,11 +36,13 @@ void check_consistency(const Position &pos) {
     };
 
     for (PieceType type = Pawn; type <= King; ++type) {
-        Bitboard white_bb = pieces.get<White>(type);
-        Bitboard black_bb = pieces.get<Black>(type);
+        Piece white_piece = types::piece_of(White, type);
+        Piece black_piece = types::piece_of(Black, type);
+        Bitboard white_bb = pieces.get(white_piece);
+        Bitboard black_bb = pieces.get(black_piece);
 
-        CHECK(count_board(board, types::piece_of<White>(type)) == std::popcount(white_bb));
-        CHECK(count_board(board, types::piece_of<Black>(type)) == std::popcount(black_bb));
+        CHECK(count_board(board, white_piece) == std::popcount(white_bb));
+        CHECK(count_board(board, black_piece) == std::popcount(black_bb));
 
         all |= white_bb | black_bb;
         white |= white_bb;
@@ -49,8 +50,8 @@ void check_consistency(const Position &pos) {
     }
 
     CHECK(all == pieces.all());
-    CHECK(white == pieces.all<White>());
-    CHECK(black == pieces.all<Black>());
+    CHECK(white == pieces.all_of(White));
+    CHECK(black == pieces.all_of(Black));
     CHECK((white & black) == 0);
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
@@ -59,8 +60,7 @@ void check_consistency(const Position &pos) {
 
         CHECK(types::has_square(all, sq) == has_piece);
         if (has_piece) {
-            Bitboard bb = types::side_of(piece) == White ? pieces.get<White>(types::type_of(piece))
-                                                         : pieces.get<Black>(types::type_of(piece));
+            Bitboard bb = pieces.get(piece);
             CHECK(types::has_square(bb, sq));
         }
     }
@@ -79,7 +79,7 @@ TEST_CASE("Position: Quiet move keeps full consistency", "[position]") {
     Position pos = pos_init;
 
     {
-        pos.do_move({SquareG1, SquareF3, QuietMove});
+        CHECK(pos.try_do_pseudo({SquareG1, SquareF3, QuietMove}));
         const State state = pos.state();
         const std::array<Piece, SquareCNT> &board = pos.pieces().board();
 
@@ -101,7 +101,7 @@ TEST_CASE("Position: Double pawn push updates en passant", "[position]") {
     Position pos = pos_init;
 
     {
-        pos.do_move({SquareE2, SquareE4, DoublePawnPush});
+        CHECK(pos.try_do_pseudo({SquareE2, SquareE4, DoublePawnPush}));
         const State state = pos.state();
         const std::array<Piece, SquareCNT> &board = pos.pieces().board();
 
@@ -121,17 +121,17 @@ TEST_CASE("Position: Double pawn push updates en passant", "[position]") {
 TEST_CASE("Position: Capture restores captured piece", "[position]") {
     const Position pos_init = []() {
         Pieces pieces = NoPieces;
-        pieces.put<White>(SquareE1, WhiteKing);
-        pieces.put<Black>(SquareE8, BlackKing);
-        pieces.put<White>(SquareA1, WhiteRook);
-        pieces.put<Black>(SquareA8, BlackKnight);
+        pieces.put(SquareE1, WhiteKing);
+        pieces.put(SquareE8, BlackKing);
+        pieces.put(SquareA1, WhiteRook);
+        pieces.put(SquareA8, BlackKnight);
 
         return Position(std::move(pieces), State(NoCastles, FileCNT, White, 7));
     }();
 
     Position pos = pos_init;
     {
-        pos.do_move({SquareA1, SquareA8, Capture});
+        CHECK(pos.try_do_pseudo({SquareA1, SquareA8, Capture}));
         const State state = pos.state();
         const Pieces &pieces = pos.pieces();
         const std::array<Piece, SquareCNT> &board = pieces.board();
@@ -152,17 +152,17 @@ TEST_CASE("Position: Capture restores captured piece", "[position]") {
 TEST_CASE("Position: En passant is reversible", "[position]") {
     const Position pos_init = []() {
         Pieces pieces = NoPieces;
-        pieces.put<White>(SquareE1, WhiteKing);
-        pieces.put<Black>(SquareE8, BlackKing);
-        pieces.put<White>(SquareE5, WhitePawn);
-        pieces.put<Black>(SquareD5, BlackPawn);
+        pieces.put(SquareE1, WhiteKing);
+        pieces.put(SquareE8, BlackKing);
+        pieces.put(SquareE5, WhitePawn);
+        pieces.put(SquareD5, BlackPawn);
 
         return Position(std::move(pieces), State(NoCastles, FileCNT, White, 12));
     }();
 
     Position pos = pos_init;
     {
-        pos.do_move({SquareE5, SquareD6, EnPassant});
+        CHECK(pos.try_do_pseudo({SquareE5, SquareD6, EnPassant}));
         const State state = pos.state();
         const std::array<Piece, SquareCNT> &board = pos.pieces().board();
 
@@ -183,16 +183,16 @@ TEST_CASE("Position: En passant is reversible", "[position]") {
 TEST_CASE("Position: Short castle moves king and rook", "[position]") {
     const Position pos_init = []() {
         Pieces pieces = NoPieces;
-        pieces.put<White>(SquareE1, WhiteKing);
-        pieces.put<White>(SquareH1, WhiteRook);
-        pieces.put<Black>(SquareE8, BlackKing);
+        pieces.put(SquareE1, WhiteKing);
+        pieces.put(SquareH1, WhiteRook);
+        pieces.put(SquareE8, BlackKing);
 
         return Position(std::move(pieces), State(WhiteShortCastles, FileCNT, White, 3));
     }();
 
     Position pos = pos_init;
     {
-        pos.do_move({SquareE1, SquareG1, ShortCastle});
+        CHECK(pos.try_do_pseudo({SquareE1, SquareG1, ShortCastle}));
         const State state = pos.state();
         const std::array<Piece, SquareCNT> &board = pos.pieces().board();
 
@@ -214,17 +214,17 @@ TEST_CASE("Position: Short castle moves king and rook", "[position]") {
 TEST_CASE("Position: Promotion capture is reversible", "[position]") {
     const Position pos_init = []() {
         Pieces pieces = NoPieces;
-        pieces.put<White>(SquareE1, WhiteKing);
-        pieces.put<Black>(SquareE8, BlackKing);
-        pieces.put<White>(SquareA7, WhitePawn);
-        pieces.put<Black>(SquareB8, BlackRook);
+        pieces.put(SquareE1, WhiteKing);
+        pieces.put(SquareE8, BlackKing);
+        pieces.put(SquareA7, WhitePawn);
+        pieces.put(SquareB8, BlackRook);
 
         return Position(std::move(pieces), State(NoCastles, FileCNT, White, 25));
     }();
 
     Position pos = pos_init;
     {
-        pos.do_move({SquareA7, SquareB8, QueenPromoCap});
+        CHECK(pos.try_do_pseudo({SquareA7, SquareB8, QueenPromoCap}));
         const State state = pos.state();
         const Pieces &pieces = pos.pieces();
         const std::array<Piece, SquareCNT> &board = pieces.board();
@@ -247,17 +247,17 @@ TEST_CASE("Position: Promotion capture is reversible", "[position]") {
 TEST_CASE("Position: Castling rights updated", "[position]") {
     const Position pos_init = []() {
         Pieces pieces = NoPieces;
-        pieces.put<White>(SquareE1, WhiteKing);
-        pieces.put<White>(SquareA1, WhiteRook);
-        pieces.put<White>(SquareH1, WhiteRook);
-        pieces.put<Black>(SquareE8, BlackKing);
+        pieces.put(SquareE1, WhiteKing);
+        pieces.put(SquareA1, WhiteRook);
+        pieces.put(SquareH1, WhiteRook);
+        pieces.put(SquareE8, BlackKing);
 
         return Position(std::move(pieces), State(WhiteCastles, FileCNT, White, 0));
     }();
 
     Position pos = pos_init;
     {
-        pos.do_move({SquareA1, SquareA2, QuietMove});
+        CHECK(pos.try_do_pseudo({SquareA1, SquareA2, QuietMove}));
         CHECK_FALSE(pos.state().can_castles(WhiteLongCastles));
         CHECK(pos.state().can_castles(WhiteShortCastles));
 
@@ -265,7 +265,7 @@ TEST_CASE("Position: Castling rights updated", "[position]") {
         check_equality(pos, pos_init);
     }
     {
-        pos.do_move({SquareE1, SquareE2, QuietMove});
+        CHECK(pos.try_do_pseudo({SquareE1, SquareE2, QuietMove}));
         CHECK_FALSE(pos.state().can_castles(WhiteLongCastles));
         CHECK_FALSE(pos.state().can_castles(WhiteShortCastles));
 
@@ -278,10 +278,10 @@ TEST_CASE("Position: Multiple dos then undos", "[position]") {
     const Position pos_init = Position::initial();
     Position pos = pos_init;
 
-    pos.do_move({SquareE2, SquareE4, DoublePawnPush});
-    pos.do_move({SquareA7, SquareA6, QuietMove});
-    pos.do_move({SquareG1, SquareF3, QuietMove});
-    pos.do_move({SquareB8, SquareC6, QuietMove});
+    CHECK(pos.try_do_pseudo({SquareE2, SquareE4, DoublePawnPush}));
+    CHECK(pos.try_do_pseudo({SquareA7, SquareA6, QuietMove}));
+    CHECK(pos.try_do_pseudo({SquareG1, SquareF3, QuietMove}));
+    CHECK(pos.try_do_pseudo({SquareB8, SquareC6, QuietMove}));
 
     check_consistency(pos);
 
@@ -297,17 +297,17 @@ TEST_CASE("Position: Multiple dos then undos", "[position]") {
 TEST_CASE("Position: Capturing rook revokes castling right", "[position]") {
     const Position pos_init = []() {
         Pieces pieces = NoPieces;
-        pieces.put<White>(SquareE1, WhiteKing);
-        pieces.put<White>(SquareH1, WhiteRook);
-        pieces.put<Black>(SquareE8, BlackKing);
-        pieces.put<Black>(SquareH4, BlackQueen);
+        pieces.put(SquareE1, WhiteKing);
+        pieces.put(SquareH1, WhiteRook);
+        pieces.put(SquareE8, BlackKing);
+        pieces.put(SquareH4, BlackQueen);
 
         return Position(std::move(pieces), State(BothCastles, FileCNT, Black, 4));
     }();
 
     Position pos = pos_init;
     {
-        pos.do_move({SquareH4, SquareH1, Capture});
+        CHECK(pos.try_do_pseudo({SquareH4, SquareH1, Capture}));
         const State state = pos.state();
         const std::array<Piece, SquareCNT> &board = pos.pieces().board();
 

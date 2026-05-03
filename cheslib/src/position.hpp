@@ -6,6 +6,7 @@
 #include "pieces.hpp"
 #include "state.hpp"
 #include "types.hpp"
+#include "zobrist.hpp"
 
 namespace cheslib {
 
@@ -16,28 +17,26 @@ class Position {
 
     const Pieces &pieces() const;
     State state() const;
-    ZKey key() const;
+    ZobristKey key() const;
 
-    void do_move(Move move);
     void undo_move();
+    [[nodiscard]] bool try_do_pseudo(Move move);
 
   private:
     struct HistoryEntry {
-        ZKey key;
+        ZobristKey key;
         Move move;
         State state;
         Piece captured;
     };
 
-    template <Side Us>
-    void do_move_of(Move move);
-    template <Side Us>
-    void undo_move_of();
+    bool is_attacked(Square at, Side us) const;
+    void do_pseudo(Move move, Side us, Square from, Square to, MoveFlag move_flag);
 
   private:
     Pieces _pieces;
     State _state;
-    ZKey _key;
+    ZobristKey _key;
     Array<HistoryEntry, 512> _history;
 };
 

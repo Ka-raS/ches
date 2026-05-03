@@ -99,7 +99,7 @@ void generate_single_pawn_pushes(Array<Move, 256> &moves, const Bitboard pushed_
     while (promo_push) {
         Square to = types::pop_lsb(promo_push);
         Square from = types::square_behind(Us, to);
-        for (MoveFlag flag = KnightPromo; flag <= QueenPromo; ++flag) {
+        for (MoveFlag flag = QueenPromo; flag >= KnightPromo; --flag) {
             moves.add(from, to, flag);
         }
     }
@@ -154,7 +154,7 @@ void generate_pawn_captures(Array<Move, 256> &moves, const Bitboard our_pawns, c
     while (promo_captures) {
         Square to = types::pop_lsb(promo_captures);
         Square from = Square(to - (int)capture_dir);
-        for (MoveFlag flag = KnightPromoCap; flag <= QueenPromoCap; ++flag) {
+        for (MoveFlag flag = QueenPromoCap; flag >= KnightPromoCap; --flag) {
             moves.add(from, to, flag);
         }
     }

@@ -1,4 +1,5 @@
 #include "position.hpp"
+#include "attacks.hpp"
 #include "zobrist.hpp"
 
 namespace cheslib {
@@ -41,24 +42,54 @@ State Position::state() const {
     return _state;
 }
 
-ZKey Position::key() const {
+ZobristKey Position::key() const {
     return _key;
 }
 
-void Position::do_move(Move move) {
-    if (_state.side_to_move() == White) {
-        do_move_of<White>(move);
-    } else {
-        do_move_of<Black>(move);
+bool Position::try_do_pseudo(Move move) {
+    const Side us = _state.side_to_move();
+    const Side enemy = !us;
+    const Square from = move.from();
+    const Square to = move.to();
+    const MoveFlag move_flag = move.flag();
+
+    // check castling path attacked
+    if (move_flag == ShortCastle || move_flag == LongCastle) {
+        Square between = Square((from + to) / 2);
+        if (is_attacked(from, enemy) || is_attacked(between, enemy) || is_attacked(to, enemy)) {
+            return false;
+        }
     }
+
+    do_pseudo(move, us, from, to, move_flag);
+
+    { // check king is attacked
+        Piece king = types::piece_of(us, King);
+        Bitboard king_bb = _pieces.get(king);
+        Square king_sq = (Square)std::countr_zero(king_bb);
+        if (is_attacked(king_sq, enemy)) {
+            undo_move();
+            return false;
+        }
+    }
+
+    return true;
 }
 
-void Position::undo_move() {
-    if (_state.side_to_move() == White) {
-        undo_move_of<Black>();
-    } else {
-        undo_move_of<White>();
-    }
+bool Position::is_attacked(Square at, Side us) const {
+    Bitboard all = _pieces.all();
+    // us at Square can attack other Squares <=> us at other Squares can attack Square
+
+    // clang-format off
+    Bitboard pawns   = _pieces.get(types::piece_of(us, Pawn))   & attacks::pawn(at, us);
+    Bitboard knights = _pieces.get(types::piece_of(us, Knight)) & attacks::knight(at);
+    Bitboard bishops = _pieces.get(types::piece_of(us, Bishop)) & attacks::bishop(at, all);
+    Bitboard rooks   = _pieces.get(types::piece_of(us, Rook))   & attacks::rook(at, all);
+    Bitboard queens  = _pieces.get(types::piece_of(us, Queen))  & attacks::queen(at, all);
+    Bitboard king    = _pieces.get(types::piece_of(us, King))   & attacks::king(at);
+    // clang-format on
+
+    return pawns | knights | bishops | rooks | queens | king;
 }
 
 namespace {
@@ -84,22 +115,47 @@ constexpr std::array<CastleFlag, SquareCNT> CastlingMasks = []() {
 
 } // namespace
 
-template <Side Us>
-void Position::do_move_of(const Move move) {
-    assert(_state.side_to_move() == Us);
+void Position::undo_move() {
+    const auto [key, move, state, captured] = _history.pop();
 
-    const Square from = move.from();
+    const Side us = state.side_to_move();
     const Square to = move.to();
-    const MoveFlag move_flag = move.flag();
+    const Square from = move.from();
+    const MoveFlag flag = move.flag();
+
+    { // undo moved piece
+        Piece moved = _pieces.remove(to);
+        if (move.is_promotion()) {
+            moved = types::piece_of(us, Pawn); // was a pawn
+        }
+        _pieces.put(from, moved);
+    }
+
+    if (move.is_capture()) { // undo captured piece
+        Square enemy = (flag == EnPassant) ? types::square_behind(us, to) : to;
+        _pieces.put(enemy, captured);
+
+    } else if (flag == ShortCastle || flag == LongCastle) { // undo castled rook
+        bool is_short = flag == ShortCastle;
+        Square rookTo = RookCastled[us][is_short];
+        Square rookFrom = RookInitial[us][is_short];
+        _pieces.move(rookTo, rookFrom);
+    }
+
+    _state = state;
+    _key = key;
+}
+
+void Position::do_pseudo(const Move move, const Side us, const Square from, const Square to, const MoveFlag move_flag) {
     const State old_state = _state;
 
     { // handle capture
-        const ZKey old_key = _key;
+        ZobristKey old_key = _key;
         Piece captured = PieceCNT;
 
         if (move.is_capture()) {
-            Square capture_sq = (move_flag == EnPassant) ? types::square_behind<Us>(to) : to;
-            captured = _pieces.remove<Side(!Us)>(capture_sq);
+            Square capture_sq = (move_flag == EnPassant) ? types::square_behind(us, to) : to;
+            captured = _pieces.remove(capture_sq);
             _key ^= zobrist::piece(captured, capture_sq);
         }
 
@@ -107,13 +163,14 @@ void Position::do_move_of(const Move move) {
     }
 
     { // move piece
-        const Piece after = move.is_promotion() ? types::piece_of<Us>(move.promo_piece()) : _pieces.at(from);
-        const Piece before = _pieces.remove<Us>(from);
-        _pieces.put<Us>(to, after);
+        Piece after = move.is_promotion() ? types::piece_of(us, move.promo_piece()) : _pieces.at(from);
+        Piece before = _pieces.remove(from);
+
+        _pieces.put(to, after);
         _key ^= zobrist::piece(before, from) ^ zobrist::piece(after, to);
 
         // rule 50
-        if (move.is_capture() || before == types::piece_of<Us>(Pawn)) {
+        if (move.is_capture() || before == types::piece_of(us, Pawn)) {
             _state.reset_rule50();
         } else {
             _state.increment_rule50();
@@ -123,10 +180,11 @@ void Position::do_move_of(const Move move) {
     { // move rook if castling
         bool is_short = move_flag == ShortCastle;
         if (is_short || move_flag == LongCastle) {
-            constexpr Piece rook = types::piece_of<Us>(Rook);
-            Square rook_to = RookCastled[Us][is_short];
-            Square rook_from = RookInitial[Us][is_short];
-            _pieces.move<Us>(rook_from, rook_to);
+            Square rook_to = RookCastled[us][is_short];
+            Square rook_from = RookInitial[us][is_short];
+            Piece rook = types::piece_of(us, Rook);
+
+            _pieces.move(rook_from, rook_to);
             _key ^= zobrist::piece(rook, rook_from) ^ zobrist::piece(rook, rook_to);
         }
     }
@@ -147,38 +205,6 @@ void Position::do_move_of(const Move move) {
     // switch side
     _state.switch_side();
     _key ^= zobrist::side();
-}
-
-template <Side Us>
-void Position::undo_move_of() {
-    const auto [key, move, state, captured] = _history.pop();
-    assert(state.side_to_move() == Us);
-
-    const Square to = move.to();
-    const Square from = move.from();
-    const MoveFlag flag = move.flag();
-
-    { // undo moved piece
-        Piece moved = _pieces.remove<Us>(to);
-        if (move.is_promotion()) {
-            moved = types::piece_of<Us>(Pawn); // was a pawn
-        }
-        _pieces.put<Us>(from, moved);
-    }
-
-    if (move.is_capture()) { // undo captured piece
-        Square enemy = (flag == EnPassant) ? types::square_behind<Us>(to) : to;
-        _pieces.put<Side(!Us)>(enemy, captured);
-
-    } else if (flag == ShortCastle || flag == LongCastle) { // undo castled rook
-        bool is_short = flag == ShortCastle;
-        Square rookTo = RookCastled[Us][is_short];
-        Square rookFrom = RookInitial[Us][is_short];
-        _pieces.move<Us>(rookTo, rookFrom);
-    }
-
-    _state = state;
-    _key = key;
 }
 
 } // namespace cheslib
