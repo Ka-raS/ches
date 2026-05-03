@@ -4,6 +4,25 @@
 
 namespace cheslib {
 
+enum MoveFlag : uint8_t {
+    QuietMove = 0,
+    DoublePawnPush = 0b001,
+    ShortCastle = 0b010,
+    LongCastle = 0b011,
+    Capture = 0b100,
+    EnPassant = 0b101,
+
+    KnightPromo = 0b1000,
+    BishopPromo = 0b1001,
+    RookPromo = 0b1010,
+    QueenPromo = 0b1011,
+
+    KnightPromoCap = KnightPromo | Capture,
+    BishopPromoCap = BishopPromo | Capture,
+    RookPromoCap = RookPromo | Capture,
+    QueenPromoCap = QueenPromo | Capture
+};
+
 /**
  * 16bit encoded move
  * bit layout:

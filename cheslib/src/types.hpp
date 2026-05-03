@@ -13,12 +13,6 @@ namespace cheslib {
  */
 using Bitboard = uint64_t;
 
-/**
- * Zobrist hash key
- * see: https://www.chessprogramming.org/Zobrist_Hashing
- */
-using ZKey = uint64_t;
-
 enum Direction : int8_t {
     North = SquareA2 - SquareA1,
     East = SquareB1 - SquareA1,
@@ -31,20 +25,29 @@ enum Direction : int8_t {
     NorthWest = -SouthEast
 };
 
-enum CastleFlag : uint8_t {
-    NoCastles = 0,
+constexpr Rank operator++(Rank &r);
+constexpr File operator++(File &f);
+constexpr PieceType operator++(PieceType &p);
+constexpr Piece operator++(Piece &p);
 
-    WhiteShortCastles = 0b0001,
-    WhiteLongCastles = 0b0010,
-    BlackShortCastles = 0b0100,
-    BlackLongCastles = 0b1000,
+namespace types {
 
-    ShortCastles = WhiteShortCastles | BlackShortCastles,
-    LongCastles = WhiteLongCastles | BlackLongCastles,
-    WhiteCastles = WhiteShortCastles | WhiteLongCastles,
-    BlackCastles = BlackShortCastles | BlackLongCastles,
-    BothCastles = WhiteCastles | BlackCastles,
-};
+constexpr Square square_behind(Side us, Square sq);
+constexpr Square pop_lsb(Bitboard &bb);
+
+constexpr Bitboard bitboard_of(Rank rank);
+constexpr Bitboard bitboard_of(File file);
+constexpr Bitboard bitboard_of(std::same_as<Square> auto... squares);
+
+constexpr bool has_square(Bitboard bb, Square square);
+constexpr void set_square(Bitboard &bb, Square square);
+constexpr void unset_square(Bitboard &bb, Square square);
+
+} // namespace types
+
+} // namespace cheslib
+
+namespace cheslib { // definitions
 
 constexpr Rank operator++(Rank &r) {
     return r = Rank(r + 1U);
@@ -62,48 +65,17 @@ constexpr Piece operator++(Piece &p) {
     return p = Piece(p + 1U);
 }
 
-constexpr MoveFlag operator++(MoveFlag &flag) {
-    return flag = MoveFlag(flag + 1U);
-}
-
 namespace types {
 
-template <Side Us>
-constexpr Square square_behind(Square sq);
-constexpr Square square_of(File file, Rank rank);
-constexpr Square pop_lsb(Bitboard &bb);
-
-constexpr Bitboard bitboard_of(std::same_as<Rank> auto... ranks);
-constexpr Bitboard bitboard_of(std::same_as<File> auto... files);
-constexpr Bitboard bitboard_of(std::same_as<Square> auto... squares);
-
-constexpr bool has_square(Bitboard bb, std::same_as<Square> auto... squares);
-constexpr void set_square(Bitboard &bb, std::same_as<Square> auto... squares);
-constexpr void unset_square(Bitboard &bb, std::same_as<Square> auto... squares);
-
-template <Side Us>
-constexpr Piece piece_of(PieceType type);
-constexpr PieceType type_of(Piece piece);
-constexpr Side side_of(Piece piece);
-
-// definitions
-
-template <Side Us>
-constexpr Square square_behind(Square sq) {
-    if constexpr (Us == White) {
+constexpr Square square_behind(Side us, Square sq) {
+    if (us == White) {
         assert(sq >= SquareA2);
     } else {
         assert(sq <= SquareH7);
     }
 
-    constexpr Direction backward = (Us == White) ? South : North;
-    return Square(sq + int(backward));
-}
-
-constexpr Square square_of(File file, Rank rank) {
-    assert(file < FileCNT);
-    assert(rank < RankCNT);
-    return Square(rank << 3 | file); // rank * FileCNT + file
+    Direction backward = (us == White) ? South : North;
+    return Square(sq + (int)backward);
 }
 
 constexpr Square pop_lsb(Bitboard &bb) {
@@ -118,51 +90,33 @@ constexpr Bitboard bitboard_of(std::same_as<Square> auto... squares) {
     return ((1ULL << squares) | ...);
 }
 
-constexpr Bitboard bitboard_of(std::same_as<Rank> auto... ranks) {
-    (assert(ranks < RankCNT), ...);
+constexpr Bitboard bitboard_of(Rank rank) {
+    assert(rank < RankCNT);
     constexpr Bitboard rank_1 =
         bitboard_of(SquareA1, SquareB1, SquareC1, SquareD1, SquareE1, SquareF1, SquareG1, SquareH1);
 
-    //       rank_1 << padding_squares
-    return ((rank_1 << (ranks << 3)) | ...);
+    unsigned padding_squares = rank << 3; // rank * FileCNT
+    return rank_1 << padding_squares;
 }
 
-constexpr Bitboard bitboard_of(std::same_as<File> auto... files) {
-    (assert(files < FileCNT), ...);
+constexpr Bitboard bitboard_of(File file) {
+    assert(file < FileCNT);
     constexpr Bitboard file_a =
         bitboard_of(SquareA1, SquareA2, SquareA3, SquareA4, SquareA5, SquareA6, SquareA7, SquareA8);
-    return ((file_a << files) | ...);
+    return file_a << file;
 }
 
-constexpr bool has_square(Bitboard bb, std::same_as<Square> auto... squares) {
-    (assert(squares < SquareCNT), ...);
-    return (((bb >> squares) & 1) && ...);
+constexpr bool has_square(Bitboard bb, Square square) {
+    assert(square < SquareCNT);
+    return (bb >> square) & 1;
 }
 
-constexpr void set_square(Bitboard &bb, std::same_as<Square> auto... squares) {
-    bb |= bitboard_of(squares...);
+constexpr void set_square(Bitboard &bb, Square square) {
+    bb |= bitboard_of(square);
 }
 
-constexpr void unset_square(Bitboard &bb, std::same_as<Square> auto... squares) {
-    bb &= ~bitboard_of(squares...);
-}
-
-template <Side Us>
-constexpr Piece piece_of(PieceType type) {
-    assert(type < PieceTypeCNT);
-    constexpr unsigned offset = (Us == White) ? 0 : PieceTypeCNT;
-    return Piece(type + offset);
-}
-
-constexpr PieceType type_of(Piece piece) {
-    assert(piece < PieceCNT);
-    unsigned offset = (piece < BlackPawn) ? 0 : BlackPawn;
-    return PieceType(piece - offset);
-}
-
-constexpr Side side_of(Piece piece) {
-    assert(piece < PieceCNT);
-    return Side(piece >= BlackPawn);
+constexpr void unset_square(Bitboard &bb, Square square) {
+    bb &= ~bitboard_of(square);
 }
 
 } // namespace types

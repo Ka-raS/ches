@@ -4,6 +4,12 @@
 
 using namespace ::cheslib;
 
+static void check_has_squares(Bitboard bb, std::initializer_list<Square> squares) {
+    for (Square sq : squares) {
+        CHECK(types::has_square(bb, sq));
+    }
+}
+
 TEST_CASE("Attacks: Check pieces stepping Attacks", "[attacks]") {
     SECTION("Knight") {
         // corners
@@ -26,16 +32,16 @@ TEST_CASE("Attacks: Check pieces stepping Attacks", "[attacks]") {
 
     SECTION("Pawn") {
         // edge files
-        CHECK(attacks::pawn<White>(SquareA2) == types::bitboard_of(SquareB3));
-        CHECK(attacks::pawn<Black>(SquareH7) == types::bitboard_of(SquareG6));
+        CHECK(attacks::pawn(SquareA2, White) == types::bitboard_of(SquareB3));
+        CHECK(attacks::pawn(SquareH7, Black) == types::bitboard_of(SquareG6));
 
         // center
-        CHECK(attacks::pawn<White>(SquareE4) == types::bitboard_of(SquareD5, SquareF5));
-        CHECK(attacks::pawn<Black>(SquareE5) == types::bitboard_of(SquareD4, SquareF4));
+        CHECK(attacks::pawn(SquareE4, White) == types::bitboard_of(SquareD5, SquareF5));
+        CHECK(attacks::pawn(SquareE5, Black) == types::bitboard_of(SquareD4, SquareF4));
 
         // back ranks
-        CHECK(attacks::pawn<White>(SquareA8) == 0);
-        CHECK(attacks::pawn<Black>(SquareA1) == 0);
+        CHECK(attacks::pawn(SquareA8, White) == 0);
+        CHECK(attacks::pawn(SquareA1, Black) == 0);
     }
 }
 
@@ -43,13 +49,13 @@ TEST_CASE("Attacks: Check rook sliding attack magic table", "[attacks]") {
     SECTION("Empty board") {
         Bitboard attacks = attacks::rook(SquareD4, 0);
         CHECK(std::popcount(attacks) == 14); // 14 attack squares
-        CHECK(types::has_square(attacks, SquareD1, SquareD8, SquareA4, SquareH4));
+        check_has_squares(attacks, {SquareD1, SquareD8, SquareA4, SquareH4});
     }
 
     SECTION("Corner on empty board") {
         Bitboard attacks = attacks::rook(SquareA1, 0);
         CHECK(std::popcount(attacks) == 14);
-        CHECK(types::has_square(attacks, SquareA8, SquareH1));
+        check_has_squares(attacks, {SquareA8, SquareH1});
     }
 
     SECTION("Blockers") {
@@ -57,15 +63,15 @@ TEST_CASE("Attacks: Check rook sliding attack magic table", "[attacks]") {
         Bitboard bb = attacks::rook(SquareD4, blockers);
 
         // upward stops at D6
-        CHECK(types::has_square(bb, SquareD5, SquareD6));
+        check_has_squares(bb, {SquareD5, SquareD6});
         CHECK_FALSE(types::has_square(bb, SquareD7));
 
         // left stops at B4
-        CHECK(types::has_square(bb, SquareC4, SquareB4));
+        check_has_squares(bb, {SquareC4, SquareB4});
         CHECK_FALSE(types::has_square(bb, SquareA4));
 
         // edge squares
-        CHECK(types::has_square(bb, SquareH4, SquareD1));
+        check_has_squares(bb, {SquareH4, SquareD1});
     }
 
     SECTION("Immediate orthogonal blockers") {
@@ -78,11 +84,11 @@ TEST_CASE("Attacks: Check rook sliding attack magic table", "[attacks]") {
         Bitboard blockers = types::bitboard_of(SquareD6, SquareD7, SquareB4);
         Bitboard bb = attacks::rook(SquareD4, blockers);
 
-        CHECK(types::has_square(bb, SquareD5, SquareD6));
+        check_has_squares(bb, {SquareD5, SquareD6});
         CHECK_FALSE(types::has_square(bb, SquareD7));
         CHECK_FALSE(types::has_square(bb, SquareD8));
 
-        CHECK(types::has_square(bb, SquareC4, SquareB4));
+        check_has_squares(bb, {SquareC4, SquareB4});
         CHECK_FALSE(types::has_square(bb, SquareA4));
     }
 }
@@ -91,13 +97,13 @@ TEST_CASE("Attacks: Check bishop sliding attack magic table", "[attacks]") {
     SECTION("Empty board") {
         Bitboard bb = attacks::bishop(SquareD4, 0);
         CHECK(std::popcount(bb) == 13);
-        CHECK(types::has_square(bb, SquareA1, SquareG7, SquareA7, SquareG1));
+        check_has_squares(bb, {SquareA1, SquareG7, SquareA7, SquareG1});
     }
 
     SECTION("Corner on empty board") {
         Bitboard bb = attacks::bishop(SquareH1, 0);
         CHECK(std::popcount(bb) == 7);
-        CHECK(types::has_square(bb, SquareG2, SquareF3, SquareE4, SquareD5, SquareC6, SquareB7, SquareA8));
+        check_has_squares(bb, {SquareG2, SquareF3, SquareE4, SquareD5, SquareC6, SquareB7, SquareA8});
     }
 
     SECTION("Blockers") {
@@ -125,7 +131,7 @@ TEST_CASE("Attacks: Check bishop sliding attack magic table", "[attacks]") {
         Bitboard blockers = types::bitboard_of(SquareE3, SquareF4, SquareB2);
         Bitboard bb = attacks::bishop(SquareC1, blockers);
 
-        CHECK(types::has_square(bb, SquareD2, SquareE3, SquareB2));
+        check_has_squares(bb, {SquareD2, SquareE3, SquareB2});
         CHECK_FALSE(types::has_square(bb, SquareF4));
         CHECK_FALSE(types::has_square(bb, SquareA3));
     }

@@ -16,20 +16,12 @@ class Pieces {
     const std::array<Piece, SquareCNT> &board() const;
     Piece at(Square sq) const;
 
-    template <Side Us>
     Bitboard all() const;
-    Bitboard all() const;
+    Bitboard all_of(Side us) const;
+    Bitboard get(Piece piece) const;
 
-    template <Side Us>
-    Bitboard get(PieceType type) const;
-
-    template <Side Us>
     void put(Square sq, Piece piece);
-
-    template <Side Us>
     void move(Square from, Square to);
-
-    template <Side Us>
     Piece remove(Square sq);
 
   private:

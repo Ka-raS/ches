@@ -7,6 +7,8 @@
 
 namespace cheslib::movegen {
 
+Array<Move, 256> legals(Position &position);
+
 Array<Move, 256> pseudo_legals(const Position &position);
 
 } // namespace cheslib::movegen

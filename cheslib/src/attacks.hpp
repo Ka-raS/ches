@@ -4,8 +4,7 @@
 
 namespace cheslib::attacks {
 
-template <Side Us>
-Bitboard pawn(Square from);
+Bitboard pawn(Square from, Side us);
 Bitboard knight(Square from);
 Bitboard king(Square from);
 Bitboard rook(Square from, Bitboard occupancy);

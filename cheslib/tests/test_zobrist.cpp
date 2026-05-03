@@ -7,7 +7,7 @@
 using namespace cheslib;
 
 TEST_CASE("Zobrist: Zobrist key no collisions", "[zobrist]") {
-    std::unordered_set<ZKey> keys;
+    std::unordered_set<ZobristKey> keys;
     keys.reserve(800);
 
     SECTION("Side key") {
@@ -17,7 +17,7 @@ TEST_CASE("Zobrist: Zobrist key no collisions", "[zobrist]") {
 
     SECTION("Castling keys") {
         for (CastleFlag flag = NoCastles; flag <= BothCastles; flag = CastleFlag(flag + 1)) {
-            ZKey key = zobrist::castling(flag);
+            ZobristKey key = zobrist::castling(flag);
             bool no_collision = keys.insert(key).second;
 
             CAPTURE(flag);
@@ -28,7 +28,7 @@ TEST_CASE("Zobrist: Zobrist key no collisions", "[zobrist]") {
 
     SECTION("En passant keys") {
         for (File file = FileA; file <= FileH; ++file) {
-            ZKey key = zobrist::en_passant(file);
+            ZobristKey key = zobrist::en_passant(file);
             bool no_collision = keys.insert(key).second;
 
             CAPTURE(file);
@@ -42,7 +42,7 @@ TEST_CASE("Zobrist: Zobrist key no collisions", "[zobrist]") {
     SECTION("Piece keys") {
         for (Piece piece = Piece(0); piece < PieceCNT; ++piece) {
             for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
-                ZKey key = zobrist::piece(piece, sq);
+                ZobristKey key = zobrist::piece(piece, sq);
                 bool no_collision = keys.insert(key).second;
 
                 CAPTURE(piece, sq);

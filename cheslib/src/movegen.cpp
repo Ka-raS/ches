@@ -8,6 +8,10 @@ namespace cheslib::movegen {
 
 namespace {
 
+constexpr MoveFlag operator--(MoveFlag &flag) {
+    return flag = MoveFlag(flag - 1U);
+}
+
 Bitboard non_pawn_attacks(PieceType type, Square from, Bitboard occupancy) {
     switch (type) {
     case Knight:
@@ -27,11 +31,13 @@ Bitboard non_pawn_attacks(PieceType type, Square from, Bitboard occupancy) {
 
 template <Side Us>
 void generate_non_pawn_moves(Array<Move, 256> &moves, const Pieces &pieces) {
-    const Bitboard not_us = ~pieces.all<Us>();
+    const Bitboard not_us = ~pieces.all_of(Us);
     const Bitboard all = pieces.all();
 
     for (PieceType type = Knight; type <= King; ++type) {
-        Bitboard bb = pieces.get<Us>(type);
+        Piece piece = types::piece_of(Us, type);
+        Bitboard bb = pieces.get(piece);
+
         while (bb) {
             const Square from = types::pop_lsb(bb);
             Bitboard attacks = not_us & non_pawn_attacks(type, from, all);
@@ -75,7 +81,7 @@ void generate_castling_moves(Array<Move, 256> &moves, const Pieces &pieces, cons
 
 // white pawn direction is > 0, black direction is < 0
 template <Direction Dir>
-constexpr Bitboard move_pawn(Bitboard bb) {
+Bitboard move_pawn(Bitboard bb) {
     if constexpr (Dir > 0) {
         return bb << Dir;
     } else {
@@ -92,14 +98,14 @@ void generate_single_pawn_pushes(Array<Move, 256> &moves, const Bitboard pushed_
 
     while (promo_push) {
         Square to = types::pop_lsb(promo_push);
-        Square from = types::square_behind<Us>(to);
+        Square from = types::square_behind(Us, to);
         for (MoveFlag flag = KnightPromo; flag <= QueenPromo; ++flag) {
             moves.add(from, to, flag);
         }
     }
     while (normal_push) {
         Square to = types::pop_lsb(normal_push);
-        Square from = types::square_behind<Us>(to);
+        Square from = types::square_behind(Us, to);
         moves.add(from, to, QuietMove);
     }
 }
@@ -123,7 +129,7 @@ void generate_en_croissants(Array<Move, 256> &moves, const Bitboard our_pawns, c
     const Square ep_square = types::square_of(ep_file, (Us == White) ? Rank6 : Rank3);
 
     // enemy at Square ep_square attack us <=> us attack enemy at Square en_passant
-    const Bitboard us_attacked = attacks::pawn<Side(!Us)>(ep_square);
+    const Bitboard us_attacked = attacks::pawn(ep_square, !Us);
     Bitboard our_attackers = our_pawns & us_attacked;
 
     while (our_attackers) {
@@ -161,12 +167,11 @@ void generate_pawn_captures(Array<Move, 256> &moves, const Bitboard our_pawns, c
 
 template <Side Us>
 void generate_pawn_moves(Array<Move, 256> &moves, const Pieces &pieces, const State state) {
-    constexpr bool is_white = (Us == White);
     constexpr Direction forward = (Us == White) ? North : South;
 
     const Bitboard empty = ~pieces.all();
-    const Bitboard enemy = pieces.all<Side(!Us)>();
-    const Bitboard our_pawns = pieces.get<Us>(Pawn);
+    const Bitboard enemy = pieces.all_of(!Us);
+    const Bitboard our_pawns = pieces.get(types::piece_of(Us, Pawn));
     const Bitboard pushed_1 = empty & move_pawn<forward>(our_pawns);
 
     generate_single_pawn_pushes<Us>(moves, pushed_1);
@@ -193,6 +198,19 @@ Array<Move, 256> pseudo_legals(const Position &position) {
         generate_pawn_moves<Black>(moves, pieces, state);
         generate_non_pawn_moves<Black>(moves, pieces);
         generate_castling_moves<Black>(moves, pieces, state);
+    }
+
+    return moves;
+}
+
+Array<Move, 256> legals(Position &position) {
+    Array<Move, 256> moves{};
+
+    for (Move move : pseudo_legals(position)) {
+        if (position.try_do_pseudo(move)) {
+            moves.add(move);
+            position.undo_move();
+        }
     }
 
     return moves;

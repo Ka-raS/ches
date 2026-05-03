@@ -24,8 +24,8 @@ class XorShift64 {
 };
 
 template <size_t N>
-consteval std::array<ZKey, N> rng(uint64_t seed, size_t discard = N) {
-    std::array<ZKey, N> arr{};
+consteval std::array<ZobristKey, N> rng(uint64_t seed, size_t discard = N) {
+    std::array<ZobristKey, N> arr{};
     XorShift64 rng(seed);
 
     for (size_t i = 0; i < N; ++i) {
@@ -34,23 +34,24 @@ consteval std::array<ZKey, N> rng(uint64_t seed, size_t discard = N) {
     return arr;
 }
 
-constexpr ZKey SideKey = XorShift64(0xCAFEBABEDEADBEEF).next();
+constexpr ZobristKey SideKey = XorShift64(0xCAFEBABEDEADBEEF).next();
 
-constexpr std::array<ZKey, BothCastles + 1> CastlingKeys = rng<BothCastles + 1>(SideKey);
+constexpr std::array<ZobristKey, BothCastles + 1> CastlingKeys = rng<BothCastles + 1>(SideKey);
 
-constexpr std::array<ZKey, FileCNT + 1> EnPassantKeys = rng<FileCNT + 1>(CastlingKeys.back(), FileCNT);
+constexpr std::array<ZobristKey, FileCNT + 1> EnPassantKeys = rng<FileCNT + 1>(CastlingKeys.back(), FileCNT);
 
-constexpr std::array<ZKey, (int)PieceCNT * SquareCNT> PieceKeys = rng<(int)PieceCNT * SquareCNT>(EnPassantKeys[FileH]);
+constexpr std::array<ZobristKey, (int)PieceCNT * SquareCNT> PieceKeys =
+    rng<(int)PieceCNT * SquareCNT>(EnPassantKeys[FileH]);
 
 } // namespace
 
-ZKey hash(const std::array<Piece, SquareCNT> &board, const State state) {
-    ZKey key = 0;
+ZobristKey hash(const std::array<Piece, SquareCNT> &board, const State state) {
+    ZobristKey key = 0;
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         Piece piece = board[sq];
         if (piece < PieceCNT) {
-            key ^= PieceKeys[piece * (int)SquareCNT + sq];
+            key ^= PieceKeys[piece * (unsigned)SquareCNT + sq];
         }
     }
 
@@ -64,22 +65,22 @@ ZKey hash(const std::array<Piece, SquareCNT> &board, const State state) {
     return key;
 }
 
-ZKey piece(Piece piece, Square sq) {
+ZobristKey piece(Piece piece, Square sq) {
     assert(piece < PieceCNT);
     assert(sq < SquareCNT);
-    return PieceKeys[piece * (int)SquareCNT + sq];
+    return PieceKeys[piece * (unsigned)SquareCNT + sq];
 }
 
-ZKey side() {
+ZobristKey side() {
     return SideKey;
 }
 
-ZKey en_passant(File file) {
+ZobristKey en_passant(File file) {
     assert(file <= FileCNT);
     return EnPassantKeys[file];
 }
 
-ZKey castling(CastleFlag flag) {
+ZobristKey castling(CastleFlag flag) {
     assert(flag <= BothCastles);
     return CastlingKeys[flag];
 }

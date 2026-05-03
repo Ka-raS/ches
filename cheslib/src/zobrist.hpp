@@ -3,14 +3,23 @@
 #include <array>
 
 #include "state.hpp"
-#include "types.hpp"
 
-namespace cheslib::zobrist {
+namespace cheslib {
 
-ZKey hash(const std::array<Piece, SquareCNT> &board, State state);
-ZKey piece(Piece piece, Square sq);
-ZKey side();
-ZKey en_passant(File file);
-ZKey castling(CastleFlag flag);
+/**
+ * Zobrist hash key
+ * see: https://www.chessprogramming.org/Zobrist_Hashing
+ */
+using ZobristKey = uint64_t;
 
-} // namespace cheslib::zobrist
+namespace zobrist {
+
+ZobristKey hash(const std::array<Piece, SquareCNT> &board, State state);
+ZobristKey piece(Piece piece, Square sq);
+ZobristKey side();
+ZobristKey en_passant(File file);
+ZobristKey castling(CastleFlag flag);
+
+} // namespace zobrist
+
+} // namespace cheslib

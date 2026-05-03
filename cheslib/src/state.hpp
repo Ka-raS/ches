@@ -4,6 +4,21 @@
 
 namespace cheslib {
 
+enum CastleFlag : uint8_t {
+    NoCastles = 0,
+
+    WhiteShortCastles = 0b0001,
+    WhiteLongCastles = 0b0010,
+    BlackShortCastles = 0b0100,
+    BlackLongCastles = 0b1000,
+
+    ShortCastles = WhiteShortCastles | BlackShortCastles,
+    LongCastles = WhiteLongCastles | BlackLongCastles,
+    WhiteCastles = WhiteShortCastles | WhiteLongCastles,
+    BlackCastles = BlackShortCastles | BlackLongCastles,
+    BothCastles = WhiteCastles | BlackCastles,
+};
+
 /**
  * 16bit encoded state
  * bit layout:

@@ -38,8 +38,8 @@ TEST_CASE("Movegen: Generate pseudo-legal moves from empty board", "[movegen]") 
 
 TEST_CASE("Movegen: Generate pseudo-legal moves when only kings", "[movegen]") {
     Pieces pieces = no_pieces();
-    pieces.put<White>(SquareE1, WhiteKing);
-    pieces.put<Black>(SquareE8, BlackKing);
+    pieces.put(SquareE1, WhiteKing);
+    pieces.put(SquareE8, BlackKing);
 
     Array<Move, 256> moves = movegen::pseudo_legals({std::move(pieces), EmptyState});
 
@@ -48,7 +48,7 @@ TEST_CASE("Movegen: Generate pseudo-legal moves when only kings", "[movegen]") {
 
 TEST_CASE("Movegen: Generate pseudo-legal moves when pawn promotion", "[movegen]") {
     Pieces pieces = no_pieces();
-    pieces.put<White>(SquareE7, WhitePawn);
+    pieces.put(SquareE7, WhitePawn);
 
     Array<Move, 256> moves = movegen::pseudo_legals({std::move(pieces), EmptyState});
 
@@ -69,8 +69,8 @@ TEST_CASE("Movegen: Initial position includes 8 double pawn pushes", "[movegen]"
 
 TEST_CASE("Movegen: Blocked pawn cannot push one or two squares", "[movegen]") {
     Pieces pieces = no_pieces();
-    pieces.put<White>(SquareE2, WhitePawn);
-    pieces.put<Black>(SquareE3, BlackPawn); // blocker in front
+    pieces.put(SquareE2, WhitePawn);
+    pieces.put(SquareE3, BlackPawn); // blocker in front
 
     Array<Move, 256> moves = movegen::pseudo_legals({std::move(pieces), EmptyState});
 
@@ -80,9 +80,9 @@ TEST_CASE("Movegen: Blocked pawn cannot push one or two squares", "[movegen]") {
 
 TEST_CASE("Movegen: White pawn diagonal captures are generated", "[movegen]") {
     Pieces pieces = no_pieces();
-    pieces.put<White>(SquareE5, WhitePawn);
-    pieces.put<Black>(SquareD6, BlackPawn);
-    pieces.put<Black>(SquareF6, BlackPawn);
+    pieces.put(SquareE5, WhitePawn);
+    pieces.put(SquareD6, BlackPawn);
+    pieces.put(SquareF6, BlackPawn);
 
     Array<Move, 256> moves = movegen::pseudo_legals({std::move(pieces), EmptyState});
 
@@ -92,8 +92,8 @@ TEST_CASE("Movegen: White pawn diagonal captures are generated", "[movegen]") {
 
 TEST_CASE("Movegen: En passant capture is generated when en passant file is set", "[movegen]") {
     Pieces pieces = no_pieces();
-    pieces.put<White>(SquareE5, WhitePawn);
-    pieces.put<Black>(SquareD5, BlackPawn);
+    pieces.put(SquareE5, WhitePawn);
+    pieces.put(SquareD5, BlackPawn);
 
     State state(NoCastles, FileD, White, 0);
     Array<Move, 256> moves = movegen::pseudo_legals({std::move(pieces), state});
@@ -103,7 +103,7 @@ TEST_CASE("Movegen: En passant capture is generated when en passant file is set"
 
 TEST_CASE("Movegen: Black pawn moves are generated on black turn", "[movegen]") {
     Pieces pieces = no_pieces();
-    pieces.put<Black>(SquareE7, BlackPawn);
+    pieces.put(SquareE7, BlackPawn);
 
     State state(NoCastles, FileCNT, Black, 0);
     Array<Move, 256> moves = movegen::pseudo_legals({std::move(pieces), state});
@@ -114,9 +114,9 @@ TEST_CASE("Movegen: Black pawn moves are generated on black turn", "[movegen]") 
 
 TEST_CASE("Movegen: White castling moves are generated when rights exist and path is clear", "[movegen]") {
     Pieces pieces = no_pieces();
-    pieces.put<White>(SquareE1, WhiteKing);
-    pieces.put<White>(SquareA1, WhiteRook);
-    pieces.put<White>(SquareH1, WhiteRook);
+    pieces.put(SquareE1, WhiteKing);
+    pieces.put(SquareA1, WhiteRook);
+    pieces.put(SquareH1, WhiteRook);
 
     State state = State(WhiteCastles, FileCNT, White, 0);
     Array<Move, 256> moves = movegen::pseudo_legals({std::move(pieces), state});
@@ -127,10 +127,10 @@ TEST_CASE("Movegen: White castling moves are generated when rights exist and pat
 
 TEST_CASE("Movegen: Short castling is blocked by occupied F1 square", "[movegen]") {
     Pieces pieces = no_pieces();
-    pieces.put<White>(SquareE1, WhiteKing);
-    pieces.put<White>(SquareA1, WhiteRook);
-    pieces.put<White>(SquareH1, WhiteRook);
-    pieces.put<White>(SquareF1, WhiteKnight); // blocks short castle
+    pieces.put(SquareE1, WhiteKing);
+    pieces.put(SquareA1, WhiteRook);
+    pieces.put(SquareH1, WhiteRook);
+    pieces.put(SquareF1, WhiteKnight); // blocks short castle
 
     State state(WhiteCastles, FileCNT, White, 0);
     Array<Move, 256> moves = movegen::pseudo_legals({std::move(pieces), state});

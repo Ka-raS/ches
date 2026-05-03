@@ -154,19 +154,19 @@ consteval std::array<Bitboard, Size> sliding_attacks(
     return attacks;
 }
 
-constexpr std::array<int8_t, 8> KnightSteps = {NorthEast + North, NorthEast + East,  SouthEast + East,
-                                               SouthEast + South, SouthWest + South, SouthWest + West,
-                                               NorthWest + West,  NorthWest + North};
-constexpr std::array<int8_t, 8> KingSteps = {North, NorthEast, East, SouthEast, South, SouthWest, West, NorthWest};
-constexpr std::array<int8_t, 2> WhitePawnSteps = {NorthWest, NorthEast};
-constexpr std::array<int8_t, 2> BlackPawnSteps = {SouthWest, SouthEast};
-constexpr std::array<Direction, 4> RookDirections = {North, East, South, West};
-constexpr std::array<Direction, 4> BishopDirections = {NorthEast, SouthEast, SouthWest, NorthWest};
+constexpr int8_t KnightSteps[] = {NorthEast + North, NorthEast + East, SouthEast + East, SouthEast + South,
+                                  SouthWest + South, SouthWest + West, NorthWest + West, NorthWest + North};
+constexpr int8_t KingSteps[] = {North, NorthEast, East, SouthEast, South, SouthWest, West, NorthWest};
+constexpr int8_t WhitePawnSteps[] = {NorthWest, NorthEast};
+constexpr int8_t BlackPawnSteps[] = {SouthWest, SouthEast};
+constexpr Direction RookDirections[] = {North, East, South, West};
+constexpr Direction BishopDirections[] = {NorthEast, SouthEast, SouthWest, NorthWest};
 
 constexpr std::array<Bitboard, SquareCNT> KnightAttacks = stepping_attacks(KnightSteps);
 constexpr std::array<Bitboard, SquareCNT> KingAttacks = stepping_attacks(KingSteps);
-constexpr std::array<Bitboard, SquareCNT> WhitePawnAttacks = stepping_attacks(WhitePawnSteps);
-constexpr std::array<Bitboard, SquareCNT> BlackPawnAttacks = stepping_attacks(BlackPawnSteps);
+constexpr std::array<Bitboard, SquareCNT> PawnAttacks[] = {
+    stepping_attacks(WhitePawnSteps), stepping_attacks(BlackPawnSteps)
+};
 
 constexpr std::size_t RookSize = 102400;
 constexpr std::size_t BishopSize = 5248;
@@ -177,16 +177,9 @@ constexpr std::array<Bitboard, BishopSize> BishopAttacks = sliding_attacks<Bisho
 
 } // namespace
 
-template <>
-Bitboard pawn<White>(Square from) {
+Bitboard pawn(Square from, Side us) {
     assert(from < SquareCNT);
-    return WhitePawnAttacks[from];
-}
-
-template <>
-Bitboard pawn<Black>(Square from) {
-    assert(from < SquareCNT);
-    return BlackPawnAttacks[from];
+    return PawnAttacks[us][from];
 }
 
 Bitboard knight(Square from) {
