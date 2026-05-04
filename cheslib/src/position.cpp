@@ -1,6 +1,5 @@
 #include "position.hpp"
 #include "attacks.hpp"
-#include "zobrist.hpp"
 
 namespace cheslib {
 
@@ -159,7 +158,7 @@ void Position::do_pseudo(const Move move, const Side us, const Square from, cons
             _key ^= zobrist::piece(captured, capture_sq);
         }
 
-        _history.add(old_key, move, old_state, captured);
+        _history.add({old_key, move, old_state, captured});
     }
 
     { // move piece

@@ -1,13 +1,9 @@
 #include "cheslib/move.hpp"
 
-#include <cassert>
-
 namespace cheslib {
 
-Move::Move(Square from, Square to, MoveFlag flag) : _data(from | (to << 6) | (flag << 12)) {
-    assert(from < SquareCNT);
-    assert(to < SquareCNT);
-    assert(flag <= QueenPromoCap);
+uint16_t Move::data() const {
+    return _data;
 }
 
 Square Move::from() const {

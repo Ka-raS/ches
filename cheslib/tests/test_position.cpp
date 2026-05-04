@@ -7,7 +7,7 @@ using namespace cheslib;
 namespace {
 
 const Pieces NoPieces = []() {
-    std::array<Piece, SquareCNT> board{};
+    std::array<Piece, SquareCNT> board;
     board.fill(PieceCNT);
     return board;
 }();

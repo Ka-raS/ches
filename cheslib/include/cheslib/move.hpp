@@ -36,7 +36,9 @@ enum MoveFlag : uint8_t {
 class Move {
   public:
     Move() = default;
-    Move(Square from, Square to, MoveFlag flag);
+    constexpr Move(Square from, Square to, MoveFlag flag);
+    uint16_t data() const;
+
     Square from() const;
     Square to() const;
     MoveFlag flag() const;
@@ -48,5 +50,11 @@ class Move {
   private:
     uint16_t _data;
 };
+
+constexpr Move::Move(Square from, Square to, MoveFlag flag) : _data(from | (to << 6) | (flag << 12)) {
+    assert(from < SquareCNT);
+    assert(to < SquareCNT);
+    assert(flag <= QueenPromoCap);
+}
 
 } // namespace cheslib

@@ -1,14 +1,13 @@
 #pragma once
 
-#include "cheslib/array.hpp"
-#include "cheslib/move.hpp"
+#include "cheslib/move_list.hpp"
 
 #include "position.hpp"
 
 namespace cheslib::movegen {
 
-Array<Move, 256> legals(Position &position);
+MoveList legals(Position &position);
 
-Array<Move, 256> pseudo_legals(const Position &position);
+MoveList pseudo_legals(const Position &position);
 
 } // namespace cheslib::movegen
