@@ -1,3 +1,5 @@
+- document the assert() please future me
+- hide all assert() from cheslib publics
 - check if msvc need /arch:AVX2
 - app.rc
 - still dont like src/types.hpp

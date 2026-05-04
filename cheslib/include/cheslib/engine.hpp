@@ -2,11 +2,9 @@
 
 #include <array>
 
-#include "cheslib/move.hpp"
+#include "cheslib/move_list.hpp"
 
 namespace cheslib {
-
-class Position;
 
 class Engine {
   public:
@@ -15,9 +13,19 @@ class Engine {
 
     const std::array<Piece, SquareCNT> &board() const;
 
+    [[nodiscard]] bool try_do_move(Move move);
+    MoveList generate_legal_moves() const;
+
   private:
-    alignas(8) std::byte _position_buffer[8400];
-    Position &_position;
+    struct PositionImpl;
+    static constexpr std::size_t PositionSize = 8400;
+    static constexpr std::size_t PositionAlign = 8;
+
+    static PositionImpl &construct_position(std::byte *buffer);
+
+  private:
+    alignas(PositionAlign) std::byte _position_buffer[PositionSize];
+    PositionImpl &_position;
 };
 
 } // namespace cheslib
