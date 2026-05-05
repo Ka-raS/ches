@@ -6,7 +6,7 @@ namespace cheslib::movegen {
 namespace {
 
 constexpr MoveFlag operator--(MoveFlag &flag) {
-    return flag = MoveFlag(flag - 1U);
+    return flag = MoveFlag(flag - 1u);
 }
 
 Bitboard non_pawn_attacks(PieceType type, Square from, Bitboard occupancy) {

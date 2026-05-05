@@ -107,7 +107,7 @@ TEST_CASE("Attacks: Check bishop sliding attack magic table", "[attacks]") {
     }
 
     SECTION("Blockers") {
-        Bitboard blockers = 1ULL << SquareB2;
+        Bitboard blockers = 1ull << SquareB2;
         Bitboard bb = attacks::bishop(SquareA1, blockers);
         CHECK(types::has_square(bb, SquareB2));
         CHECK_FALSE(types::has_square(bb, SquareA1));

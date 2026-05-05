@@ -27,32 +27,32 @@ TEST_CASE("Types: square_of", "[types]") {
 }
 
 TEST_CASE("Types: pop_lsb", "[types]") {
-    Bitboard bb = (1ULL << SquareD1) | (1ULL << SquareF1);
+    Bitboard bb = (1ull << SquareD1) | (1ull << SquareF1);
 
     CHECK(pop_lsb(bb) == SquareD1);
-    CHECK(bb == (1ULL << SquareF1));
+    CHECK(bb == (1ull << SquareF1));
 
     CHECK(pop_lsb(bb) == SquareF1);
     CHECK(bb == 0);
 }
 
 TEST_CASE("Types: bitboard_of squares", "[types]") {
-    CHECK(bitboard_of(SquareA1) == 1ULL);
-    CHECK(bitboard_of(SquareH8) == (1ULL << SquareH8));
-    CHECK(bitboard_of(SquareA1, SquareH8) == ((1ULL << SquareA1) | (1ULL << SquareH8)));
-    CHECK(bitboard_of(SquareC3, SquareF6) == ((1ULL << SquareC3) | (1ULL << SquareF6)));
+    CHECK(bitboard_of(SquareA1) == 1ull);
+    CHECK(bitboard_of(SquareH8) == (1ull << SquareH8));
+    CHECK(bitboard_of(SquareA1, SquareH8) == ((1ull << SquareA1) | (1ull << SquareH8)));
+    CHECK(bitboard_of(SquareC3, SquareF6) == ((1ull << SquareC3) | (1ull << SquareF6)));
 }
 
 TEST_CASE("Types: bitboard_of rank", "[types]") {
-    constexpr Bitboard rank_1 = 0xFFULL;
+    constexpr Bitboard rank_1 = 0xFFull;
     CHECK(bitboard_of(Rank1) == rank_1);
     CHECK(bitboard_of(Rank8) == (rank_1 << SquareA8));
     CHECK(bitboard_of(Rank4) == (rank_1 << SquareA4));
 }
 
 TEST_CASE("Types: bitboard_of files", "[types]") {
-    constexpr Bitboard fileA = 0x0101010101010101ULL;
-    constexpr Bitboard fileH = 0x8080808080808080ULL;
+    constexpr Bitboard fileA = 0x0101010101010101ull;
+    constexpr Bitboard fileH = 0x8080808080808080ull;
     CHECK(bitboard_of(FileA) == fileA);
     CHECK(bitboard_of(FileH) == fileH);
     CHECK(bitboard_of(FileD) == (fileA << FileD));
@@ -165,6 +165,6 @@ TEST_CASE("Types: constexpr", "[types]") {
     STATIC_CHECK(square_of(FileA, Rank1) == SquareA1);
     STATIC_CHECK(square_behind(White, SquareA2) == SquareA1);
     STATIC_CHECK(square_behind(Black, SquareA7) == SquareA8);
-    STATIC_CHECK(bitboard_of(Rank1) == 0xFFULL);
-    STATIC_CHECK(bitboard_of(FileA) == 0x0101010101010101ULL);
+    STATIC_CHECK(bitboard_of(Rank1) == 0xFFull);
+    STATIC_CHECK(bitboard_of(FileA) == 0x0101010101010101ull);
 }

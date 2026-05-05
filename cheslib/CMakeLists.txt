@@ -6,7 +6,6 @@ target_compile_features(cheslib PRIVATE cxx_std_20)
 target_sources(cheslib PRIVATE
     src/attacks.cpp
     src/engine.cpp
-    src/history_stack.cpp
     src/move_list.cpp
     src/move.cpp
     src/movegen.cpp
@@ -18,8 +17,7 @@ target_sources(cheslib PRIVATE
 
 target_compile_options(cheslib
     PUBLIC
-        $<$<CXX_COMPILER_ID:GNU>:-mbmi2>
-        $<$<CXX_COMPILER_ID:Clang>:-mbmi2>
+        $<$<CXX_COMPILER_ID:GNU,Clang>:-mbmi2>
         $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
     PRIVATE
         $<$<CXX_COMPILER_ID:GNU>:-fconstexpr-ops-limit=200000000>
@@ -27,8 +25,8 @@ target_compile_options(cheslib
         $<$<CXX_COMPILER_ID:MSVC>:/constexpr:steps200000000>
 )
 
-set_property(TARGET cheslib PROPERTY INTERPROCEDURAL_OPTIMIZATION
-    $<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>,$<CONFIG:MinSizeRel>>
+set_target_properties(cheslib PROPERTIES
+    INTERPROCEDURAL_OPTIMIZATION_RELEASE ON
 )
 
 if(BUILD_TESTING)

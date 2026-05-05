@@ -97,7 +97,7 @@ consteval std::array<Magic, SquareCNT> magic_infos(std::span<const Direction> di
 
     for (Square sq = Square(1); sq < SquareCNT; ++sq) {
         unsigned prev_mask_bits = std::popcount(result[sq - 1].mask);
-        std::size_t prev_table_size = 1ULL << prev_mask_bits;
+        std::size_t prev_table_size = 1ull << prev_mask_bits;
 
         std::size_t offset = result[sq - 1].offset + prev_table_size;
         Bitboard mask = sliding_blockers(sq, directions);

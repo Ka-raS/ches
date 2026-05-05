@@ -25,47 +25,30 @@ enum Direction : int8_t {
     NorthWest = -SouthEast
 };
 
-constexpr Rank operator++(Rank &r);
-constexpr File operator++(File &f);
-constexpr PieceType operator++(PieceType &p);
-constexpr Piece operator++(Piece &p);
-
 namespace types {
 
-constexpr Square square_behind(Side us, Square sq);
-constexpr Square pop_lsb(Bitboard &bb);
+/**
+ * precondition: `square` not on the 1st rank from `us` view
+ * @return the square behind `square` from `us` view,
+ * example: square_behind(White, SquareE4) == SquareE3
+ */
+constexpr Square square_behind(Side us, Square square);
 
-constexpr Bitboard bitboard_of(Rank rank);
-constexpr Bitboard bitboard_of(File file);
-constexpr Bitboard bitboard_of(std::same_as<Square> auto... squares);
+constexpr Square pop_lsb(Bitboard &bitboard);                         ///< precondition: `bitboard != 0`
+constexpr Bitboard bitboard_of(Rank rank);                            ///< precondition: `rank < RankCNT`
+constexpr Bitboard bitboard_of(File file);                            ///< precondition: `file < FileCNT`
+constexpr Bitboard bitboard_of(std::same_as<Square> auto... squares); ///< precondition: `squares < SquareCNT`
 
-constexpr bool has_square(Bitboard bb, Square square);
-constexpr void set_square(Bitboard &bb, Square square);
-constexpr void unset_square(Bitboard &bb, Square square);
+constexpr bool has_square(Bitboard bb, Square square);    ///< precondition: `square < SquareCNT`
+constexpr void set_square(Bitboard &bb, Square square);   ///< precondition: `square < SquareCNT`
+constexpr void unset_square(Bitboard &bb, Square square); ///< precondition: `square < SquareCNT`
 
 } // namespace types
 
 } // namespace cheslib
 
-namespace cheslib { // definitions
-
-constexpr Rank operator++(Rank &r) {
-    return r = Rank(r + 1U);
-}
-
-constexpr File operator++(File &f) {
-    return f = File(f + 1U);
-}
-
-constexpr PieceType operator++(PieceType &p) {
-    return p = PieceType(p + 1U);
-}
-
-constexpr Piece operator++(Piece &p) {
-    return p = Piece(p + 1U);
-}
-
-namespace types {
+// definitions
+namespace cheslib::types {
 
 constexpr Square square_behind(Side us, Square sq) {
     if (us == White) {
@@ -87,7 +70,7 @@ constexpr Square pop_lsb(Bitboard &bb) {
 
 constexpr Bitboard bitboard_of(std::same_as<Square> auto... squares) {
     (assert(squares < SquareCNT), ...);
-    return ((1ULL << squares) | ...);
+    return ((1ull << squares) | ...);
 }
 
 constexpr Bitboard bitboard_of(Rank rank) {
@@ -119,6 +102,4 @@ constexpr void unset_square(Bitboard &bb, Square square) {
     bb &= ~bitboard_of(square);
 }
 
-} // namespace types
-
-} // namespace cheslib
+} // namespace cheslib::types

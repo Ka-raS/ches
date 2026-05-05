@@ -5,6 +5,10 @@ namespace cheslib {
 MoveList::MoveList() : _moves{}, _size(0) {
 }
 
+std::size_t MoveList::size() const {
+    return _size;
+}
+
 const Move *MoveList::begin() const {
     return _moves;
 }
@@ -14,7 +18,7 @@ const Move *MoveList::end() const {
 }
 
 const Move *MoveList::find(Square from, Square to) const {
-    constexpr uint16_t mask = 0xFFF;
+    constexpr uint16_t mask = 0xFFFu;
     const uint16_t target = from | (to << 6);
 
     for (const Move &move : *this) {
@@ -36,7 +40,7 @@ bool MoveList::has(Move move) const {
 }
 
 void MoveList::add(Move move) {
-    assert(_size < 256);
+    assert(_size < MaxSize);
     _moves[_size] = move;
     ++_size;
 }

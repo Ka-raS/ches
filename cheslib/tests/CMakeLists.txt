@@ -19,6 +19,7 @@ add_executable(cheslib_test)
 
 target_sources(cheslib_test PRIVATE
     test_attacks.cpp
+    test_move_list.cpp
     test_move.cpp
     test_movegen.cpp
     test_pieces.cpp

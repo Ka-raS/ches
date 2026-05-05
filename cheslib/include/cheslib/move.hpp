@@ -35,8 +35,10 @@ enum MoveFlag : uint8_t {
  */
 class Move {
   public:
-    Move() = default;
+    /// preconditions: `from < SquareCNT`, `to < SquareCNT`, `flag <= QueenPromoCap`
     constexpr Move(Square from, Square to, MoveFlag flag);
+
+    Move() = default;
     uint16_t data() const;
 
     Square from() const;

@@ -44,30 +44,51 @@ enum Piece : uint8_t {
 };
 // clang-format on
 
-constexpr Square operator++(Square &sq);
+constexpr Square operator++(Square &square);
+constexpr Rank operator++(Rank &rank);
+constexpr File operator++(File &file);
+constexpr PieceType operator++(PieceType &type);
 constexpr Side operator!(Side side);
+constexpr Piece operator++(Piece &piece);
 
 namespace types {
 
-constexpr Square square_of(File file, Rank rank);
-constexpr File file_of(Square sq);
-constexpr Rank rank_of(Square sq);
-constexpr Side side_of(Piece piece);
-constexpr Piece piece_of(Side us, PieceType type);
-constexpr PieceType type_of(Piece piece);
+constexpr Square square_of(File file, Rank rank);    ///< preconditions: `file < FileCNT`, `rank < RankCNT`
+constexpr File file_of(Square square);               ///< preconditions: `square < SquareCNT`
+constexpr Rank rank_of(Square square);               ///< preconditions: `square < SquareCNT`
+constexpr PieceType type_of(Piece piece);            ///< preconditions: `piece < PieceCNT`
+constexpr Piece piece_of(Side side, PieceType type); ///< preconditions: `type < PieceTypeCNT`
+constexpr Side side_of(Piece piece);                 ///< preconditions: `piece < PieceCNT`
 
 } // namespace types
 
 } // namespace cheslib
 
-namespace cheslib { // definitions
+// definitions
+namespace cheslib {
 
-constexpr Square operator++(Square &sq) {
-    return sq = Square(sq + 1U);
+constexpr Square operator++(Square &square) {
+    return square = Square(square + 1u);
+}
+
+constexpr Rank operator++(Rank &rank) {
+    return rank = Rank(rank + 1u);
+}
+
+constexpr File operator++(File &file) {
+    return file = File(file + 1u);
+}
+
+constexpr PieceType operator++(PieceType &type) {
+    return type = PieceType(type + 1u);
 }
 
 constexpr Side operator!(Side side) {
     return Side(!(bool)side);
+}
+
+constexpr Piece operator++(Piece &piece) {
+    return piece = Piece(piece + 1u);
 }
 
 namespace types {
@@ -78,14 +99,14 @@ constexpr Square square_of(File file, Rank rank) {
     return Square(rank << 3 | file); // rank * FileCNT + file
 }
 
-constexpr File file_of(Square sq) {
-    assert(sq < SquareCNT);
-    return File(sq & 7); // sq % 8
+constexpr File file_of(Square square) {
+    assert(square < SquareCNT);
+    return File(square & 7u); // square % 8
 }
 
-constexpr Rank rank_of(Square sq) {
-    assert(sq < SquareCNT);
-    return Rank(sq >> 3); // sq / 8
+constexpr Rank rank_of(Square square) {
+    assert(square < SquareCNT);
+    return Rank(square >> 3); // square / 8
 }
 
 constexpr Side side_of(Piece piece) {
@@ -95,13 +116,13 @@ constexpr Side side_of(Piece piece) {
 
 constexpr Piece piece_of(Side us, PieceType type) {
     assert(type < PieceTypeCNT);
-    unsigned offset = (us == White) ? 0 : PieceTypeCNT;
+    unsigned offset = (us == White) ? WhitePawn : BlackPawn;
     return Piece(type + offset);
 }
 
 constexpr PieceType type_of(Piece piece) {
     assert(piece < PieceCNT);
-    unsigned offset = (piece < BlackPawn) ? 0 : BlackPawn;
+    unsigned offset = (piece < BlackPawn) ? WhitePawn : BlackPawn;
     return PieceType(piece - offset);
 }
 
