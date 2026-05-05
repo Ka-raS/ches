@@ -4,7 +4,30 @@
 namespace cheslib {
 
 Position::Position(Pieces &&pieces, State state)
-    : _pieces(std::move(pieces)), _state(state), _key(zobrist::hash(_pieces.board(), _state)), _history() {
+    : _pieces(std::move(pieces)), _state(state), _key(zobrist::hash(_pieces.board(), _state)), _history{},
+      _history_size(0) {
+}
+
+const Pieces &Position::pieces() const {
+    return _pieces;
+}
+
+State Position::state() const {
+    return _state;
+}
+
+ZobristKey Position::key() const {
+    return _key;
+}
+
+void Position::push_history(MoveEntry entry) {
+    _history[_history_size] = entry;
+    ++_history_size;
+}
+
+Position::MoveEntry Position::pop_history() {
+    --_history_size;
+    return std::move(_history[_history_size]);
 }
 
 Position Position::initial() {
@@ -31,18 +54,6 @@ Position Position::initial() {
     }
 
     return Position(Pieces(std::move(board)), State(BothCastles, FileCNT, White, 0));
-}
-
-const Pieces &Position::pieces() const {
-    return _pieces;
-}
-
-State Position::state() const {
-    return _state;
-}
-
-ZobristKey Position::key() const {
-    return _key;
 }
 
 bool Position::try_do_pseudo(Move move) {
@@ -115,7 +126,7 @@ constexpr std::array<CastleFlag, SquareCNT> CastlingMasks = []() {
 } // namespace
 
 void Position::undo_move() {
-    const auto [key, move, state, captured] = _history.pop();
+    const auto [key, move, state, captured] = pop_history();
 
     const Side us = state.side_to_move();
     const Square to = move.to();
@@ -158,7 +169,7 @@ void Position::do_pseudo(const Move move, const Side us, const Square from, cons
             _key ^= zobrist::piece(captured, capture_sq);
         }
 
-        _history.add({old_key, move, old_state, captured});
+        push_history({old_key, move, old_state, captured});
     }
 
     { // move piece
