@@ -44,7 +44,7 @@ class Move {
     Square from() const;
     Square to() const;
     MoveFlag flag() const;
-    PieceType promo_piece() const;
+    PieceType promoted_piece() const;
     bool is_promotion() const;
     bool is_capture() const;
     bool operator==(const Move &) const = default;

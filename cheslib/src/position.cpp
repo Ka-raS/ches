@@ -173,7 +173,7 @@ void Position::do_pseudo(const Move move, const Side us, const Square from, cons
     }
 
     { // move piece
-        Piece after = move.is_promotion() ? types::piece_of(us, move.promo_piece()) : _pieces.at(from);
+        Piece after = move.is_promotion() ? types::piece_of(us, move.promoted_piece()) : _pieces.at(from);
         Piece before = _pieces.remove(from);
 
         _pieces.put(to, after);

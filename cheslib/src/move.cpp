@@ -22,7 +22,7 @@ bool Move::is_promotion() const {
     return _data & (1 << 15);
 }
 
-PieceType Move::promo_piece() const {
+PieceType Move::promoted_piece() const {
     unsigned encoded_piece = (_data >> 12) & 0b11;
     return PieceType(encoded_piece + Knight);
 }

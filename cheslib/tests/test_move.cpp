@@ -43,16 +43,16 @@ TEST_CASE("Move: Contructor encodes, methods decode", "[move]") {
     }
 }
 
-TEST_CASE("Move: Move::promo_piece() decodes promotion flags", "[move]") {
-    CHECK(Move(SquareA7, SquareA8, KnightPromo).promo_piece() == Knight);
-    CHECK(Move(SquareA7, SquareA8, BishopPromo).promo_piece() == Bishop);
-    CHECK(Move(SquareA7, SquareA8, RookPromo).promo_piece() == Rook);
-    CHECK(Move(SquareA7, SquareA8, QueenPromo).promo_piece() == Queen);
+TEST_CASE("Move: Move::promoted_piece() decodes promotion flags", "[move]") {
+    CHECK(Move(SquareA7, SquareA8, KnightPromo).promoted_piece() == Knight);
+    CHECK(Move(SquareA7, SquareA8, BishopPromo).promoted_piece() == Bishop);
+    CHECK(Move(SquareA7, SquareA8, RookPromo).promoted_piece() == Rook);
+    CHECK(Move(SquareA7, SquareA8, QueenPromo).promoted_piece() == Queen);
 
-    CHECK(Move(SquareA7, SquareB8, KnightPromoCap).promo_piece() == Knight);
-    CHECK(Move(SquareA7, SquareB8, BishopPromoCap).promo_piece() == Bishop);
-    CHECK(Move(SquareA7, SquareB8, RookPromoCap).promo_piece() == Rook);
-    CHECK(Move(SquareA7, SquareB8, QueenPromoCap).promo_piece() == Queen);
+    CHECK(Move(SquareA7, SquareB8, KnightPromoCap).promoted_piece() == Knight);
+    CHECK(Move(SquareA7, SquareB8, BishopPromoCap).promoted_piece() == Bishop);
+    CHECK(Move(SquareA7, SquareB8, RookPromoCap).promoted_piece() == Rook);
+    CHECK(Move(SquareA7, SquareB8, QueenPromoCap).promoted_piece() == Queen);
 }
 
 TEST_CASE("Move: Equality", "[move]") {
