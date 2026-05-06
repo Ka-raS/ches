@@ -6,11 +6,11 @@ namespace cheslib {
 
 class MoveList {
   public:
-    static constexpr std::size_t MaxSize = 256;
+    static constexpr size_t MaxSize = 256;
 
   public:
     MoveList();
-    std::size_t size() const;
+    size_t size() const;
     bool has(Move move) const;
     const Move *begin() const;
     const Move *end() const;
@@ -23,7 +23,7 @@ class MoveList {
 
   private:
     Move _moves[MaxSize];
-    std::size_t _size;
+    size_t _size;
 };
 
 } // namespace cheslib

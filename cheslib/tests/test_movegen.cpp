@@ -15,7 +15,7 @@ const Pieces NoPieces = []() {
     return board;
 }();
 
-std::size_t count(const MoveList &moves) {
+size_t count(const MoveList &moves) {
     return moves.end() - moves.begin();
 }
 

@@ -11,17 +11,17 @@ namespace {
 
 struct Magic {
     Bitboard mask;
-    std::size_t offset;
+    size_t offset;
 
-    std::size_t index(Bitboard occupancy) const;
-    consteval std::size_t index_constexpr(Bitboard occupancy) const;
+    size_t index(Bitboard occupancy) const;
+    consteval size_t index_constexpr(Bitboard occupancy) const;
 };
 
-std::size_t Magic::index(Bitboard occupancy) const {
+size_t Magic::index(Bitboard occupancy) const {
     return offset + _pext_u64(occupancy, mask);
 }
 
-consteval std::size_t Magic::index_constexpr(const Bitboard occupancy) const {
+consteval size_t Magic::index_constexpr(const Bitboard occupancy) const {
     uint64_t pext = 0;
     uint64_t bit = 1;
     Bitboard blockers = mask;
@@ -97,9 +97,9 @@ consteval std::array<Magic, SquareCNT> magic_infos(std::span<const Direction> di
 
     for (Square sq = Square(1); sq < SquareCNT; ++sq) {
         unsigned prev_mask_bits = std::popcount(result[sq - 1].mask);
-        std::size_t prev_table_size = 1ull << prev_mask_bits;
+        size_t prev_table_size = 1ull << prev_mask_bits;
 
-        std::size_t offset = result[sq - 1].offset + prev_table_size;
+        size_t offset = result[sq - 1].offset + prev_table_size;
         Bitboard mask = sliding_blockers(sq, directions);
 
         result[sq] = Magic{mask, offset};
@@ -131,7 +131,7 @@ consteval Bitboard sliding_attack_at(
 }
 
 // generate magic bitboards for rook/bishop
-template <std::size_t Size>
+template <size_t Size>
 consteval std::array<Bitboard, Size> sliding_attacks(
     const std::array<Magic, SquareCNT> &magics, std::span<const Direction> directions
 ) {
@@ -144,7 +144,7 @@ consteval std::array<Bitboard, Size> sliding_attacks(
         // iterate all occupancy subsets
         // see: https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
         do {
-            std::size_t index = magic.index_constexpr(occupancy);
+            size_t index = magic.index_constexpr(occupancy);
             attacks[index] = sliding_attack_at(sq, occupancy, directions);
 
             occupancy = (occupancy - magic.mask) & magic.mask;
@@ -168,8 +168,8 @@ constexpr std::array<Bitboard, SquareCNT> PawnAttacks[] = {
     stepping_attacks(WhitePawnSteps), stepping_attacks(BlackPawnSteps)
 };
 
-constexpr std::size_t RookSize = 102400;
-constexpr std::size_t BishopSize = 5248;
+constexpr size_t RookSize = 102400;
+constexpr size_t BishopSize = 5248;
 constexpr std::array<Magic, SquareCNT> RookMagics = magic_infos(RookDirections);
 constexpr std::array<Magic, SquareCNT> BishopMagics = magic_infos(BishopDirections);
 constexpr std::array<Bitboard, RookSize> RookAttacks = sliding_attacks<RookSize>(RookMagics, RookDirections);
@@ -194,13 +194,13 @@ Bitboard king(Square from) {
 
 Bitboard rook(Square from, Bitboard occupancy) {
     assert(from < SquareCNT);
-    std::size_t index = RookMagics[from].index(occupancy);
+    size_t index = RookMagics[from].index(occupancy);
     return RookAttacks[index];
 }
 
 Bitboard bishop(Square from, Bitboard occupancy) {
     assert(from < SquareCNT);
-    std::size_t index = BishopMagics[from].index(occupancy);
+    size_t index = BishopMagics[from].index(occupancy);
     return BishopAttacks[index];
 }
 

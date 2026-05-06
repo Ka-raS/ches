@@ -40,7 +40,7 @@ class Position {
     ZobristKey _key;
 
     MoveEntry _history[512];
-    std::size_t _history_size;
+    size_t _history_size;
 };
 
 } // namespace cheslib

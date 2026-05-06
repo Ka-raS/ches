@@ -45,7 +45,7 @@ TEST_CASE("MoveList: iteration", "[move_list]") {
     moves.add(data[0]);
     moves.add(data[1]);
 
-    std::size_t i = 0;
+    size_t i = 0;
     for (Move move : moves) {
         CHECK(move == data[i]);
         ++i;

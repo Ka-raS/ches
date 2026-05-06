@@ -5,7 +5,7 @@ namespace cheslib {
 MoveList::MoveList() : _moves{}, _size(0) {
 }
 
-std::size_t MoveList::size() const {
+size_t MoveList::size() const {
     return _size;
 }
 
