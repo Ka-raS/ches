@@ -13,6 +13,12 @@ namespace cheslib {
  */
 using Bitboard = uint64_t;
 
+/**
+ * Zobrist hash key
+ * see: https://www.chessprogramming.org/Zobrist_Hashing
+ */
+using ZobristKey = uint64_t;
+
 enum Direction : int8_t {
     North = SquareA2 - SquareA1,
     East = SquareB1 - SquareA1,
