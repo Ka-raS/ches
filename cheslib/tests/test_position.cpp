@@ -321,3 +321,18 @@ TEST_CASE("Position: Capturing rook revokes castling right", "[position]") {
     check_consistency(pos);
     check_equality(pos, pos_init);
 }
+
+TEST_CASE("Position: King move to pawns attack", "[position]") {
+    const Position pos_init = []() {
+        Pieces pieces = NoPieces;
+        pieces.put(SquareE1, WhiteKing);
+        pieces.put(SquareD3, BlackPawn);
+        return Position(std::move(pieces), State(NoCastles, FileCNT, White, 0));
+    }();
+
+    Position pos = pos_init;
+
+    CHECK_FALSE(pos.try_do_pseudo({SquareE1, SquareE2, QuietMove}));
+    check_consistency(pos);
+    check_equality(pos, pos_init);
+}

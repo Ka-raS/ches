@@ -91,7 +91,7 @@ bool Position::is_attacked(Square at, Side us) const {
     // us at Square can attack other Squares <=> us at other Squares can attack Square
 
     // clang-format off
-    Bitboard pawns   = _pieces.get(types::piece_of(us, Pawn))   & attacks::pawn(at, us);
+    Bitboard pawns   = _pieces.get(types::piece_of(us, Pawn))   & attacks::pawn(at, !us);
     Bitboard knights = _pieces.get(types::piece_of(us, Knight)) & attacks::knight(at);
     Bitboard bishops = _pieces.get(types::piece_of(us, Bishop)) & attacks::bishop(at, all);
     Bitboard rooks   = _pieces.get(types::piece_of(us, Rook))   & attacks::rook(at, all);

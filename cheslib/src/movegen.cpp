@@ -166,10 +166,11 @@ void generate_pawn_captures(MoveList &moves, const Bitboard our_pawns, const Bit
 template <Side Us>
 void generate_pawn_moves(MoveList &moves, const Pieces &pieces, const State state) {
     constexpr Direction forward = (Us == White) ? North : South;
+    constexpr Piece pawn = types::piece_of(Us, Pawn);
 
     const Bitboard empty = ~pieces.all();
     const Bitboard enemy = pieces.all_of(!Us);
-    const Bitboard our_pawns = pieces.get(types::piece_of(Us, Pawn));
+    const Bitboard our_pawns = pieces.get(pawn);
     const Bitboard pushed_1 = empty & move_pawn<forward>(our_pawns);
 
     generate_single_pawn_pushes<Us>(moves, pushed_1);

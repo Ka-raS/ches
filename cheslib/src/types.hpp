@@ -69,7 +69,7 @@ constexpr Square pop_lsb(Bitboard &bb) {
 }
 
 constexpr Bitboard bitboard_of(std::same_as<Square> auto... squares) {
-    (assert(squares < SquareCNT), ...);
+    assert(((squares < SquareCNT) && ...));
     return ((1ull << squares) | ...);
 }
 

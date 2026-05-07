@@ -34,6 +34,7 @@ Bitboard Pieces::all_of(Side us) const {
 }
 
 Bitboard Pieces::get(Piece piece) const {
+    assert(piece < PieceCNT);
     return _bitboards[piece];
 }
 
