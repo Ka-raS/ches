@@ -12,9 +12,11 @@ namespace cheslib {
 class Pieces {
   public:
     Pieces(std::array<Piece, SquareCNT> &&board);
+    static Pieces initial();
 
     const std::array<Piece, SquareCNT> &board() const;
     Piece at(Square sq) const;
+    int count(Piece piece) const;
 
     Bitboard all() const;
     Bitboard all_of(Side us) const;

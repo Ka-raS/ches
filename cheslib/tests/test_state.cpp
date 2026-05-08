@@ -5,7 +5,7 @@
 using namespace cheslib;
 
 TEST_CASE("State: Initial state", "[state]") {
-    const State s(BothCastles, FileCNT, White, 0);
+    const State s = State::initial();
 
     CHECK(s.castle_flag() == BothCastles);
     CHECK(s.en_passant() == FileCNT);

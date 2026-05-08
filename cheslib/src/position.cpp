@@ -1,11 +1,16 @@
 #include "position.hpp"
 #include "attacks.hpp"
+#include "zobrist.hpp"
 
 namespace cheslib {
 
 Position::Position(Pieces &&pieces, State state)
     : _pieces(std::move(pieces)), _state(state), _key(zobrist::hash(_pieces.board(), _state)), _history{},
       _history_size(0) {
+}
+
+Position Position::initial() {
+    return Position(Pieces::initial(), State::initial());
 }
 
 const Pieces &Position::pieces() const {
@@ -21,39 +26,15 @@ ZobristKey Position::key() const {
 }
 
 void Position::push_history(MoveEntry entry) {
+    assert(_history_size < std::size(_history));
     _history[_history_size] = entry;
     ++_history_size;
 }
 
 Position::MoveEntry Position::pop_history() {
+    assert(_history_size > 0);
     --_history_size;
-    return std::move(_history[_history_size]);
-}
-
-Position Position::initial() {
-    std::array<Piece, SquareCNT> board;
-    board.fill(PieceCNT);
-
-    board[SquareE1] = WhiteKing;
-    board[SquareE8] = BlackKing;
-    board[SquareD1] = WhiteQueen;
-    board[SquareD8] = BlackQueen;
-
-    board[SquareA1] = board[SquareH1] = WhiteRook;
-    board[SquareA8] = board[SquareH8] = BlackRook;
-    board[SquareC1] = board[SquareF1] = WhiteBishop;
-    board[SquareC8] = board[SquareF8] = BlackBishop;
-    board[SquareB1] = board[SquareG1] = WhiteKnight;
-    board[SquareB8] = board[SquareG8] = BlackKnight;
-
-    for (Square sq = SquareA2; sq <= SquareH2; ++sq) {
-        board[sq] = WhitePawn;
-    }
-    for (Square sq = SquareA7; sq <= SquareH7; ++sq) {
-        board[sq] = BlackPawn;
-    }
-
-    return Position(Pieces(std::move(board)), State(BothCastles, FileCNT, White, 0));
+    return _history[_history_size];
 }
 
 bool Position::try_do_pseudo(Move move) {

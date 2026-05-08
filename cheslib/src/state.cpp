@@ -9,6 +9,10 @@ State::State(CastleFlag flag, File en_passant, Side side_to_move, int rule50_cou
     assert(rule50_count <= 100);
 }
 
+State State::initial() {
+    return State(BothCastles, FileCNT, White, 0);
+}
+
 CastleFlag State::castle_flag() const {
     return CastleFlag(_data & 0b1111);
 }

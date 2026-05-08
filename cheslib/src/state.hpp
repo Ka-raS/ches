@@ -35,6 +35,7 @@ class State {
   public:
     State() = default;
     State(CastleFlag flag, File en_passant, Side side_to_move, int rule50_count);
+    static State initial();
 
     bool operator==(const State &) const = default;
 

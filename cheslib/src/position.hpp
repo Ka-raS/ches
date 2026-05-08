@@ -4,7 +4,6 @@
 
 #include "pieces.hpp"
 #include "state.hpp"
-#include "zobrist.hpp"
 
 namespace cheslib {
 
