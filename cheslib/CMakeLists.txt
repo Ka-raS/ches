@@ -6,8 +6,6 @@ target_compile_features(cheslib PRIVATE cxx_std_20)
 target_sources(cheslib PRIVATE
     src/attacks.cpp
     src/engine.cpp
-    src/move_list.cpp
-    src/move.cpp
     src/movegen.cpp
     src/pieces.cpp
     src/position.cpp

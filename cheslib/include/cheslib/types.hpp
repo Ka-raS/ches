@@ -45,29 +45,6 @@ enum Piece : uint8_t {
 };
 // clang-format on
 
-constexpr Square operator++(Square &square);
-constexpr Rank operator++(Rank &rank);
-constexpr File operator++(File &file);
-constexpr PieceType operator++(PieceType &type);
-constexpr Side operator!(Side side);
-constexpr Piece operator++(Piece &piece);
-
-namespace types {
-
-constexpr Square square_of(File file, Rank rank);    ///< preconditions: `file < FileCNT`, `rank < RankCNT`
-constexpr File file_of(Square square);               ///< preconditions: `square < SquareCNT`
-constexpr Rank rank_of(Square square);               ///< preconditions: `square < SquareCNT`
-constexpr PieceType type_of(Piece piece);            ///< preconditions: `piece < PieceCNT`
-constexpr Piece piece_of(Side side, PieceType type); ///< preconditions: `type < PieceTypeCNT`
-constexpr Side side_of(Piece piece);                 ///< preconditions: `piece < PieceCNT`
-
-} // namespace types
-
-} // namespace cheslib
-
-// definitions
-namespace cheslib {
-
 constexpr Square operator++(Square &square) {
     return square = Square(square + 1u);
 }
@@ -97,17 +74,39 @@ namespace types {
 constexpr Square square_of(File file, Rank rank) {
     assert(file < FileCNT);
     assert(rank < RankCNT);
-    return Square(rank << 3 | file); // rank * FileCNT + file
+
+    Square square = Square(rank << 3 | file); // rank * FileCNT + file
+
+    assert(square < SquareCNT);
+    return square;
 }
 
 constexpr File file_of(Square square) {
     assert(square < SquareCNT);
-    return File(square & 7u); // square % 8
+
+    File file = File(square & 7u); // square % FileCNT
+
+    assert(file < FileCNT);
+    return file;
 }
 
 constexpr Rank rank_of(Square square) {
     assert(square < SquareCNT);
-    return Rank(square >> 3); // square / 8
+
+    Rank rank = Rank(square >> 3); // square / FileCNT
+
+    assert(rank < RankCNT);
+    return rank;
+}
+
+constexpr PieceType type_of(Piece piece) {
+    assert(piece < PieceCNT);
+
+    unsigned offset = (piece < BlackPawn) ? WhitePawn : BlackPawn;
+    PieceType type = PieceType(piece - offset);
+
+    assert(type < PieceTypeCNT);
+    return type;
 }
 
 constexpr Side side_of(Piece piece) {
@@ -117,14 +116,12 @@ constexpr Side side_of(Piece piece) {
 
 constexpr Piece piece_of(Side us, PieceType type) {
     assert(type < PieceTypeCNT);
-    unsigned offset = (us == White) ? WhitePawn : BlackPawn;
-    return Piece(type + offset);
-}
 
-constexpr PieceType type_of(Piece piece) {
+    unsigned offset = (us == White) ? WhitePawn : BlackPawn;
+    Piece piece = Piece(type + offset);
+
     assert(piece < PieceCNT);
-    unsigned offset = (piece < BlackPawn) ? WhitePawn : BlackPawn;
-    return PieceType(piece - offset);
+    return piece;
 }
 
 } // namespace types

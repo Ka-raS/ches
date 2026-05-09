@@ -35,28 +35,51 @@ enum MoveFlag : uint8_t {
  */
 class Move {
   public:
-    /// preconditions: `from < SquareCNT`, `to < SquareCNT`, `flag <= QueenPromoCap`
-    constexpr Move(Square from, Square to, MoveFlag flag);
+    constexpr Move() = default;
 
-    Move() = default;
-    uint16_t data() const;
+    constexpr Move(Square from, Square to, MoveFlag flag) : _data(from | (to << 6) | (flag << 12)) {
+        assert(from < SquareCNT);
+        assert(to < SquareCNT);
+        assert(flag <= QueenPromoCap && flag != 6 && flag != 7);
+    }
 
-    Square from() const;
-    Square to() const;
-    MoveFlag flag() const;
-    PieceType promoted_piece() const;
-    bool is_promotion() const;
-    bool is_capture() const;
-    bool operator==(const Move &) const = default;
+    constexpr uint16_t data() const {
+        return _data;
+    }
+
+    constexpr Square from() const {
+        return Square(_data & 0b11'1111);
+    }
+
+    constexpr Square to() const {
+        return Square((_data >> 6) & 0b11'1111);
+    }
+
+    constexpr MoveFlag flag() const {
+        return MoveFlag((_data >> 12) & 0b1111);
+    }
+
+    constexpr bool is_promotion() const {
+        return _data & (1 << 15);
+    }
+
+    constexpr bool is_capture() const {
+        return _data & (1 << 14);
+    }
+
+    constexpr bool operator==(const Move &) const = default;
+
+    constexpr PieceType promoted_piece() const {
+        assert(is_promotion());
+
+        PieceType type = PieceType(Knight + ((_data >> 12) & 0b11));
+
+        assert(Knight <= type && type <= Queen);
+        return type;
+    }
 
   private:
     uint16_t _data;
 };
-
-constexpr Move::Move(Square from, Square to, MoveFlag flag) : _data(from | (to << 6) | (flag << 12)) {
-    assert(from < SquareCNT);
-    assert(to < SquareCNT);
-    assert(flag <= QueenPromoCap);
-}
 
 } // namespace cheslib
