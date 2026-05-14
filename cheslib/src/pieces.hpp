@@ -17,10 +17,12 @@ class Pieces {
     const std::array<Piece, SquareCNT> &board() const;
     Piece at(Square sq) const;
     int count(Piece piece) const;
+    Square king_of(Side us) const;
 
     Bitboard all() const;
     Bitboard all_of(Side us) const;
     Bitboard get(Piece piece) const;
+    Bitboard get(Side us, PieceType type) const;
 
     void put(Square sq, Piece piece);
     void move(Square from, Square to);

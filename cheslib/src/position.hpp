@@ -1,9 +1,7 @@
 #pragma once
 
-#include "cheslib/move.hpp"
-
+#include "move_history.hpp"
 #include "pieces.hpp"
-#include "state.hpp"
 
 namespace cheslib {
 
@@ -16,30 +14,22 @@ class Position {
     State state() const;
     ZobristKey key() const;
 
-    void undo_move();
+    bool is_in_check() const;
+    bool is_drawn() const;
+
+    /// @return false if pseudo move fails king safety
     [[nodiscard]] bool try_do_pseudo(Move move);
+    void do_move(Move move);
+    void undo_move();
 
   private:
-    struct MoveEntry {
-        ZobristKey key;
-        Move move;
-        State state;
-        Piece captured;
-    };
-
-  private:
-    bool is_attacked(Square at, Side us) const;
-    void do_pseudo(Move move, Side us, Square from, Square to, MoveFlag move_flag);
-    void push_history(MoveEntry entry);
-    MoveEntry pop_history();
+    bool is_attacking(Square at, Side us) const;
 
   private:
     Pieces _pieces;
     State _state;
     ZobristKey _key;
-
-    MoveEntry _history[512];
-    size_t _history_size;
+    MoveHistory _history;
 };
 
 } // namespace cheslib

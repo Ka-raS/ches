@@ -9,7 +9,7 @@ TEST_CASE("MoveList: Default constructor", "[move_list]") {
 
     CHECK(moves.size() == 0);
     CHECK(moves.begin() == moves.end());
-    CHECK(moves.find(SquareA2, SquareA3) == nullptr);
+    CHECK(moves.find(SquareA2, SquareA3) == Move::none());
 
     Move move(SquareA2, SquareA3, QuietMove);
     CHECK_FALSE(moves.has(move));
@@ -29,9 +29,8 @@ TEST_CASE("MoveList: add and find", "[move_list]") {
     CHECK(moves.has(m2));
     CHECK_FALSE(moves.has(m3));
 
-    const Move *found = moves.find(SquareA2, SquareA3);
-    REQUIRE(found != nullptr);
-    CHECK(*found == m1);
+    Move found = moves.find(SquareA2, SquareA3);
+    CHECK(found == m1);
 }
 
 TEST_CASE("MoveList: iteration", "[move_list]") {

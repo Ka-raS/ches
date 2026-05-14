@@ -1,4 +1,7 @@
 BasedOnStyle: Microsoft
-BreakBeforeBraces: Attach
+
 AlignAfterOpenBracket: BlockIndent
+AllowShortFunctionsOnASingleLine: Empty
 AlwaysBreakTemplateDeclarations: true
+BreakBeforeBraces: Attach
+PackConstructorInitializers: Never

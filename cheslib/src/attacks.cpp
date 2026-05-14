@@ -28,10 +28,10 @@ consteval size_t Magic::index_constexpr(const Bitboard occupancy) const {
 
     while (blockers) {
         Bitboard lsb = blockers & -blockers;
+        blockers &= ~lsb;
         if (occupancy & lsb) {
             pext |= bit;
         }
-        blockers &= blockers - 1;
         bit <<= 1;
     }
     return offset + pext;
@@ -92,7 +92,7 @@ consteval Bitboard sliding_blockers(const Square from, std::span<const Direction
 }
 
 consteval std::array<Magic, SquareCNT> magic_infos(std::span<const Direction> directions) {
-    std::array<Magic, SquareCNT> result{};
+    std::array<Magic, SquareCNT> result = {};
     result[0] = Magic{.mask = sliding_blockers(Square(0), directions), .offset = 0};
 
     for (Square sq = Square(1); sq < SquareCNT; ++sq) {
@@ -135,7 +135,7 @@ template <size_t Size>
 consteval std::array<Bitboard, Size> sliding_attacks(
     const std::array<Magic, SquareCNT> &magics, std::span<const Direction> directions
 ) {
-    std::array<Bitboard, Size> attacks{};
+    std::array<Bitboard, Size> result = {};
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         const Magic &magic = magics[sq];
@@ -145,13 +145,13 @@ consteval std::array<Bitboard, Size> sliding_attacks(
         // see: https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
         do {
             size_t index = magic.index_constexpr(occupancy);
-            attacks[index] = sliding_attack_at(sq, occupancy, directions);
+            result[index] = sliding_attack_at(sq, occupancy, directions);
 
             occupancy = (occupancy - magic.mask) & magic.mask;
         } while (occupancy);
     }
 
-    return attacks;
+    return result;
 }
 
 constexpr int8_t KnightSteps[] = {NorthEast + North, NorthEast + East, SouthEast + East, SouthEast + South,

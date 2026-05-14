@@ -43,6 +43,10 @@ class Move {
         assert(flag <= QueenPromoCap && flag != 6 && flag != 7);
     }
 
+    static constexpr Move none() {
+        return Move(SquareA1, SquareA1, QuietMove);
+    }
+
     constexpr uint16_t data() const {
         return _data;
     }

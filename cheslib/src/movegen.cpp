@@ -33,8 +33,7 @@ void generate_non_pawn_moves(MoveList &moves, const Pieces &pieces) {
     const Bitboard not_us = ~pieces.all_of(Us);
 
     for (PieceType type = Knight; type <= King; ++type) {
-        Piece piece = types::piece_of(Us, type);
-        Bitboard bb = pieces.get(piece);
+        Bitboard bb = pieces.get(Us, type);
 
         while (bb) {
             const Square from = types::pop_lsb(bb);
@@ -124,12 +123,12 @@ void generate_double_pawn_pushes(MoveList &moves, const Bitboard pushed_1, const
 template <Side Us>
 void generate_en_croissants(MoveList &moves, const Bitboard our_pawns, const File ep_file) {
     assert(ep_file < FileCNT);
-    const Square ep_square = types::square_of(ep_file, (Us == White) ? Rank6 : Rank3);
 
-    // enemy at Square ep_square attack us <=> us attack enemy at Square en_passant
-    const Bitboard us_attacked = attacks::pawn(ep_square, !Us);
+    const Square ep_square = types::square_of(ep_file, (Us == White) ? Rank6 : Rank3);
+    const Bitboard us_attacked = attacks::pawn(ep_square, !Us); // enemy attack us <=> us attack enemy
     Bitboard our_attackers = our_pawns & us_attacked;
 
+    assert(our_attackers != 0);
     while (our_attackers) {
         Square from = types::pop_lsb(our_attackers);
         moves.add({from, ep_square, EnPassant});

@@ -9,8 +9,8 @@ namespace {
 // see: https://en.wikipedia.org/wiki/Xorshift
 class XorShift64 {
   public:
-    consteval XorShift64(uint64_t seed) : _x(seed) {
-    }
+    consteval XorShift64(uint64_t seed)
+        : _x(seed) {}
 
     consteval uint64_t next() {
         _x ^= _x << 13;
@@ -25,7 +25,7 @@ class XorShift64 {
 
 template <size_t N>
 consteval std::array<ZobristKey, N> rng(uint64_t seed, size_t discard = N) {
-    std::array<ZobristKey, N> arr{};
+    std::array<ZobristKey, N> arr = {};
     XorShift64 rng(seed);
 
     for (size_t i = 0; i < N; ++i) {
@@ -40,8 +40,8 @@ constexpr std::array<ZobristKey, BothCastles + 1> CastlingKeys = rng<BothCastles
 
 constexpr std::array<ZobristKey, FileCNT + 1> EnPassantKeys = rng<FileCNT + 1>(CastlingKeys.back(), FileCNT);
 
-constexpr std::array<ZobristKey, (int)PieceCNT * SquareCNT> PieceKeys =
-    rng<(int)PieceCNT * SquareCNT>(EnPassantKeys[FileH]);
+constexpr std::array<ZobristKey, (size_t)PieceCNT * SquareCNT> PieceKeys =
+    rng<(size_t)PieceCNT * SquareCNT>(EnPassantKeys[FileH]);
 
 } // namespace
 

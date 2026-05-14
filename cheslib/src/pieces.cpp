@@ -2,7 +2,11 @@
 
 namespace cheslib {
 
-Pieces::Pieces(std::array<Piece, SquareCNT> &&board) : _board(std::move(board)), _bitboards{0}, _side{0}, _all(0) {
+Pieces::Pieces(std::array<Piece, SquareCNT> &&board)
+    : _board(std::move(board)),
+      _bitboards{0},
+      _side{0},
+      _all(0) {
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         Piece piece = _board[sq];
         if (piece >= PieceCNT) {
@@ -56,6 +60,13 @@ int Pieces::count(Piece piece) const {
     return std::popcount(_bitboards[piece]);
 }
 
+Square Pieces::king_of(Side us) const {
+    Piece king = types::piece_of(us, King);
+    Bitboard king_bb = _bitboards[king];
+    assert(king_bb != 0);
+    return (Square)std::countr_zero(king_bb);
+}
+
 Bitboard Pieces::all() const {
     return _all;
 }
@@ -66,6 +77,12 @@ Bitboard Pieces::all_of(Side us) const {
 
 Bitboard Pieces::get(Piece piece) const {
     assert(piece < PieceCNT);
+    return _bitboards[piece];
+}
+
+Bitboard Pieces::get(Side us, PieceType type) const {
+    assert(type < PieceTypeCNT);
+    Piece piece = types::piece_of(us, type);
     return _bitboards[piece];
 }
 

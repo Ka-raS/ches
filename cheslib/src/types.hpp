@@ -19,6 +19,9 @@ using Bitboard = uint64_t;
  */
 using ZobristKey = uint64_t;
 
+/// evaluation score of a position
+using Score = int;
+
 enum Direction : int8_t {
     North = SquareA2 - SquareA1,
     East = SquareB1 - SquareA1,
@@ -34,44 +37,31 @@ enum Direction : int8_t {
 namespace types {
 
 /**
- * precondition: `square` not on the 1st rank from `us` view
  * @return the square behind `square` from `us` view,
  * example: square_behind(White, SquareE4) == SquareE3
  */
-constexpr Square square_behind(Side us, Square square);
-
-constexpr Square pop_lsb(Bitboard &bitboard);                         ///< precondition: `bitboard != 0`
-constexpr Bitboard bitboard_of(Rank rank);                            ///< precondition: `rank < RankCNT`
-constexpr Bitboard bitboard_of(File file);                            ///< precondition: `file < FileCNT`
-constexpr Bitboard bitboard_of(std::same_as<Square> auto... squares); ///< precondition: `squares < SquareCNT`
-
-constexpr bool has_square(Bitboard bb, Square square);    ///< precondition: `square < SquareCNT`
-constexpr void set_square(Bitboard &bb, Square square);   ///< precondition: `square < SquareCNT`
-constexpr void unset_square(Bitboard &bb, Square square); ///< precondition: `square < SquareCNT`
-
-} // namespace types
-
-} // namespace cheslib
-
-// definitions
-namespace cheslib::types {
-
-constexpr Square square_behind(Side us, Square sq) {
+constexpr Square square_behind(Side us, Square square) {
     if (us == White) {
-        assert(sq >= SquareA2);
+        assert(square >= SquareA2);
     } else {
-        assert(sq <= SquareH7);
+        assert(square <= SquareH7);
     }
 
     Direction backward = (us == White) ? South : North;
-    return Square(sq + (int)backward);
+    Square behind = Square(int(square) + backward);
+
+    assert(behind < SquareCNT);
+    return behind;
 }
 
-constexpr Square pop_lsb(Bitboard &bb) {
-    assert(bb != 0);
-    Square sq = Square(std::countr_zero(bb));
-    bb &= (bb - 1);
-    return sq;
+constexpr Square pop_lsb(Bitboard &bitboard) {
+    assert(bitboard != 0);
+
+    Square lsb = Square(std::countr_zero(bitboard));
+    bitboard &= (bitboard - 1ull);
+
+    assert(lsb < SquareCNT);
+    return lsb;
 }
 
 constexpr Bitboard bitboard_of(std::same_as<Square> auto... squares) {
@@ -108,4 +98,6 @@ constexpr void unset_square(Bitboard &bb, Square square) {
     bb &= ~bitboard_of(square);
 }
 
-} // namespace cheslib::types
+} // namespace types
+
+} // namespace cheslib

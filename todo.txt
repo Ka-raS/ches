@@ -1,9 +1,10 @@
 - document the assert() please future me
-- hide all assert() from cheslib publics
 - check if msvc need /arch:AVX2
+- folder structure the sources
 - app.rc
-- still dont like src/types.hpp
+- real multithreaded negamax
 
+- still dont like src/types.hpp
 - switch to the 4bit flag version of Move for easy switch case
 - check if constexpr functions are actually constexpr
 - Pieces._board can be <PieceType, 64>, maybe more performant
