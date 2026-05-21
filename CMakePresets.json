@@ -1,0 +1,22 @@
+{
+    "version": 6,
+    "configurePresets": [
+        {
+            "name": "release",
+            "binaryDir": "${sourceDir}/build/release",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true
+            }
+        },
+        {
+            "name": "debug",
+            "binaryDir": "${sourceDir}/build/debug",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true
+            }
+        }
+    ]
+}

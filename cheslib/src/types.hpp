@@ -1,7 +1,9 @@
 #pragma once
 
 #include <bit>
+#include <cstddef>
 
+#include "cheslib/move.hpp"
 #include "cheslib/types.hpp"
 
 namespace cheslib {
@@ -19,8 +21,19 @@ using Bitboard = uint64_t;
  */
 using ZobristKey = uint64_t;
 
-/// evaluation score of a position
-using Score = int;
+using Score = int16_t;
+
+struct MoveScore {
+    Move move;
+    Score score;
+};
+
+/// negamax alpha beta pruning bound
+enum class Bound : uint8_t {
+    Exact,
+    Lower,
+    Upper
+};
 
 enum Direction : int8_t {
     North = SquareA2 - SquareA1,

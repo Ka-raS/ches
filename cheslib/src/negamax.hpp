@@ -1,55 +1,31 @@
 #pragma once
 
-#include "movegen.hpp"
+#include <memory>
+#include <vector>
+
 #include "position.hpp"
+#include "thread.hpp"
+#include "transposition_table.hpp"
 
-namespace cheslib::negamax {
+namespace cheslib {
 
-int negamax(Position &position, int depth, int alpha, int beta) {
-    if (depth == 0) {
-        // return evaluate(position);
-        return 0;
-    }
+class Negamax {
+  public:
+    Negamax(size_t thread_count);
+    void start_search(const Position &position, const Array<Move, 256> &legal_moves);
+    bool is_searching() const;
+    Move result() const;
 
-    int best = INT32_MIN;
+  private:
+    MoveScore iterative_deepening(Position &position, std::vector<MoveScore> &legal_moves);
+    Score negamax(Position &position, unsigned depth, Score alpha, Score beta);
+    Score scoring_move(Move move, const Position &position) const;
 
-    for (Move move : movegen::pseudo_legals(position.pieces(), position.state())) {
-        position.do_move(move);
-        const int score = -negamax(position, depth - 1, -beta, -alpha);
-        position.undo_move();
+  private:
+    Score _history_heuristic[PieceCNT][SquareCNT];
+    std::unique_ptr<TranspositionTable> _transposition_table;
+    std::atomic<MoveScore> _result;
+    std::vector<Thread> _threads;
+};
 
-        if (best < score) {
-            if (beta <= score) {
-                return score;
-            }
-            if (alpha < score) {
-                alpha = score;
-            }
-            best = score;
-        }
-    }
-
-    return best;
-}
-
-Move search_best_move(Position &position, int depth) {
-    Move best;
-    int alpha = INT32_MIN;
-    constexpr int beta = INT32_MAX;
-    const MoveList moves = movegen::pseudo_legals(position.pieces(), position.state());
-
-    for (Move move : moves) {
-        position.do_move(move);
-        const int score = -negamax(position, depth - 1, -beta, -alpha);
-        position.undo_move();
-
-        if (alpha < score) {
-            alpha = score;
-            best = move;
-        }
-    }
-
-    return best;
-}
-
-} // namespace cheslib::negamax
+} // namespace cheslib

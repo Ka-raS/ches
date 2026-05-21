@@ -1,5 +1,3 @@
-#include <cstddef>
-
 #include "zobrist.hpp"
 
 namespace cheslib::zobrist {
@@ -45,7 +43,7 @@ constexpr std::array<ZobristKey, (size_t)PieceCNT * SquareCNT> PieceKeys =
 
 } // namespace
 
-ZobristKey hash(const std::array<Piece, SquareCNT> &board, const State state) {
+ZobristKey hash(const std::array<Piece, SquareCNT> &board, const PositionState state) {
     ZobristKey key = 0;
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {

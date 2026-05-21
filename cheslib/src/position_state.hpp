@@ -31,13 +31,13 @@ enum CastleFlag : uint8_t {
  *  9-15 : rule50 counter, counts to 100 moves for both side
  * where did I even find this
  */
-class State {
+class PositionState {
   public:
-    State() = default;
-    State(CastleFlag flag, File en_passant, Side side_to_move, int rule50_count);
-    static State initial();
+    PositionState() = default;
+    PositionState(CastleFlag flag, File en_passant, Side side_to_move, int rule50_count);
+    static PositionState initial();
 
-    bool operator==(const State &) const = default;
+    bool operator==(const PositionState &) const = default;
 
     CastleFlag castle_flag() const;
     bool can_castles(CastleFlag flag) const;
@@ -50,7 +50,7 @@ class State {
     Side side_to_move() const;
     void switch_side();
 
-    int rule50_count() const;
+    unsigned rule50_count() const;
     void increment_rule50();
     void reset_rule50();
 

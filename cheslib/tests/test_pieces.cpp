@@ -36,7 +36,7 @@ TEST_CASE("Pieces: initial position", "[pieces]") {
 }
 
 TEST_CASE("Pieces: custom board construction", "[pieces]") {
-    const Pieces pieces = []() {
+    const Pieces pieces = [] {
         std::array<Piece, SquareCNT> board;
         board.fill(PieceCNT);
         board[SquareE4] = WhiteKnight;
@@ -55,7 +55,7 @@ TEST_CASE("Pieces: custom board construction", "[pieces]") {
 }
 
 TEST_CASE("Pieces: put and remove operations", "[pieces]") {
-    Pieces pieces = []() {
+    Pieces pieces = [] {
         std::array<Piece, SquareCNT> board;
         board.fill(PieceCNT);
         return board;
@@ -107,7 +107,7 @@ TEST_CASE("Pieces: put and remove operations", "[pieces]") {
 }
 
 TEST_CASE("Pieces: move operation", "[pieces]") {
-    Pieces pieces = []() {
+    Pieces pieces = [] {
         std::array<Piece, SquareCNT> board;
         board.fill(PieceCNT);
         board[SquareE2] = WhitePawn;
@@ -152,7 +152,7 @@ TEST_CASE("Pieces: bitboard consistency after multiple operations", "[pieces]") 
 }
 
 TEST_CASE("Pieces: alternating pawns", "[pieces]") {
-    Pieces pieces = []() {
+    Pieces pieces = [] {
         std::array<Piece, SquareCNT> board;
         board.fill(PieceCNT);
         return board;

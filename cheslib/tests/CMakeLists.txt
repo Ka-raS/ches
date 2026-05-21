@@ -18,13 +18,13 @@ endif()
 add_executable(cheslib_test)
 
 target_sources(cheslib_test PRIVATE
+    test_array.cpp
     test_attacks.cpp
-    test_move_list.cpp
     test_move.cpp
     test_movegen.cpp
     test_pieces.cpp
     test_position.cpp
-    test_state.cpp
+    test_position_state.cpp
     test_types.cpp
     test_zobrist.cpp
 )

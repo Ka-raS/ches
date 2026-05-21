@@ -1,24 +1,25 @@
-#include "position.hpp"
+#include <cstring>
+
 #include "attacks.hpp"
+#include "position.hpp"
 #include "zobrist.hpp"
 
 namespace cheslib {
 
-Position::Position(Pieces &&pieces, State state)
+Position::Position(Pieces &&pieces, PositionState state)
     : _pieces(std::move(pieces)),
       _state(state),
-      _key(zobrist::hash(_pieces.board(), _state)),
-      _history() {}
+      _key(zobrist::hash(_pieces.board(), _state)) {}
 
 Position Position::initial() {
-    return Position(Pieces::initial(), State::initial());
+    return Position(Pieces::initial(), PositionState::initial());
 }
 
 const Pieces &Position::pieces() const {
     return _pieces;
 }
 
-State Position::state() const {
+PositionState Position::state() const {
     return _state;
 }
 
@@ -32,8 +33,56 @@ bool Position::is_in_check() const {
     return is_attacking(king, !us);
 }
 
-bool Position::is_drawn() const {
-    return (_state.rule50_count() >= 100) || _history.is_threefold_repetition(_key);
+bool Position::is_50move_draw() const {
+    return _state.rule50_count() >= 100;
+}
+
+bool Position::is_3fold_repetition() const {
+    int count = 1;
+
+    for (int i = (int)_history.size() - 2; i >= 0; i -= 2) {
+        if (_history[i].key == _key) {
+            count++;
+            if (count == 3) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+void Position::trim_history() {
+    int size = _history.size();
+
+    // first move is irreversible
+    assert(size == 0 || _history[0].state.rule50_count() == 0);
+
+    for (int i = size - 1; i > 0; --i) {
+        bool is_irreversible = _history[i].state.rule50_count() == 0;
+        if (is_irreversible) {
+            size -= i;
+            assert(size < 100); // size < 50 moves rule
+
+            std::memmove(_history.begin(), _history.begin() + i, size * sizeof(HistoryEntry));
+            _history.resize(size);
+            return;
+        }
+    }
+}
+
+bool Position::is_attacking(Square at, Side attacker) const {
+    Bitboard all = _pieces.all();
+    // us at Square can attack other Squares <=> us at other Squares can attack Square
+
+    // clang-format off
+    return (_pieces.get(attacker, Pawn)   & attacks::pawn(at, !attacker)) ||
+           (_pieces.get(attacker, Knight) & attacks::knight(at))          ||
+           (_pieces.get(attacker, Bishop) & attacks::bishop(at, all))     ||
+           (_pieces.get(attacker, Rook)   & attacks::rook(at, all))       ||
+           (_pieces.get(attacker, Queen)  & attacks::queen(at, all))      ||
+           (_pieces.get(attacker, King)   & attacks::king(at));
+    // clang-format on
 }
 
 bool Position::try_do_pseudo(Move move) {
@@ -66,17 +115,6 @@ bool Position::try_do_pseudo(Move move) {
     return true;
 }
 
-bool Position::is_attacking(Square at, Side attacker) const {
-    // us at Square can attack other Squares <=> us at other Squares can attack Square
-    Bitboard all = _pieces.all();
-    return (_pieces.get(attacker, Pawn) & attacks::pawn(at, !attacker)) ||
-           (_pieces.get(attacker, Knight) & attacks::knight(at)) ||
-           (_pieces.get(attacker, Bishop) & attacks::bishop(at, all)) ||
-           (_pieces.get(attacker, Rook) & attacks::rook(at, all)) ||
-           (_pieces.get(attacker, Queen) & attacks::queen(at, all)) ||
-           (_pieces.get(attacker, King) & attacks::king(at));
-}
-
 namespace {
 
 // left index: side
@@ -84,7 +122,7 @@ namespace {
 constexpr Square RookInitial[2][2] = {{SquareA1, SquareH1}, {SquareA8, SquareH8}};
 constexpr Square RookCastled[2][2] = {{SquareD1, SquareF1}, {SquareD8, SquareF8}};
 
-constexpr std::array<CastleFlag, SquareCNT> CastlingMasks = []() {
+constexpr std::array<CastleFlag, SquareCNT> CastlingMasks = [] {
     std::array<CastleFlag, SquareCNT> masks = {NoCastles};
 
     masks[SquareA1] = WhiteLongCastles;
@@ -136,7 +174,7 @@ void Position::do_move(const Move move) {
     const Square from = move.from();
     const Square to = move.to();
     const MoveFlag move_flag = move.flag();
-    const State old_state = _state;
+    const PositionState old_state = _state;
 
     { // handle capture
         ZobristKey old_key = _key;
@@ -148,7 +186,7 @@ void Position::do_move(const Move move) {
             _key ^= zobrist::piece(captured, capture_sq);
         }
 
-        _history.push({old_key, move, old_state, captured});
+        _history.push(old_key, move, old_state, captured);
     }
 
     { // move piece

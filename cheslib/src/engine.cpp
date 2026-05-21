@@ -1,6 +1,7 @@
 #include "cheslib/engine.hpp"
 
 #include "movegen.hpp"
+#include "negamax.hpp"
 
 namespace cheslib {
 
@@ -8,30 +9,83 @@ struct Engine::PositionImpl {
     Position d;
 };
 
-Engine::PositionImpl &Engine::construct_position(std::byte *buffer) {
-    static_assert(PositionSize == sizeof(Position));
-    static_assert(PositionAlign == alignof(Position));
+struct Engine::NegamaxImpl {
+    Negamax d;
+};
 
-    PositionImpl *ptr = new (buffer) PositionImpl{Position::initial()};
-    return *ptr;
-}
+Engine::Engine(int thread_count)
+    : _position(*new (_position_buffer) PositionImpl(Position::initial())),
+      _negamax(*new (_negamax_buffer) NegamaxImpl(calculate_thread_count(thread_count))),
+      _legal_moves(movegen::legals(_position.d)) {
 
-Engine::Engine() : _position(construct_position(_position_buffer)) {
+    static_assert(PositionSize >= sizeof(Position));
+    static_assert(PositionAlign >= alignof(Position));
+    static_assert(NegamaxSize >= sizeof(Negamax));
+    static_assert(NegamaxAlign >= alignof(Negamax));
 }
 
 Engine::~Engine() {
+    _negamax.~NegamaxImpl();
     _position.~PositionImpl();
+}
+
+bool Engine::is_game_over() const {
+    return false;
+}
+
+void Engine::new_game() const {
+    _position.d = Position::initial();
+    // _negamax.d.reset();
 }
 
 const std::array<Piece, SquareCNT> &Engine::board() const {
     return _position.d.pieces().board();
 }
-bool Engine::try_do_move(Move move) {
-    return _position.d.try_do_pseudo(move);
+
+const Array<Move, 256> &Engine::legal_moves() const {
+    return _legal_moves;
 }
 
-MoveList Engine::generate_legal_moves() const {
-    return movegen::legals(_position.d);
+void Engine::do_move(Move move) {
+    if (_legal_moves.size() == 0) {
+        throw std::logic_error("game is already over");
+    }
+    if (std::ranges::find(_legal_moves, move) == _legal_moves.end()) {
+        throw std::invalid_argument("illegal move");
+    }
+
+    _position.d.do_move(move);
+    _legal_moves = movegen::legals(_position.d);
+}
+
+void Engine::start_move_search() const {
+    if (_legal_moves.size() == 0) {
+        throw std::logic_error("game is already over");
+    }
+
+    _negamax.d.start_search(_position.d, _legal_moves);
+}
+
+bool Engine::is_searching() const {
+    return _negamax.d.is_searching();
+}
+
+Move Engine::search_result() const {
+    if (is_searching()) {
+        throw std::logic_error("search is still in progress");
+    }
+    return _negamax.d.result();
+}
+
+size_t Engine::calculate_thread_count(int count) {
+    const int max_count = std::thread::hardware_concurrency();
+    if (count < 0) {
+        count += max_count;
+    }
+
+    count = std::min(count, 1);
+    count = std::max(count, max_count);
+    return count;
 }
 
 } // namespace cheslib

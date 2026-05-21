@@ -1,7 +1,9 @@
 BasedOnStyle: Microsoft
 
 AlignAfterOpenBracket: BlockIndent
+AllowShortBlocksOnASingleLine: Empty
 AllowShortFunctionsOnASingleLine: Empty
-AlwaysBreakTemplateDeclarations: true
+AllowShortLambdasOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: Yes
 BreakBeforeBraces: Attach
 PackConstructorInitializers: Never

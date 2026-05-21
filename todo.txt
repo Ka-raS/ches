@@ -1,12 +1,11 @@
-- document the assert() please future me
+- refactor the stuffs
+- braces init
+- try cmake symlink on windows
 - check if msvc need /arch:AVX2
 - folder structure the sources
 - app.rc
-- real multithreaded negamax
 
-- still dont like src/types.hpp
 - switch to the 4bit flag version of Move for easy switch case
 - check if constexpr functions are actually constexpr
-- Pieces._board can be <PieceType, 64>, maybe more performant
 - clang tidy
 - android support somehow
