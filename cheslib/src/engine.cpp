@@ -1,3 +1,5 @@
+#include <stdexcept>
+
 #include "cheslib/engine.hpp"
 
 #include "movegen.hpp"

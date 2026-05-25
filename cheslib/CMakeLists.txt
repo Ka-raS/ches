@@ -21,7 +21,6 @@ target_sources(cheslib PRIVATE
 target_compile_options(cheslib
     PRIVATE
         $<$<CXX_COMPILER_ID:GNU,Clang>:-mbmi2>
-        $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
     PRIVATE
         $<$<CXX_COMPILER_ID:GNU>:-fconstexpr-ops-limit=200000000>
         $<$<CXX_COMPILER_ID:Clang>:-fconstexpr-steps=200000000>

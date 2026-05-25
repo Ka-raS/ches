@@ -13,7 +13,7 @@ git clone https://github.com/Ka-raS/ches.git
 cd ches
 
 cmake --preset debug
-cmake --build build/debug
+cmake --build --preset debug
 ctest --test-dir build/debug
 
 (cd build/debug/ches && ./ches)
