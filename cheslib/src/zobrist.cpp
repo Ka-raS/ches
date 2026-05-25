@@ -32,7 +32,7 @@ consteval std::array<ZobristKey, N> rng(uint64_t seed, size_t discard = N) {
     return arr;
 }
 
-constexpr ZobristKey SideKey = XorShift64(0xCAFEBABEDEADBEEF).next();
+constexpr ZobristKey SideKey = XorShift64(0xA0761D6478BD642F).next();
 
 constexpr std::array<ZobristKey, BothCastles + 1> CastlingKeys = rng<BothCastles + 1>(SideKey);
 

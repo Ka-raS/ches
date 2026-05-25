@@ -164,7 +164,7 @@ constexpr Direction BishopDirections[] = {NorthEast, SouthEast, SouthWest, North
 
 constexpr std::array<Bitboard, SquareCNT> KnightAttacks = stepping_attacks(KnightSteps);
 constexpr std::array<Bitboard, SquareCNT> KingAttacks = stepping_attacks(KingSteps);
-constexpr std::array<Bitboard, SquareCNT> PawnAttacks[] = {
+constexpr std::array<Bitboard, SquareCNT> PawnAttacks[2] = {
     stepping_attacks(WhitePawnSteps), stepping_attacks(BlackPawnSteps)
 };
 

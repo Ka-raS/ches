@@ -30,9 +30,8 @@ class Array {
 
     constexpr T pop() {
         assert(_size > 0);
-        T value = std::move(_data[_size - 1]);
         --_size;
-        return value;
+        return std::move(_data[_size]);
     }
 
     constexpr T &operator[](size_t index) {

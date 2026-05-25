@@ -2,20 +2,41 @@
     "version": 6,
     "configurePresets": [
         {
-            "name": "release",
-            "binaryDir": "${sourceDir}/build/release",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
-                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true
-            }
-        },
-        {
             "name": "debug",
-            "binaryDir": "${sourceDir}/build/debug",
+            "binaryDir": "build/debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true
+            }
+        },
+        {
+            "name": "release-linux-pgo-generate",
+            "binaryDir": "build/release-linux",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true,
+                "CMAKE_CXX_FLAGS": "-funroll-loops -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-rtti -fprofile-generate -pipe"
+            }
+        },
+        {
+            "name": "release-linux-pgo-use",
+            "binaryDir": "build/release-linux",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            },
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
+                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true,
+                "CMAKE_CXX_FLAGS": "-funroll-loops -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-rtti -fprofile-use -fprofile-correction -pipe"
             }
         }
     ]

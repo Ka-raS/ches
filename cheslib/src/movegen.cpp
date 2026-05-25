@@ -9,35 +9,39 @@ constexpr MoveFlag operator--(MoveFlag &flag) {
     return flag = MoveFlag(flag - 1u);
 }
 
-Bitboard non_pawn_attacks(PieceType type, Square from, Bitboard occupancy) {
-    switch (type) {
-    case Knight:
-        return attacks::knight(from);
-    case Bishop:
-        return attacks::bishop(from, occupancy);
-    case Rook:
-        return attacks::rook(from, occupancy);
-    case Queen:
-        return attacks::queen(from, occupancy);
-    case King:
-        return attacks::king(from);
-    default:
-        return 0;
-    }
-}
-
 template <Side Us>
 void generate_non_pawn_moves(Array<MoveScore, 256> &moves, const Pieces &pieces) {
-    const Bitboard all = pieces.all();
     const Bitboard enemy = pieces.all_of(!Us);
     const Bitboard not_us = ~pieces.all_of(Us);
+    const Bitboard occupancy = pieces.all();
 
     for (PieceType type = Knight; type <= King; ++type) {
         Bitboard bb = pieces.get(Us, type);
 
         while (bb) {
             const Square from = types::pop_lsb(bb);
-            Bitboard attacks = not_us & non_pawn_attacks(type, from, all);
+            Bitboard attacks = not_us;
+
+            switch (type) {
+            case Knight:
+                attacks &= attacks::knight(from);
+                break;
+
+            case Bishop:
+                attacks &= attacks::bishop(from, occupancy);
+                break;
+            case Rook:
+                attacks &= attacks::rook(from, occupancy);
+                break;
+
+            case Queen:
+                attacks &= attacks::queen(from, occupancy);
+                break;
+
+            case King:
+                attacks &= attacks::king(from);
+                break;
+            }
 
             while (attacks) {
                 Square to = types::pop_lsb(attacks);
@@ -50,16 +54,16 @@ void generate_non_pawn_moves(Array<MoveScore, 256> &moves, const Pieces &pieces)
 
 template <Side Us>
 void generate_castling_moves(Array<MoveScore, 256> &moves, const Pieces &pieces, const PositionState state) {
-    const Bitboard all = pieces.all();
+    const Bitboard occupancy = pieces.all();
 
     if constexpr (Us == White) {
         constexpr Bitboard short_blockers = types::bitboard_of(SquareF1, SquareG1);
         constexpr Bitboard long_blockers = types::bitboard_of(SquareD1, SquareC1, SquareB1);
 
-        if (state.can_castles(WhiteShortCastles) && !(all & short_blockers)) {
+        if (state.can_castles(WhiteShortCastles) && !(occupancy & short_blockers)) {
             moves.push(Move(SquareE1, SquareG1, ShortCastle));
         }
-        if (state.can_castles(WhiteLongCastles) && !(all & long_blockers)) {
+        if (state.can_castles(WhiteLongCastles) && !(occupancy & long_blockers)) {
             moves.push(Move(SquareE1, SquareC1, LongCastle));
         }
 
@@ -67,10 +71,10 @@ void generate_castling_moves(Array<MoveScore, 256> &moves, const Pieces &pieces,
         constexpr Bitboard short_blockers = types::bitboard_of(SquareF8, SquareG8);
         constexpr Bitboard long_blockers = types::bitboard_of(SquareD8, SquareC8, SquareB8);
 
-        if (state.can_castles(BlackShortCastles) && !(all & short_blockers)) {
+        if (state.can_castles(BlackShortCastles) && !(occupancy & short_blockers)) {
             moves.push(Move(SquareE8, SquareG8, ShortCastle));
         }
-        if (state.can_castles(BlackLongCastles) && !(all & long_blockers)) {
+        if (state.can_castles(BlackLongCastles) && !(occupancy & long_blockers)) {
             moves.push(Move(SquareE8, SquareC8, LongCastle));
         }
     }

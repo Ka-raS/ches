@@ -23,8 +23,9 @@ target_sources(cheslib_test PRIVATE
     test_move.cpp
     test_movegen.cpp
     test_pieces.cpp
-    test_position.cpp
     test_position_state.cpp
+    test_position.cpp
+    test_transposition.cpp
     test_types.cpp
     test_zobrist.cpp
 )

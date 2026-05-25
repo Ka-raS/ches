@@ -7,18 +7,19 @@ target_sources(cheslib PRIVATE
     src/attacks.cpp
     src/engine.cpp
     src/eval.cpp
+    src/history_heuristic.cpp
     src/movegen.cpp
     src/negamax.cpp
     src/pieces.cpp
     src/position_state.cpp
     src/position.cpp
     src/thread.cpp
-    src/transposition_table.cpp
+    src/transposition.cpp
     src/zobrist.cpp
 )
 
 target_compile_options(cheslib
-    PUBLIC
+    PRIVATE
         $<$<CXX_COMPILER_ID:GNU,Clang>:-mbmi2>
         $<$<CXX_COMPILER_ID:MSVC>:/arch:AVX2>
     PRIVATE

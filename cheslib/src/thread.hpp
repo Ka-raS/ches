@@ -27,6 +27,8 @@ class Thread {
     std::function<void()> _job;
     std::atomic<State> _state;
     std::thread _thread;
+
+    static_assert(std::atomic<State>::is_always_lock_free);
 };
 
 } // namespace cheslib

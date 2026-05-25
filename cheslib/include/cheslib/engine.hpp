@@ -10,18 +10,18 @@ namespace cheslib {
 class Engine {
   public:
     /// init to starting position, white ready to play
-    /// @param thread_count for Negamax, if negative then using `hardware_concurrency + thread_count`
-    Engine(int thread_count);
+    /// @param thread_count if negative then using `hardware_concurrency + thread_count`
+    Engine(unsigned search_depth, int thread_count);
     ~Engine();
 
-    void new_game() const;
     bool is_game_over() const;
+    void reset_game();
 
     const std::array<Piece, SquareCNT> &board() const;
     const Array<Move, 256> &legal_moves() const;
 
     void do_move(Move move);
-    void start_move_search() const;
+    void start_move_search();
     bool is_searching() const;
     Move search_result() const;
 
@@ -33,7 +33,7 @@ class Engine {
     static constexpr size_t PositionAlign = 8;
 
     struct NegamaxImpl;
-    static constexpr size_t NegamaxSize = 1576;
+    static constexpr size_t NegamaxSize = 1592;
     static constexpr size_t NegamaxAlign = 8;
 
   private:

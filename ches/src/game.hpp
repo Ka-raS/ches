@@ -130,7 +130,7 @@ class Game {
                 set_cursor(::MOUSE_CURSOR_POINTING_HAND);
 
                 if (clicked) {
-                    _engine.new_game();
+                    _engine.reset_game();
                     _user = !_user;
                     _selected_piece = cl::SquareCNT;
                     _state = State::SelectingPiece;
@@ -170,7 +170,7 @@ class Game {
                 set_cursor(::MOUSE_CURSOR_POINTING_HAND);
 
                 if (clicked) {
-                    _engine.new_game();
+                    _engine.reset_game();
                     _user = !_user;
                     _selected_piece = cl::SquareCNT;
                     _state = State::SelectingPiece;
@@ -256,7 +256,7 @@ class Game {
             }
 
             if (is_hovering_new_game) {
-                _engine.new_game();
+                _engine.reset_game();
                 _user = !_user;
                 _selected_piece = cl::SquareCNT;
                 _state = State::SelectingPiece;
@@ -291,6 +291,7 @@ class Game {
         }
 
         case State::EnginePlaying: {
+            set_cursor(::MOUSE_CURSOR_DEFAULT);
             if (_engine.is_searching()) {
                 break;
             }
@@ -310,15 +311,21 @@ class Game {
                 set_cursor(::MOUSE_CURSOR_POINTING_HAND);
 
                 if (clicked) {
-                    _engine.new_game();
-                    _user = !_user;
+                    _engine.reset_game();
                     _selected_piece = cl::SquareCNT;
-                    _state = State::SelectingPiece;
+                    _user = !_user;
+                    if (_user == cl::Black) {
+                        _state = State::EnginePlaying;
+                        _engine.start_move_search();
+                    } else {
+                        _state = State::SelectingPiece;
+                    }
                 }
 
                 break;
             }
 
+            set_cursor(::MOUSE_CURSOR_DEFAULT);
             break;
         }
         } // switch
@@ -449,7 +456,7 @@ class Game {
     cl::Square _selected_piece{cl::SquareCNT};
     cl::Square _selected_destination{cl::SquareCNT};
 
-    cl::Engine _engine{-2};
+    cl::Engine _engine{5, -2};
     cl::Side _user{cl::White};
 
     ::Camera2D _camera{.zoom = 1.0F};

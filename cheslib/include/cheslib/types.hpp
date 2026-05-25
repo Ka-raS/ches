@@ -38,8 +38,8 @@ enum Side : bool {
 };
 
 enum Piece : uint8_t {
-    WhitePawn, WhiteKnight, WhiteBishop, WhiteRook, WhiteQueen, WhiteKing,
-    BlackPawn, BlackKnight, BlackBishop, BlackRook, BlackQueen, BlackKing,
+    WhitePawn, BlackPawn, WhiteKnight, BlackKnight, WhiteBishop, BlackBishop,
+    WhiteRook, BlackRook, WhiteQueen, BlackQueen, WhiteKing, BlackKing,
     PieceCNT
 };
 // clang-format on
@@ -101,8 +101,7 @@ constexpr Rank rank_of(Square square) {
 constexpr PieceType type_of(Piece piece) {
     assert(piece < PieceCNT);
 
-    unsigned offset = (piece < BlackPawn) ? WhitePawn : BlackPawn;
-    PieceType type = PieceType(piece - offset);
+    PieceType type = PieceType(piece >> 1);
 
     assert(type < PieceTypeCNT);
     return type;
@@ -110,14 +109,13 @@ constexpr PieceType type_of(Piece piece) {
 
 constexpr Side side_of(Piece piece) {
     assert(piece < PieceCNT);
-    return Side(piece >= BlackPawn);
+    return Side(piece & 1u);
 }
 
 constexpr Piece piece_of(Side us, PieceType type) {
     assert(type < PieceTypeCNT);
 
-    unsigned offset = (us == White) ? WhitePawn : BlackPawn;
-    Piece piece = Piece(type + offset);
+    Piece piece = Piece(type << 1 | us); // lsb is side bit
 
     assert(piece < PieceCNT);
     return piece;

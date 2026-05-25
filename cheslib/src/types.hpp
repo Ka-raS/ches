@@ -21,11 +21,11 @@ using Bitboard = uint64_t;
  */
 using ZobristKey = uint64_t;
 
-using Score = int16_t;
+using Score = int32_t;
 
 struct MoveScore {
     Move move;
-    Score score;
+    int16_t score;
 };
 
 /// negamax alpha beta pruning bound
@@ -55,16 +55,25 @@ namespace types {
  */
 constexpr Square square_behind(Side us, Square square) {
     if (us == White) {
-        assert(square >= SquareA2);
+        assert(rank_of(square) > Rank1);
     } else {
-        assert(square <= SquareH7);
+        assert(rank_of(square) < Rank8);
     }
 
     Direction backward = (us == White) ? South : North;
-    Square behind = Square(int(square) + backward);
+    Square behind = Square((int)square + backward);
 
     assert(behind < SquareCNT);
     return behind;
+}
+
+constexpr Square flip_rank(Square square) {
+    assert(square < SquareCNT);
+
+    Square flipped = Square(square ^ 0b111'000); /// flip only the rank bits
+
+    assert(flipped < SquareCNT);
+    return flipped;
 }
 
 constexpr Square pop_lsb(Bitboard &bitboard) {

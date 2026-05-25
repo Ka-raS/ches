@@ -1,5 +1,5 @@
-- refactor the stuffs
-- braces init
+- back to magic numbers
+- check msvc __cpp_exceptions
 - try cmake symlink on windows
 - check if msvc need /arch:AVX2
 - folder structure the sources
