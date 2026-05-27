@@ -23,6 +23,7 @@ consteval std::array<std::array<Score, SquareCNT>, PieceCNT> positional_table(
 }
 
 // clang-format off
+
 constexpr Score MidGamePeSTO[PieceTypeCNT][SquareCNT] = {
     { // Pawn
           0,   0,   0,   0,   0,   0,  0,   0,
@@ -194,7 +195,7 @@ Score evaluate(const Position &position) {
     phase = std::min(phase, 24);
     Score d_mid_game = mid_game[White] - mid_game[Black];
     Score d_end_game = end_game[White] - end_game[Black];
-    Score score = ((24 - phase) * d_mid_game + phase * d_end_game) / 24;
+    Score score = (phase * d_mid_game + (24 - phase) * d_end_game) / 24;
 
     assert(-INT16_MAX <= score && score <= INT16_MAX); // TODO: change this
     return (position.state().side_to_move() == White) ? score : -score;

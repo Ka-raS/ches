@@ -15,15 +15,13 @@ struct Engine::NegamaxImpl {
     Negamax d;
 };
 
-Engine::Engine(unsigned search_depth, int thread_count)
-    : _position(*new (_position_buffer) PositionImpl(Position::initial())),
-      _negamax(*new (_negamax_buffer) NegamaxImpl({search_depth, calculate_thread_count(thread_count)})),
+Engine::Engine(unsigned search_depth, int threads_requested)
+    : _position(*new (_buffer) PositionImpl(Position::initial())),
+      _negamax(*new (_buffer + sizeof(PositionImpl)) NegamaxImpl({search_depth, threads_requested})),
       _legal_moves(movegen::legals(_position.d)) {
 
-    static_assert(PositionSize >= sizeof(Position));
-    static_assert(PositionAlign >= alignof(Position));
-    static_assert(NegamaxSize >= sizeof(Negamax));
-    static_assert(NegamaxAlign >= alignof(Negamax));
+    static_assert(sizeof(_buffer) >= sizeof(PositionImpl) + sizeof(NegamaxImpl));
+    static_assert(BufferAlign >= std::max(alignof(PositionImpl), alignof(NegamaxImpl)));
 }
 
 Engine::~Engine() {
@@ -50,7 +48,7 @@ const Array<Move, 256> &Engine::legal_moves() const {
 
 void Engine::do_move(Move move) {
 #ifdef __cpp_exceptions
-    if (_legal_moves.size() == 0) {
+    if (is_game_over()) {
         throw std::logic_error("game over");
     } else if (std::ranges::find(_legal_moves, move) == _legal_moves.end()) {
         throw std::invalid_argument("illegal move");
@@ -58,12 +56,13 @@ void Engine::do_move(Move move) {
 #endif
 
     _position.d.do_move(move);
+    _position.d.trim_history();
     _legal_moves = movegen::legals(_position.d);
 }
 
 void Engine::start_move_search() {
 #ifdef __cpp_exceptions
-    if (_legal_moves.size() == 0) {
+    if (is_game_over()) {
         throw std::logic_error("game over");
     }
 #endif
@@ -83,17 +82,6 @@ Move Engine::search_result() const {
 #endif
 
     return _negamax.d.result();
-}
-
-size_t Engine::calculate_thread_count(int count) {
-    const int max_count = std::thread::hardware_concurrency();
-    if (count < 0) {
-        count += max_count;
-    }
-
-    count = std::min(count, 1);
-    count = std::max(count, max_count);
-    return count;
 }
 
 } // namespace cheslib

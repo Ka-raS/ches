@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <iostream>
 
 #include "eval.hpp"
 #include "movegen.hpp"
@@ -6,12 +7,18 @@
 
 namespace cheslib {
 
-Negamax::Negamax(unsigned max_depth, size_t thread_count)
-    : _max_depth(max_depth),
+Negamax::Negamax(unsigned search_depth, int threads_requested)
+    : _max_depth(std::max(1u, search_depth)),
       _heuristics(),
       _transpositions(std::make_unique<TranspositionTable>()),
-      _threads(thread_count) {
-    assert(thread_count > 0);
+      _threads(calculate_thread_count(threads_requested)) {}
+
+size_t Negamax::calculate_thread_count(int requested) {
+    const int max_count = std::thread::hardware_concurrency();
+    if (requested <= 0) {
+        requested += max_count;
+    }
+    return std::clamp(requested, 1, max_count);
 }
 
 void Negamax::reset() {
@@ -21,7 +28,7 @@ void Negamax::reset() {
 
 Move Negamax::result() const {
     assert(!is_searching());
-    MoveScore result = _result.load(std::memory_order_relaxed);
+    MoveScore result = _result.load(std::memory_order_acquire);
     return result.move;
 }
 
@@ -68,7 +75,7 @@ void Negamax::start_search(const Position &position, const Array<Move, 256> &leg
             moves.push(move, (int16_t)score_move(move, position));
         }
 
-        std::ranges::sort(moves, std::greater{}, &MoveScore::score);
+        std::ranges::sort(moves, std::ranges::greater{}, &MoveScore::score);
         return moves;
     };
 
@@ -86,7 +93,7 @@ void Negamax::start_search(const Position &position, const Array<Move, 256> &leg
         return moves;
     };
 
-    _result.store({.score = -INT16_MAX}, std::memory_order_relaxed);
+    _result.store({.score = -INT16_MAX}, std::memory_order_release);
 
     for (size_t i = 0; i < thread_count; ++i) {
         if (i >= legal_moves.size()) {
@@ -109,20 +116,18 @@ MoveScore Negamax::iterative_deepening(Position &position, std::vector<MoveScore
 
     MoveScore best;
 
-    for (unsigned depth = 0; depth < _max_depth; ++depth) {
-        { // try transposition table move first
-            const Transposition entry = _transpositions->get(position.key());
+    for (unsigned depth = 1; depth < _max_depth; ++depth) {
+        // try transposition table move first
+        if (const Transposition entry = _transpositions->get(position.key()); //
+            entry.is_match(position.key())) {
 
-            if (entry.is_match(position.key()) && (entry.depth() >= depth)) {
-                auto found = std::ranges::find(legal_moves, entry.move(), &MoveScore::move);
-
-                if (found != legal_moves.end()) {
-                    found->score = INT16_MAX;
-                }
+            auto found = std::ranges::find(legal_moves, entry.move(), &MoveScore::move);
+            if (found != legal_moves.end()) {
+                found->score = INT16_MAX;
             }
         }
 
-        std::ranges::sort(legal_moves, std::greater{}, &MoveScore::score);
+        std::ranges::sort(legal_moves, std::ranges::greater{}, &MoveScore::score);
         best.score = -INT16_MAX;
 
         for (MoveScore &current : legal_moves) {
@@ -153,32 +158,34 @@ Score Negamax::negamax(Position &position, const uint8_t depth, Score alpha, Sco
         score = score_move(move, position);
     }
 
-    { // try shrink alpha beta
-        const Transposition entry = _transpositions->get(position.key());
+    // try shrink alpha beta
+    if (const Transposition entry = _transpositions->get(position.key()); //
+        entry.is_match(position.key())) {
 
-        if (entry.is_match(position.key()) && //
-            entry.depth() >= depth &&         //
-            std::ranges::find(moves, entry.move(), &MoveScore::move) != moves.end() &&
-            position.try_do_pseudo(entry.move())) {
-
+        auto found = std::ranges::find(moves, entry.move(), &MoveScore::move);
+        if (found != moves.end() && position.try_do_pseudo(entry.move())) {
+            found->score = INT16_MAX;
             position.undo_move();
-            const Score entry_score = entry.score();
 
-            switch (entry.bound()) {
-            case Bound::Exact:
-                return entry_score;
+            if (entry.depth() >= depth) {
+                const Score entry_score = entry.score();
 
-            case Bound::Lower:
-                alpha = std::max(alpha, entry_score);
-                break;
+                switch (entry.bound()) {
+                case Bound::Exact:
+                    return entry_score;
 
-            case Bound::Upper:
-                beta = std::min(beta, entry_score);
-                break;
-            }
+                case Bound::Lower:
+                    alpha = std::max(alpha, entry_score);
+                    break;
 
-            if (alpha >= beta) {
-                return entry_score;
+                case Bound::Upper:
+                    beta = std::min(beta, entry_score);
+                    break;
+                }
+
+                if (alpha >= beta) {
+                    return entry_score;
+                }
             }
         }
     }
@@ -202,10 +209,7 @@ Score Negamax::negamax(Position &position, const uint8_t depth, Score alpha, Sco
             best.move = move;
 
             if (score >= beta) {
-                if (move.flag() == QuietMove) {
-                    Piece piece = position.pieces().at(move.from());
-                    _heuristics.update(piece, move.to(), depth);
-                }
+                _heuristics.update(position, move, depth);
                 break;
             }
         }

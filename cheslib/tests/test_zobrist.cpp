@@ -6,48 +6,43 @@
 
 using namespace cheslib;
 
-TEST_CASE("Zobrist: Zobrist key no collisions", "[zobrist]") {
+TEST_CASE("Zobrist: thats some good keys", "[zobrist]") {
     std::unordered_set<ZobristKey> keys;
     keys.reserve(800);
 
-    SECTION("Side key") {
-        CHECK(zobrist::side() != 0);
-        keys.insert(zobrist::side());
+    auto insert = [&keys](ZobristKey key) -> void {
+        bool no_collision = keys.insert(key).second;
+        CHECK(key != 0);
+        CHECK(no_collision);
+    };
+
+    insert(zobrist::side());
+
+    for (CastleFlag flag = NoCastles; flag <= BothCastles; flag = CastleFlag(flag + 1)) {
+        insert(zobrist::castling(flag));
     }
 
-    SECTION("Castling keys") {
-        for (CastleFlag flag = NoCastles; flag <= BothCastles; flag = CastleFlag(flag + 1)) {
-            ZobristKey key = zobrist::castling(flag);
-            bool no_collision = keys.insert(key).second;
+    CHECK(zobrist::en_passant(FileCNT) == 0);
+    for (File file = FileA; file <= FileH; ++file) {
+        insert(zobrist::en_passant(file));
+    }
 
-            CAPTURE(flag);
-            CHECK(no_collision);
-            CHECK(key != 0);
+    for (Piece piece = Piece(0); piece < PieceCNT; ++piece) {
+        for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
+            insert(zobrist::piece(piece, sq));
         }
     }
 
-    SECTION("En passant keys") {
-        for (File file = FileA; file <= FileH; ++file) {
-            ZobristKey key = zobrist::en_passant(file);
-            bool no_collision = keys.insert(key).second;
+    SECTION("double xor sum are unique") {
+        std::unordered_set<ZobristKey> xor_sums;
+        xor_sums.reserve(800 * 800);
 
-            CAPTURE(file);
-            CHECK(no_collision);
-            CHECK(key != 0);
-        }
-
-        CHECK(zobrist::en_passant(FileCNT) == 0);
-    }
-
-    SECTION("Piece keys") {
-        for (Piece piece = Piece(0); piece < PieceCNT; ++piece) {
-            for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
-                ZobristKey key = zobrist::piece(piece, sq);
-                bool no_collision = keys.insert(key).second;
-
-                CAPTURE(piece, sq);
+        for (auto one = keys.begin(); one != keys.end(); ++one) {
+            for (auto two = std::next(one); two != keys.end(); ++two) {
+                ZobristKey xor_sum = *one ^ *two;
+                bool no_collision = xor_sums.insert(xor_sum).second;
+                CHECK(xor_sum != 0);
                 CHECK(no_collision);
-                CHECK(key != 0);
             }
         }
     }

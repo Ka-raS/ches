@@ -2,6 +2,7 @@
 
 #include <atomic>
 
+#include "position.hpp"
 #include "types.hpp"
 
 namespace cheslib {
@@ -10,7 +11,7 @@ class HistoryHeuristic {
   public:
     HistoryHeuristic();
     Score get(Piece piece, Square to) const;
-    void update(Piece piece, Square to, uint8_t depth);
+    void update(const Position &position, Move move, uint8_t depth);
     void reset();
 
   private:

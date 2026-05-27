@@ -4,7 +4,7 @@ namespace cheslib {
 
 PositionState::PositionState(CastleFlag flag, File en_passant, Side side_to_move, int rule50_count)
     : _data(flag | (en_passant << 4) | ((side_to_move == Black) << 8) | (rule50_count << 9)) {
-    assert(flag <= BothCastles);
+    assert(flag < CastleFlagCNT);
     assert(en_passant <= FileCNT);
     assert(rule50_count <= 100);
 }
@@ -18,12 +18,12 @@ CastleFlag PositionState::castle_flag() const {
 }
 
 bool PositionState::can_castles(CastleFlag flag) const {
-    assert(flag <= BothCastles);
+    assert(flag < CastleFlagCNT);
     return _data & flag;
 }
 
 void PositionState::revoke_castles(CastleFlag revoke) {
-    assert(revoke <= BothCastles);
+    assert(revoke < CastleFlagCNT);
     _data &= ~revoke;
 }
 

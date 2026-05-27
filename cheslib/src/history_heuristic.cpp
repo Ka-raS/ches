@@ -12,7 +12,14 @@ Score HistoryHeuristic::get(Piece piece, Square to) const {
     return _entries[piece][to].load(std::memory_order_relaxed);
 }
 
-void HistoryHeuristic::update(Piece piece, Square to, uint8_t depth) {
+void HistoryHeuristic::update(const Position &position, Move move, uint8_t depth) {
+    if (!move.flag() == QuietMove) {
+        return;
+    }
+
+    const Piece piece = position.pieces().at(move.from());
+    const Square to = move.to();
+
     assert(piece < PieceCNT);
     assert(to < SquareCNT);
 

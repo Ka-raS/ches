@@ -17,6 +17,8 @@ enum CastleFlag : uint8_t {
     WhiteCastles = WhiteShortCastles | WhiteLongCastles,
     BlackCastles = BlackShortCastles | BlackLongCastles,
     BothCastles = WhiteCastles | BlackCastles,
+
+    CastleFlagCNT = 16
 };
 
 /**

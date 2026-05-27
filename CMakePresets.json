@@ -1,123 +1,40 @@
 {
     "version": 6,
-    "buildPresets": [
-        {
-            "name": "debug",
-            "configurePreset": "debug",
-            "configuration": "Debug"
-        },
-        {
-            "name": "release-linux-pgo-generate",
-            "configurePreset": "release-linux-pgo-generate",
-            "configuration": "Release"
-        },
-        {
-            "name": "release-linux-pgo-use",
-            "configurePreset": "release-linux-pgo-use",
-            "configuration": "Release"
-        },
-        {
-            "name": "release-windows-pgo-generate",
-            "configurePreset": "release-windows-pgo-generate",
-            "configuration": "Release"
-        },
-        {
-            "name": "release-windows-pgo-use",
-            "configurePreset": "release-windows-pgo-use",
-            "configuration": "Release"
-        },
-        {
-            "name": "relwithdebinfo-windows",
-            "configurePreset": "relwithdebinfo-windows",
-            "configuration": "RelWithDebInfo"
-        }
-    ],
     "configurePresets": [
         {
             "name": "debug",
-            "binaryDir": "build/debug",
+            "binaryDir": "out/build/debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true
             }
         },
         {
-            "name": "release-linux-pgo-generate",
-            "binaryDir": "build/release-linux",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
+            "name": "release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true,
-                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true,
-                "CMAKE_CXX_FLAGS": "-funroll-loops -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-rtti -fprofile-generate -pipe"
+                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true
             }
         },
         {
-            "name": "release-linux-pgo-use",
-            "binaryDir": "build/release-linux",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Linux"
-            },
+            "name": "pgo-generate",
+            "inherits": "release",
+            "binaryDir": "out/build/pgo-generate",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
-                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true,
-                "CMAKE_CXX_FLAGS": "-funroll-loops -fno-exceptions -fno-unwind-tables -fno-asynchronous-unwind-tables -fno-rtti -fprofile-use -fprofile-correction -pipe"
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_CXX_FLAGS": "-fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-instr-generate -fprofile-update=atomic -funroll-loops -g -pipe"
             }
         },
         {
-            "name": "release-windows-pgo-generate",
-            "binaryDir": "build/release-windows",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
+            "name": "pgo-use",
+            "inherits": "release",
+            "binaryDir": "out/build/pgo-use",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
-                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true,
-                "CMAKE_TRY_COMPILE_TARGET_TYPE": "STATIC_LIBRARY",
-                "CMAKE_CXX_FLAGS": "/EHsc /GR- /Gy /MP",
-                "CMAKE_EXE_LINKER_FLAGS": "/LTCG:PGINSTRUMENT"
-            }
-        },
-        {
-            "name": "release-windows-pgo-use",
-            "binaryDir": "build/release-windows",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
-                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true,
-                "CMAKE_TRY_COMPILE_TARGET_TYPE": "STATIC_LIBRARY",
-                "CMAKE_CXX_FLAGS": "/EHsc /GR- /Gy /MP",
-                "CMAKE_EXE_LINKER_FLAGS": "/LTCG:PGOPTIMIZE"
-            }
-        },
-        {
-            "name": "relwithdebinfo-windows",
-            "binaryDir": "build/relwithdebinfo-windows",
-            "condition": {
-                "type": "equals",
-                "lhs": "${hostSystemName}",
-                "rhs": "Windows"
-            },
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo",
-                "CMAKE_EXPORT_COMPILE_COMMANDS": true,
-                "CMAKE_INTERPROCEDURAL_OPTIMIZATION": true,
-                "CMAKE_CXX_FLAGS": "/EHsc /GR- /Gy /MP /Zi"
+                "CMAKE_C_COMPILER": "clang",
+                "CMAKE_CXX_COMPILER": "clang++",
+                "CMAKE_CXX_FLAGS": "-fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-use=${sourceDir}/out/build/pgo-generate/ches/default.profdata -funroll-loops -g -pipe"
             }
         }
     ]

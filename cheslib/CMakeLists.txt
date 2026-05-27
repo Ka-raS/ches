@@ -3,6 +3,8 @@ add_library(cheslib STATIC)
 target_include_directories(cheslib PUBLIC include/)
 target_compile_features(cheslib PRIVATE cxx_std_20)
 
+target_link_libraries(cheslib PRIVATE atomic)
+
 target_sources(cheslib PRIVATE
     src/attacks.cpp
     src/engine.cpp

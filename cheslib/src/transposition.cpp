@@ -40,7 +40,7 @@ void TranspositionTable::store(ZobristKey key, MoveScore move_score, Bound bound
     std::atomic<Transposition> &entry = _entries[index(key)];
     Transposition current = entry.load(std::memory_order_relaxed);
 
-    if (bound == Bound::Exact || !current.is_match(key) || depth > current.depth()) {
+    if (depth >= current.depth()) {
         entry.store(Transposition(key, move_score, bound, depth), std::memory_order_relaxed);
     }
 }

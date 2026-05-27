@@ -54,20 +54,3 @@ TEST_CASE("Transposition: overwrites with deeper depth", "[transposition]") {
     CHECK(entry.bound() == Bound::Upper);
     CHECK(entry.depth() == 8u);
 }
-
-TEST_CASE("Transposition: overwrites with Bound::Exact", "[transposition]") {
-    const ZobristKey key = 0xCAFEBABEDEADBEEF;
-    const Move move1(SquareB1, SquareC3, QuietMove);
-    const Move move2(SquareB1, SquareA3, QuietMove);
-
-    std::unique_ptr<TranspositionTable> table = std::make_unique<TranspositionTable>();
-    table->store(key, MoveScore{move1, int16_t(7)}, Bound::Upper, 7u);
-    table->store(key, MoveScore{move2, int16_t(8)}, Bound::Exact, 4u);
-
-    const Transposition entry = table->get(key);
-    REQUIRE(entry.is_match(key));
-    CHECK(entry.score() == 8);
-    CHECK(entry.move() == move2);
-    CHECK(entry.bound() == Bound::Exact);
-    CHECK(entry.depth() == 4u);
-}

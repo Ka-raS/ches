@@ -41,6 +41,9 @@ void generate_non_pawn_moves(Array<MoveScore, 256> &moves, const Pieces &pieces)
             case King:
                 attacks &= attacks::king(from);
                 break;
+
+            default:
+                assert(false);
             }
 
             while (attacks) {

@@ -34,7 +34,7 @@ consteval std::array<ZobristKey, N> rng(uint64_t seed, size_t discard = N) {
 
 constexpr ZobristKey SideKey = XorShift64(0xA0761D6478BD642F).next();
 
-constexpr std::array<ZobristKey, BothCastles + 1> CastlingKeys = rng<BothCastles + 1>(SideKey);
+constexpr std::array<ZobristKey, CastleFlagCNT> CastlingKeys = rng<CastleFlagCNT>(SideKey);
 
 constexpr std::array<ZobristKey, FileCNT + 1> EnPassantKeys = rng<FileCNT + 1>(CastlingKeys.back(), FileCNT);
 
@@ -79,7 +79,7 @@ ZobristKey en_passant(File file) {
 }
 
 ZobristKey castling(CastleFlag flag) {
-    assert(flag <= BothCastles);
+    assert(flag < CastleFlagCNT);
     return CastlingKeys[flag];
 }
 

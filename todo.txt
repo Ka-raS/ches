@@ -3,6 +3,9 @@
 - folder structure the sources
 - app.rc
 
+- try symlink again, /D_HAS_EXCEPTIONS=0, remove buildPresets/STATIC_LIBRARY, install command:
+    cmake --install build/release-linux --prefix install/release-linux --strip
+- readme for windows: ( Set-Location abc/xyz; ./app )
 - switch to the 4bit flag version of Move for easy switch case
 - check if constexpr functions are actually constexpr
 - clang tidy
