@@ -9,9 +9,11 @@ namespace cheslib {
 
 class Engine {
   public:
-    /// init to starting position, white ready to play
-    /// @param search_depth minimum set to 1
-    /// @param thread_count if <= 0 then using `hardware_concurrency + thread_count`
+    /**
+     * init to starting position, white ready to play
+     * @param search_depth minimum set to 1
+     * @param thread_count if <= 0 then using `hardware_concurrency + thread_count`
+     */
     Engine(unsigned search_depth, int thread_count);
     ~Engine();
 
