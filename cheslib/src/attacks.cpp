@@ -13,12 +13,12 @@ struct Magic {
     uint32_t offset;
     uint32_t shift;
 
-    constexpr size_t index(Bitboard occupancy) const {
-        return offset + (((occupancy & mask) * magic) >> shift);
+    constexpr size_t index(const Bitboard occupancy) const {
+        return offset + (((occupancy & mask) * magic) >> (64 - std::popcount(mask)));
     }
 };
 
-consteval Square next_square(Square from, int8_t step) {
+consteval Square next_square(const Square from, const int8_t step) {
     // check rank wraparound
     Square to = Square(from + step);
     if (to >= SquareCNT) {
@@ -26,7 +26,7 @@ consteval Square next_square(Square from, int8_t step) {
     }
 
     // check file wraparound
-    int d_file = types::file_of(from) - types::file_of(to);
+    const int d_file = types::file_of(from) - types::file_of(to);
     if (-2 <= d_file && d_file <= 2) {
         return to;
     } else {
@@ -35,11 +35,11 @@ consteval Square next_square(Square from, int8_t step) {
 }
 
 // generate precomputed attack bitboards for knight/king/pawn
-consteval std::array<Bitboard, SquareCNT> stepping_attacks(std::span<const int8_t> steps) {
+consteval std::array<Bitboard, SquareCNT> stepping_attacks(const std::span<const int8_t> steps) {
     std::array<Bitboard, SquareCNT> result = {0};
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
-        for (int8_t step : steps) {
+        for (const int8_t step : steps) {
             Square next = next_square(sq, step);
             if (next < SquareCNT) {
                 types::set_square(result[sq], next);
@@ -51,10 +51,10 @@ consteval std::array<Bitboard, SquareCNT> stepping_attacks(std::span<const int8_
 }
 
 // compute blocker mask for rook/bishop
-consteval Bitboard sliding_blockers(const Square from, std::span<const Direction> directions) {
+consteval Bitboard sliding_blockers(const Square from, const std::span<const Direction> directions) {
     Bitboard result = 0;
 
-    for (Direction dir : directions) {
+    for (const Direction dir : directions) {
         Square curr = next_square(from, dir);
         if (curr >= SquareCNT) {
             continue;
@@ -73,7 +73,7 @@ consteval Bitboard sliding_blockers(const Square from, std::span<const Direction
 }
 
 consteval std::array<Magic, SquareCNT> magic_infos(
-    std::span<const Direction> directions, const uint64_t magic_numbers[SquareCNT]
+    const std::span<const Direction> directions, const uint64_t magic_numbers[SquareCNT]
 ) {
     std::array<Magic, SquareCNT> result = {};
 
@@ -87,9 +87,9 @@ consteval std::array<Magic, SquareCNT> magic_infos(
             offset = result[sq - 1].offset + prev_table_size;
         }
 
-        Bitboard mask = sliding_blockers(sq, directions);
-        uint64_t magic = magic_numbers[sq];
-        uint32_t shift = 64 - std::popcount(mask);
+        const Bitboard mask = sliding_blockers(sq, directions);
+        const uint64_t magic = magic_numbers[sq];
+        const uint32_t shift = 64 - std::popcount(mask);
 
         result[sq] = Magic{mask, magic, offset, shift};
     }
@@ -99,16 +99,16 @@ consteval std::array<Magic, SquareCNT> magic_infos(
 
 // compute attack bitboard for for rook/bishop
 consteval Bitboard sliding_attack_at(
-    const Square from, const Bitboard occupancy, std::span<const Direction> directions
+    const Square from, const Bitboard occupancy, const std::span<const Direction> directions
 ) {
     Bitboard result = 0;
 
-    for (Direction dir : directions) {
+    for (const Direction dir : directions) {
         Square curr = next_square(from, dir);
 
         while (curr < SquareCNT) {
             types::set_square(result, curr);
-            bool is_blocked = types::has_square(occupancy, curr);
+            const bool is_blocked = types::has_square(occupancy, curr);
             if (is_blocked) {
                 break;
             }
@@ -120,11 +120,11 @@ consteval Bitboard sliding_attack_at(
 }
 
 // generate magic bitboards for rook/bishop
-template <size_t Size>
-consteval std::array<Bitboard, Size> sliding_attacks(
-    const std::array<Magic, SquareCNT> &magics, std::span<const Direction> directions
+template <size_t N>
+consteval std::array<Bitboard, N> sliding_attacks(
+    const std::array<Magic, SquareCNT> &magics, const std::span<const Direction> directions
 ) {
-    std::array<Bitboard, Size> result = {};
+    std::array<Bitboard, N> result = {};
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         const Magic &magic = magics[sq];
@@ -133,7 +133,7 @@ consteval std::array<Bitboard, Size> sliding_attacks(
         // iterate all occupancy subsets
         // see: https://www.chessprogramming.org/Traversing_Subsets_of_a_Set
         do {
-            size_t index = magic.index(occupancy);
+            const size_t index = magic.index(occupancy);
             result[index] = sliding_attack_at(sq, occupancy, directions);
 
             occupancy = (occupancy - magic.mask) & magic.mask;
@@ -172,7 +172,7 @@ constexpr uint64_t RookMagicNumbers[SquareCNT] = {
     0x0100040840a10200, 0xa442004821001082, 0x224200e101104282, 0x9009004008102001, 0x0000100005002109,
     0x1012002008100402, 0x0005004400288201, 0x0120080630088504, 0x0000088c00204102
 };
-
+// the numbers mason what do they mean?
 constexpr uint64_t BishopMagicNumbers[SquareCNT] = {
     0x202024a480810200, 0x8104040800410401, 0x8004194202004102, 0x9008204040000200, 0x0308484004403400,
     0x0402180208040440, 0x0311011010840200, 0x0040184804100800, 0x0010400208420c81, 0x0120101091204080,
@@ -201,34 +201,34 @@ static_assert(BishopAttacks.size() == BishopMagics[63].offset + (1ull << std::po
 
 } // namespace
 
-Bitboard pawn(Square from, Side us) {
+Bitboard pawn(const Square from, const Side us) {
     assert(from < SquareCNT);
     return PawnAttacks[us][from];
 }
 
-Bitboard knight(Square from) {
+Bitboard knight(const Square from) {
     assert(from < SquareCNT);
     return KnightAttacks[from];
 }
 
-Bitboard king(Square from) {
+Bitboard king(const Square from) {
     assert(from < SquareCNT);
     return KingAttacks[from];
 }
 
-Bitboard rook(Square from, Bitboard occupancy) {
+Bitboard rook(const Square from, const Bitboard occupancy) {
     assert(from < SquareCNT);
-    size_t index = RookMagics[from].index(occupancy);
+    const size_t index = RookMagics[from].index(occupancy);
     return RookAttacks[index];
 }
 
-Bitboard bishop(Square from, Bitboard occupancy) {
+Bitboard bishop(const Square from, const Bitboard occupancy) {
     assert(from < SquareCNT);
-    size_t index = BishopMagics[from].index(occupancy);
+    const size_t index = BishopMagics[from].index(occupancy);
     return BishopAttacks[index];
 }
 
-Bitboard queen(Square from, Bitboard occupancy) {
+Bitboard queen(const Square from, const Bitboard occupancy) {
     return bishop(from, occupancy) | rook(from, occupancy);
 }
 

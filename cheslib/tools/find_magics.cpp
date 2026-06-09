@@ -13,33 +13,38 @@ using Bitboard = uint64_t;
 constexpr Square SquareCNT = 64;
 
 enum Direction : int8_t {
-    Up = 8,
-    Right = 1,
-    Down = -Up,
-    Left = -Right,
-    UpRight = Up + Right,
-    DownRight = Down + Right,
-    DownLeft = Down + Left,
-    UpLeft = Up + Left,
+    North = 8,
+    East = 1,
+    South = -North,
+    West = -East,
+
+    NorthEast = North + East,
+    SouthEast = South + East,
+    SouthWest = -NorthEast,
+    NorthWest = -SouthEast
 };
 
-bool has_square(Bitboard board, Square sq) {
-    return board & (1ULL << sq);
+bool has_square(const Bitboard board, const Square square) {
+    return board & (1ull << square);
 }
 
-void set_square(Bitboard &board, Square sq) {
-    board |= (1ULL << sq);
+void set_square(Bitboard &board, const Square square) {
+    board |= (1ull << square);
 }
 
-Square next_square(Square from, int8_t step) {
+File file_of(const Square square) {
+    return square & 7u;
+}
+
+Square next_square(const Square from, const int8_t step) {
     // check rank wraparound
-    Square to = Square(from + step);
+    Square to = from + step;
     if (to >= SquareCNT) {
         return SquareCNT;
     }
 
     // check file wraparound
-    int d_file = (from & 7) - (to & 7);
+    const int d_file = file_of(from) - file_of(to);
     if (-2 <= d_file && d_file <= 2) {
         return to;
     } else {
@@ -47,15 +52,15 @@ Square next_square(Square from, int8_t step) {
     }
 }
 
-Bitboard sliding_attack_at(Square from, Bitboard occupancy, const std::array<Direction, 4> &directions) {
+Bitboard sliding_attack_at(const Square from, const Bitboard occupancy, const std::array<Direction, 4> &directions) {
     Bitboard result = 0;
 
-    for (Direction dir : directions) {
+    for (const Direction dir : directions) {
         Square curr = next_square(from, dir);
 
         while (curr < SquareCNT) {
             set_square(result, curr);
-            bool is_blocked = has_square(occupancy, curr);
+            const bool is_blocked = has_square(occupancy, curr);
             if (is_blocked) {
                 break;
             }
@@ -66,10 +71,10 @@ Bitboard sliding_attack_at(Square from, Bitboard occupancy, const std::array<Dir
     return result;
 }
 
-Bitboard sliding_blockers(Square from, const std::array<Direction, 4> &directions) {
+Bitboard sliding_blockers(const Square from, const std::array<Direction, 4> &directions) {
     Bitboard result = 0;
 
-    for (Direction dir : directions) {
+    for (const Direction dir : directions) {
         Square curr = next_square(from, dir);
         if (curr >= SquareCNT) {
             continue;
@@ -87,8 +92,8 @@ Bitboard sliding_blockers(Square from, const std::array<Direction, 4> &direction
     return result;
 }
 
-uint64_t find_magic(Square from, const std::array<Direction, 4> &directions, std::mt19937_64 &rng) {
-    constexpr size_t max_subsets = 1ULL << 12;
+uint64_t find_magic(const Square from, const std::array<Direction, 4> &directions, std::mt19937_64 &rng) {
+    constexpr size_t max_subsets = 1ull << 12;
     const Bitboard mask = sliding_blockers(from, directions);
     const size_t shift = std::popcount(mask);
 
@@ -109,7 +114,7 @@ uint64_t find_magic(Square from, const std::array<Direction, 4> &directions, std
     while (true) {
         const uint64_t magic = rng() & rng() & rng();
 
-        bool has_enough_bits = std::popcount((mask * magic) >> (64 - 8)) >= 6;
+        const bool has_enough_bits = std::popcount((mask * magic) >> (64 - 8)) >= 6;
         if (!has_enough_bits) {
             continue;
         }
@@ -138,8 +143,8 @@ uint64_t find_magic(Square from, const std::array<Direction, 4> &directions, std
     }
 }
 
-std::array<uint64_t, SquareCNT> generate_magic_numbers(const std::array<Direction, 4> &directions) {
-    std::array<uint64_t, SquareCNT> result{};
+std::array<uint64_t, SquareCNT> generate_magic_numbers(const std::array<Direction, 4> directions) {
+    std::array<uint64_t, SquareCNT> result;
     std::mt19937_64 rng(37);
 
     for (Square sq = 0; sq < SquareCNT; ++sq) {
@@ -153,12 +158,12 @@ std::array<uint64_t, SquareCNT> generate_magic_numbers(const std::array<Directio
 
 int main() {
     std::cout << "Rook magics:\n" << std::hex << std::setfill('0');
-    for (uint64_t magic : generate_magic_numbers({Up, Right, Down, Left})) {
+    for (uint64_t magic : generate_magic_numbers(std::array{North, East, South, West})) {
         std::cout << "0x" << std::setw(16) << magic << ",\n";
     }
 
     std::cout << "\nBishop magics:\n";
-    for (uint64_t magic : generate_magic_numbers({UpRight, DownRight, DownLeft, UpLeft})) {
+    for (uint64_t magic : generate_magic_numbers(std::array{NorthEast, SouthEast, SouthWest, NorthWest})) {
         std::cout << "0x" << std::setw(16) << magic << ",\n";
     }
 }
