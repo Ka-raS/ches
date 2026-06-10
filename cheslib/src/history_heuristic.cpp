@@ -10,7 +10,7 @@ Score HistoryHeuristic::get(const Piece piece, const Square to) const {
 }
 
 void HistoryHeuristic::update(const Position &position, const Move move, const unsigned depth) {
-    if (!move.flag() == QuietMove) {
+    if (move.flag() != QuietMove) {
         return;
     }
 

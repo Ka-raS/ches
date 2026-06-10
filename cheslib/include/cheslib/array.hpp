@@ -6,12 +6,11 @@
 
 namespace cheslib {
 
-/// std::array with push pop shenanigans
+/// stack based std::vector
 template <typename T, size_t N>
+    requires std::is_trivial_v<T>
 class Array {
   public:
-    constexpr Array() = default;
-
     constexpr size_t size() const {
         return _size;
     }
@@ -22,6 +21,7 @@ class Array {
     }
 
     template <typename... Args>
+        requires std::constructible_from<T, Args...>
     constexpr void push(Args &&...args) {
         assert(_size < N);
         _data[_size] = T{std::forward<Args>(args)...};
@@ -31,13 +31,14 @@ class Array {
     constexpr T pop() {
         assert(_size > 0);
         --_size;
-        return std::move(_data[_size]);
+        return _data[_size];
     }
 
     constexpr T &operator[](size_t index) {
         assert(index < _size);
         return _data[index];
     }
+
     constexpr const T &operator[](size_t index) const {
         assert(index < _size);
         return _data[index];

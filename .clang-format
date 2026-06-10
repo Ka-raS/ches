@@ -6,4 +6,5 @@ AllowShortFunctionsOnASingleLine: Empty
 AllowShortLambdasOnASingleLine: Empty
 AlwaysBreakTemplateDeclarations: Yes
 BreakBeforeBraces: Attach
+LambdaBodyIndentation: OuterScope
 PackConstructorInitializers: Never

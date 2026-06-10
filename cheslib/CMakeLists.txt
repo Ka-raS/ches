@@ -8,7 +8,7 @@ target_link_libraries(cheslib PRIVATE atomic)
 target_sources(cheslib PRIVATE
     src/attacks.cpp
     src/engine.cpp
-    src/eval.cpp
+    src/evaluate.cpp
     src/history_heuristic.cpp
     src/movegen.cpp
     src/negamax.cpp
@@ -20,11 +20,10 @@ target_sources(cheslib PRIVATE
     src/zobrist.cpp
 )
 
-target_compile_options(cheslib
-    PRIVATE
-        $<$<CXX_COMPILER_ID:GNU>:-fconstexpr-ops-limit=200000000>
-        $<$<CXX_COMPILER_ID:Clang>:-fconstexpr-steps=200000000>
-        $<$<CXX_COMPILER_ID:MSVC>:/constexpr:steps200000000>
+target_compile_options(cheslib PRIVATE
+    $<$<CXX_COMPILER_ID:GNU>:-fconstexpr-ops-limit=200000000>
+    $<$<CXX_COMPILER_ID:Clang>:-fconstexpr-steps=200000000>
+    $<$<CXX_COMPILER_ID:MSVC>:/constexpr:steps200000000>
 )
 
 if(BUILD_TESTING)

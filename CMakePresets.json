@@ -3,7 +3,7 @@
     "configurePresets": [
         {
             "name": "debug",
-            "binaryDir": "out/build/debug",
+            "binaryDir": "build/debug",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true
@@ -11,6 +11,7 @@
         },
         {
             "name": "release",
+            "binaryDir": "build/release",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release",
                 "CMAKE_EXPORT_COMPILE_COMMANDS": true,
@@ -20,21 +21,21 @@
         {
             "name": "pgo-generate",
             "inherits": "release",
-            "binaryDir": "out/build/pgo-generate",
+            "binaryDir": "build/pgo-generate",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_CXX_FLAGS": "-fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-instr-generate -fprofile-update=atomic -funroll-loops -g -pipe"
+                "CMAKE_CXX_FLAGS": "-fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-instr-generate -fprofile-update=atomic -funroll-loops -g -march=native -pipe"
             }
         },
         {
             "name": "pgo-use",
             "inherits": "release",
-            "binaryDir": "out/build/pgo-use",
+            "binaryDir": "build/pgo-use",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_CXX_FLAGS": "-fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-use=${sourceDir}/out/build/pgo-generate/ches/default.profdata -funroll-loops -g -pipe"
+                "CMAKE_CXX_FLAGS": "-fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-use=${sourceDir}/build/pgo-generate/ches/default.profdata -funroll-loops -g -march=native -pipe"
             }
         }
     ]
