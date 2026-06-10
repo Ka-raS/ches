@@ -5,7 +5,7 @@
 using namespace cheslib;
 
 TEST_CASE("Pieces: initial position", "[pieces]") {
-    const Pieces pieces = Pieces::initial();
+    const Pieces pieces{Pieces::initial()};
 
     CHECK(std::popcount(pieces.all()) == 32);
     CHECK(std::popcount(pieces.all_of(White)) == 16);
@@ -23,8 +23,8 @@ TEST_CASE("Pieces: initial position", "[pieces]") {
     CHECK(pieces.get(BlackKing) == types::bitboard_of(SquareE8));
 
     for (File file = FileA; file <= FileH; ++file) {
-        Square white_pawn = types::square_of(file, Rank2);
-        Square black_pawn = types::square_of(file, Rank7);
+        const Square white_pawn = types::square_of(file, Rank2);
+        const Square black_pawn = types::square_of(file, Rank7);
         CHECK(pieces.at(white_pawn) == WhitePawn);
         CHECK(pieces.at(black_pawn) == BlackPawn);
     }
@@ -36,13 +36,13 @@ TEST_CASE("Pieces: initial position", "[pieces]") {
 }
 
 TEST_CASE("Pieces: custom board construction", "[pieces]") {
-    const Pieces pieces = [] {
+    const Pieces pieces{[] {
         std::array<Piece, SquareCNT> board;
         board.fill(PieceCNT);
         board[SquareE4] = WhiteKnight;
         board[SquareD5] = BlackQueen;
         return board;
-    }();
+    }()};
 
     CHECK(std::popcount(pieces.all()) == 2);
     CHECK(std::popcount(pieces.all_of(White)) == 1);
@@ -55,17 +55,17 @@ TEST_CASE("Pieces: custom board construction", "[pieces]") {
 }
 
 TEST_CASE("Pieces: put and remove operations", "[pieces]") {
-    Pieces pieces = [] {
+    Pieces pieces{[] {
         std::array<Piece, SquareCNT> board;
         board.fill(PieceCNT);
         return board;
-    }();
+    }()};
 
     SECTION("Put a white piece on empty board") {
         pieces.put(SquareE4, WhiteBishop);
+
         CHECK(pieces.at(SquareE4) == WhiteBishop);
         CHECK(pieces.get(WhiteBishop) == types::bitboard_of(SquareE4));
-
         CHECK(std::popcount(pieces.all()) == 1);
         CHECK(std::popcount(pieces.all_of(White)) == 1);
         CHECK(std::popcount(pieces.all_of(Black)) == 0);
@@ -73,9 +73,9 @@ TEST_CASE("Pieces: put and remove operations", "[pieces]") {
 
     SECTION("Put a black piece on empty board") {
         pieces.put(SquareD5, BlackRook);
+
         CHECK(pieces.at(SquareD5) == BlackRook);
         CHECK(pieces.get(BlackRook) == types::bitboard_of(SquareD5));
-
         CHECK(std::popcount(pieces.all()) == 1);
         CHECK(std::popcount(pieces.all_of(White)) == 0);
         CHECK(std::popcount(pieces.all_of(Black)) == 1);
@@ -83,11 +83,11 @@ TEST_CASE("Pieces: put and remove operations", "[pieces]") {
 
     SECTION("Remove a piece") {
         pieces.put(SquareE4, WhiteBishop);
-        Piece removed = pieces.remove(SquareE4);
+        const Piece removed = pieces.remove(SquareE4);
+
         CHECK(removed == WhiteBishop);
         CHECK(pieces.at(SquareE4) == PieceCNT);
         CHECK(pieces.get(WhiteBishop) == 0);
-
         CHECK(std::popcount(pieces.all()) == 0);
         CHECK(std::popcount(pieces.all_of(White)) == 0);
     }
@@ -107,26 +107,27 @@ TEST_CASE("Pieces: put and remove operations", "[pieces]") {
 }
 
 TEST_CASE("Pieces: move operation", "[pieces]") {
-    Pieces pieces = [] {
+    Pieces pieces{[] {
         std::array<Piece, SquareCNT> board;
         board.fill(PieceCNT);
         board[SquareE2] = WhitePawn;
         board[SquareE7] = BlackPawn;
         return board;
-    }();
+    }()};
 
     SECTION("Move white pawn forward") {
         pieces.move(SquareE2, SquareE4);
+
         CHECK(pieces.at(SquareE2) == PieceCNT);
         CHECK(pieces.at(SquareE4) == WhitePawn);
         CHECK(pieces.get(WhitePawn) == types::bitboard_of(SquareE4));
-
         CHECK(std::popcount(pieces.all_of(White)) == 1);
         CHECK(std::popcount(pieces.all_of(Black)) == 1);
     }
 
     SECTION("Move black pawn forward") {
         pieces.move(SquareE7, SquareE5);
+
         CHECK(pieces.at(SquareE7) == PieceCNT);
         CHECK(pieces.at(SquareE5) == BlackPawn);
         CHECK(pieces.get(BlackPawn) == types::bitboard_of(SquareE5));
@@ -135,7 +136,7 @@ TEST_CASE("Pieces: move operation", "[pieces]") {
 }
 
 TEST_CASE("Pieces: bitboard consistency after multiple operations", "[pieces]") {
-    Pieces pieces = Pieces::initial();
+    Pieces pieces{Pieces::initial()};
 
     // remove a white pawn
     pieces.remove(SquareE2);
@@ -152,11 +153,11 @@ TEST_CASE("Pieces: bitboard consistency after multiple operations", "[pieces]") 
 }
 
 TEST_CASE("Pieces: alternating pawns", "[pieces]") {
-    Pieces pieces = [] {
+    Pieces pieces{[] {
         std::array<Piece, SquareCNT> board;
         board.fill(PieceCNT);
         return board;
-    }();
+    }()};
 
     // put pawns
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
@@ -171,7 +172,7 @@ TEST_CASE("Pieces: alternating pawns", "[pieces]") {
     CHECK(std::popcount(pieces.all_of(White)) == 32);
     CHECK(std::popcount(pieces.all_of(Black)) == 32);
 
-    constexpr Bitboard expected_white =
+    const Bitboard expected_white =
         types::bitboard_of(Rank1) | types::bitboard_of(Rank3) | types::bitboard_of(Rank5) | types::bitboard_of(Rank7);
 
     CHECK(pieces.get(WhitePawn) == expected_white);

@@ -38,7 +38,7 @@ File file_of(const Square square) {
 
 Square next_square(const Square from, const int8_t step) {
     // check rank wraparound
-    Square to = from + step;
+    const Square to = from + step;
     if (to >= SquareCNT) {
         return SquareCNT;
     }
@@ -158,12 +158,12 @@ std::array<uint64_t, SquareCNT> generate_magic_numbers(const std::array<Directio
 
 int main() {
     std::cout << "Rook magics:\n" << std::hex << std::setfill('0');
-    for (uint64_t magic : generate_magic_numbers(std::array{North, East, South, West})) {
+    for (const uint64_t magic : generate_magic_numbers(std::array{North, East, South, West})) {
         std::cout << "0x" << std::setw(16) << magic << ",\n";
     }
 
     std::cout << "\nBishop magics:\n";
-    for (uint64_t magic : generate_magic_numbers(std::array{NorthEast, SouthEast, SouthWest, NorthWest})) {
+    for (const uint64_t magic : generate_magic_numbers(std::array{NorthEast, SouthEast, SouthWest, NorthWest})) {
         std::cout << "0x" << std::setw(16) << magic << ",\n";
     }
 }
