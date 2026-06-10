@@ -54,71 +54,71 @@ namespace types {
  * @return the square behind `square` from `us` view,
  * example: square_behind(White, SquareE4) == SquareE3
  */
-constexpr Square square_behind(Side us, Square square) {
+constexpr Square square_behind(const Side us, const Square square) {
     if (us == White) {
         assert(rank_of(square) > Rank1);
     } else {
         assert(rank_of(square) < Rank8);
     }
 
-    Direction backward = (us == White) ? South : North;
-    Square behind = Square((int)square + backward);
+    const Direction backward = (us == White) ? South : North;
+    const Square behind = Square((int)square + backward);
 
     assert(behind < SquareCNT);
     return behind;
 }
 
-constexpr Square flip_rank(Square square) {
+constexpr Square flip_rank(const Square square) {
     assert(square < SquareCNT);
 
-    Square flipped = Square(square ^ 0b111'000); /// flip only the rank bits
+    const Square flipped = Square(square ^ 0b111'000); /// flip only the rank bits
 
     assert(flipped < SquareCNT);
     return flipped;
 }
 
-constexpr Square pop_lsb(Bitboard &bitboard) {
-    assert(bitboard != 0);
+constexpr Square pop_lsb(Bitboard &board) {
+    assert(board != 0);
 
-    Square lsb = Square(std::countr_zero(bitboard));
-    bitboard &= (bitboard - 1ull);
+    const Square lsb = (Square)std::countr_zero(board);
+    board &= (board - 1ull);
 
     assert(lsb < SquareCNT);
     return lsb;
 }
 
-constexpr Bitboard bitboard_of(std::same_as<Square> auto... squares) {
+constexpr Bitboard bitboard_of(const std::same_as<Square> auto... squares) {
     assert(((squares < SquareCNT) && ...));
     return ((1ull << squares) | ...);
 }
 
-constexpr Bitboard bitboard_of(Rank rank) {
+constexpr Bitboard bitboard_of(const Rank rank) {
     assert(rank < RankCNT);
     constexpr Bitboard rank_1 =
         bitboard_of(SquareA1, SquareB1, SquareC1, SquareD1, SquareE1, SquareF1, SquareG1, SquareH1);
 
-    unsigned padding_squares = rank << 3; // rank * FileCNT
+    const unsigned padding_squares = rank << 3; // rank * FileCNT
     return rank_1 << padding_squares;
 }
 
-constexpr Bitboard bitboard_of(File file) {
+constexpr Bitboard bitboard_of(const File file) {
     assert(file < FileCNT);
     constexpr Bitboard file_a =
         bitboard_of(SquareA1, SquareA2, SquareA3, SquareA4, SquareA5, SquareA6, SquareA7, SquareA8);
     return file_a << file;
 }
 
-constexpr bool has_square(Bitboard bb, Square square) {
+constexpr bool has_square(const Bitboard board, const Square square) {
     assert(square < SquareCNT);
-    return (bb >> square) & 1;
+    return (board >> square) & 1;
 }
 
-constexpr void set_square(Bitboard &bb, Square square) {
-    bb |= bitboard_of(square);
+constexpr void set_square(Bitboard &board, const Square square) {
+    board |= bitboard_of(square);
 }
 
-constexpr void unset_square(Bitboard &bb, Square square) {
-    bb &= ~bitboard_of(square);
+constexpr void unset_square(Bitboard &board, const Square square) {
+    board &= ~bitboard_of(square);
 }
 
 } // namespace types

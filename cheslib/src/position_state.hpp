@@ -36,7 +36,7 @@ enum CastleFlag : uint8_t {
 class PositionState {
   public:
     PositionState() = default;
-    PositionState(CastleFlag flag, File en_passant, Side side_to_move, int rule50_count);
+    PositionState(CastleFlag flag, File en_passant, Side side_to_move, unsigned rule50_count);
     static PositionState initial();
 
     bool operator==(const PositionState &) const = default;

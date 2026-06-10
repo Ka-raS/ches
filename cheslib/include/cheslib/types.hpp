@@ -61,7 +61,7 @@ constexpr PieceType operator++(PieceType &type) {
 }
 
 constexpr Side operator!(Side side) {
-    return Side(!(bool)side);
+    return Side{!bool{side}};
 }
 
 constexpr Piece operator++(Piece &piece) {
@@ -70,52 +70,52 @@ constexpr Piece operator++(Piece &piece) {
 
 namespace types {
 
-constexpr Square square_of(File file, Rank rank) {
+constexpr Square square_of(const File file, const Rank rank) {
     assert(file < FileCNT);
     assert(rank < RankCNT);
 
-    Square square = Square(rank << 3 | file); // rank * FileCNT + file
+    const Square square = Square(rank << 3 | file); // rank * FileCNT + file
 
     assert(square < SquareCNT);
     return square;
 }
 
-constexpr File file_of(Square square) {
+constexpr File file_of(const Square square) {
     assert(square < SquareCNT);
 
-    File file = File(square & 7u); // square % FileCNT
+    const File file = File(square & 0b111); // square % FileCNT
 
     assert(file < FileCNT);
     return file;
 }
 
-constexpr Rank rank_of(Square square) {
+constexpr Rank rank_of(const Square square) {
     assert(square < SquareCNT);
 
-    Rank rank = Rank(square >> 3); // square / FileCNT
+    const Rank rank = Rank(square >> 3); // square / FileCNT
 
     assert(rank < RankCNT);
     return rank;
 }
 
-constexpr PieceType type_of(Piece piece) {
+constexpr PieceType type_of(const Piece piece) {
     assert(piece < PieceCNT);
 
-    PieceType type = PieceType(piece >> 1);
+    const PieceType type = PieceType(piece >> 1);
 
     assert(type < PieceTypeCNT);
     return type;
 }
 
-constexpr Side side_of(Piece piece) {
+constexpr Side side_of(const Piece piece) {
     assert(piece < PieceCNT);
     return Side(piece & 1u);
 }
 
-constexpr Piece piece_of(Side us, PieceType type) {
+constexpr Piece piece_of(const Side us, const PieceType type) {
     assert(type < PieceTypeCNT);
 
-    Piece piece = Piece(type << 1 | us); // lsb is side bit
+    const Piece piece = Piece(type << 1 | us); // lsb is side bit
 
     assert(piece < PieceCNT);
     return piece;

@@ -2,15 +2,17 @@
 
 namespace cheslib {
 
-PositionState::PositionState(CastleFlag flag, File en_passant, Side side_to_move, int rule50_count)
-    : _data(flag | (en_passant << 4) | ((side_to_move == Black) << 8) | (rule50_count << 9)) {
+PositionState::PositionState(
+    const CastleFlag flag, const File en_passant, const Side side_to_move, const unsigned rule50_count
+)
+    : _data(flag | (en_passant << 4) | (side_to_move << 8) | (rule50_count << 9)) {
     assert(flag < CastleFlagCNT);
     assert(en_passant <= FileCNT);
     assert(rule50_count <= 100);
 }
 
 PositionState PositionState::initial() {
-    return PositionState(BothCastles, FileCNT, White, 0);
+    return PositionState{BothCastles, FileCNT, White, 0};
 }
 
 CastleFlag PositionState::castle_flag() const {
