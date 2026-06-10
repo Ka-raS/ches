@@ -4,7 +4,9 @@
 
 namespace cheslib::movegen {
 
-Array<Move, 256> legals(Position &position);
+/// @param position is restored to original on return
+void legals(Position &position, Array<Move, 256> &moves);
+
 Array<MoveScore, 256> pseudo_legals(const Position &position);
 
 } // namespace cheslib::movegen

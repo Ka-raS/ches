@@ -12,24 +12,30 @@ namespace cheslib {
 
 class Negamax {
   public:
-    Negamax(unsigned search_depth, int threads_requested);
-    void reset();
+    Negamax(unsigned search_depth, int thread_count);
+
     void start_search(const Position &position, const Array<Move, 256> &legal_moves);
+    void stop_search();
+    void wait_while_searching() const;
     bool is_searching() const;
     Move result() const;
+    void reset();
 
   private:
-    MoveScore iterative_deepening(Position &position, std::vector<MoveScore> &legal_moves);
-    Score negamax(Position &position, uint8_t depth, Score alpha, Score beta);
+    MoveScore iterative_deepening(Position position, std::vector<MoveScore> legal_moves);
+    Score negamax(Position &position, unsigned depth, Score alpha, Score beta);
     Score score_move(Move move, const Position &position) const; ///< for move ordering
 
     static size_t calculate_thread_count(int requested);
 
   private:
-    const unsigned _max_depth;
-    HistoryHeuristic _heuristics;
     std::unique_ptr<TranspositionTable> _transpositions;
+    HistoryHeuristic _heuristics;
+
+    const unsigned _max_depth; // TODO: allow modifying
     std::atomic<MoveScore> _result;
+    std::atomic_bool _stop;
+
     std::vector<Thread> _threads;
 };
 
