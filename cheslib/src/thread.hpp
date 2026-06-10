@@ -8,17 +8,23 @@ namespace cheslib {
 
 class Thread {
   public:
-    enum class State : uint8_t {
-        Sleeping,
-        Working,
-        Closing
+    enum class State {
+        Waiting,
+        Running,
+        Terminating
     };
 
   public:
     Thread();
-    ~Thread();
     State state() const;
-    void assign_job(std::function<void()> &&job);
+    void wait_while_running() const;
+    void assign_job(std::function<void()> job);
+
+    ~Thread();
+    Thread(Thread &&) = delete;
+    Thread(const Thread &) = delete;
+    Thread &operator=(Thread &&) = delete;
+    Thread &operator=(const Thread &) = delete;
 
   private:
     void thread_loop();
