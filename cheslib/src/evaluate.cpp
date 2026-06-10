@@ -1,6 +1,6 @@
-#include "eval.hpp"
+#include "evaluate.hpp"
 
-namespace cheslib::eval {
+namespace cheslib::evaluate {
 
 namespace { // see: https://www.chessprogramming.org/PeSTO%27s_Evaluation_Function
 
@@ -163,17 +163,17 @@ constexpr std::array<std::array<Score, SquareCNT>, PieceCNT> EndGameTable =
 
 } // namespace
 
-Score value_of(PieceType type) {
+Score material(PieceType type) {
     assert(type < PieceTypeCNT);
     return MidGameValues[type];
 }
 
-Score value_of(Piece piece) {
+Score material(Piece piece) {
     assert(piece < PieceCNT);
     return MidGameValues[types::type_of(piece)];
 }
 
-Score evaluate(const Position &position) {
+Score positional(const Position &position) {
     Score phase = 0;
     Score mid_game[2] = {0, 0};
     Score end_game[2] = {0, 0};
@@ -198,7 +198,11 @@ Score evaluate(const Position &position) {
     Score score = (phase * d_mid_game + (24 - phase) * d_end_game) / 24;
 
     assert(-INT16_MAX <= score && score <= INT16_MAX); // TODO: change this
-    return (position.state().side_to_move() == White) ? score : -score;
+    if (position.state().side_to_move() == White) {
+        return score;
+    } else {
+        return -score;
+    }
 }
 
-} // namespace cheslib::eval
+} // namespace cheslib::evaluate

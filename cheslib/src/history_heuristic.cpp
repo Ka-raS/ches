@@ -2,17 +2,14 @@
 
 namespace cheslib {
 
-HistoryHeuristic::HistoryHeuristic()
-    : _entries{} {};
-
-Score HistoryHeuristic::get(Piece piece, Square to) const {
+Score HistoryHeuristic::get(const Piece piece, const Square to) const {
     assert(piece < PieceCNT);
     assert(to < SquareCNT);
 
-    return _entries[piece][to].load(std::memory_order_relaxed);
+    return _scores[piece][to].load(std::memory_order_acquire);
 }
 
-void HistoryHeuristic::update(const Position &position, Move move, uint8_t depth) {
+void HistoryHeuristic::update(const Position &position, const Move move, const unsigned depth) {
     if (!move.flag() == QuietMove) {
         return;
     }
@@ -23,16 +20,16 @@ void HistoryHeuristic::update(const Position &position, Move move, uint8_t depth
     assert(piece < PieceCNT);
     assert(to < SquareCNT);
 
-    std::atomic_int16_t &entry = _entries[piece][to];
-    Score current = entry.load(std::memory_order_relaxed);
-    Score next = 16 * depth + current + (current >> 6);
-    entry.store(next, std::memory_order_relaxed);
+    std::atomic_int16_t &entry = _scores[piece][to];
+    const Score current = entry.load(std::memory_order_acquire);
+    const Score next = 16 * depth + current + (current >> 6);
+    entry.store(next, std::memory_order_release);
 }
 
 void HistoryHeuristic::reset() {
-    for (auto &row : _entries) {
-        for (std::atomic_int16_t &entry : row) {
-            entry.store(0, std::memory_order_relaxed);
+    for (auto &row : _scores) {
+        for (std::atomic_int16_t &score : row) {
+            score.store(0, std::memory_order_release);
         }
     }
 }

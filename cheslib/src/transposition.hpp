@@ -10,9 +10,8 @@ namespace cheslib {
 
 class Transposition {
   public:
-    Transposition();
+    Transposition() = default;
     Transposition(ZobristKey key, MoveScore move_score, Bound bound, unsigned depth);
-
     bool is_match(ZobristKey key) const;
     Move move() const;
     Score score() const;
@@ -29,8 +28,6 @@ class Transposition {
 
 class TranspositionTable {
   public:
-    TranspositionTable();
-
     /// @return `Transposition` entry without checking `Transposition::is_match()`
     Transposition get(ZobristKey key) const;
     void store(ZobristKey key, MoveScore move_score, Bound bound, unsigned depth);
@@ -40,7 +37,7 @@ class TranspositionTable {
     static size_t index(ZobristKey key);
 
   private:
-    std::atomic<Transposition> _entries[1 << 20];
+    std::atomic<Transposition> _entries[1 << 20] = {};
     static_assert(std::atomic<Transposition>::is_always_lock_free);
 };
 

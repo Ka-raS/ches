@@ -7,8 +7,8 @@ namespace {
 // see: https://en.wikipedia.org/wiki/Xorshift
 class XorShift64 {
   public:
-    consteval XorShift64(uint64_t seed)
-        : _x(seed) {}
+    explicit consteval XorShift64(const uint64_t seed)
+        : _x{seed} {}
 
     consteval uint64_t next() {
         _x ^= _x << 13;
@@ -22,9 +22,9 @@ class XorShift64 {
 };
 
 template <size_t N>
-consteval std::array<ZobristKey, N> rng(uint64_t seed, size_t discard = N) {
+consteval std::array<ZobristKey, N> rng(const uint64_t seed, const size_t discard = N) {
     std::array<ZobristKey, N> arr = {};
-    XorShift64 rng(seed);
+    XorShift64 rng{seed};
 
     for (size_t i = 0; i < N; ++i) {
         arr[i] = (i == discard) ? 0 : rng.next();
@@ -32,7 +32,7 @@ consteval std::array<ZobristKey, N> rng(uint64_t seed, size_t discard = N) {
     return arr;
 }
 
-constexpr ZobristKey SideKey = XorShift64(0xA0761D6478BD642F).next();
+constexpr ZobristKey SideKey = XorShift64{0xA0761D6478BD642F}.next();
 
 constexpr std::array<ZobristKey, CastleFlagCNT> CastlingKeys = rng<CastleFlagCNT>(SideKey);
 
@@ -47,9 +47,9 @@ ZobristKey hash(const std::array<Piece, SquareCNT> &board, const PositionState s
     ZobristKey key = 0;
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
-        Piece piece = board[sq];
+        const Piece piece = board[sq];
         if (piece < PieceCNT) {
-            key ^= PieceKeys[piece * (unsigned)SquareCNT + sq];
+            key ^= PieceKeys[piece * (size_t)SquareCNT + sq];
         }
     }
 
@@ -63,22 +63,22 @@ ZobristKey hash(const std::array<Piece, SquareCNT> &board, const PositionState s
     return key;
 }
 
-ZobristKey piece(Piece piece, Square sq) {
+ZobristKey piece(const Piece piece, const Square square) {
     assert(piece < PieceCNT);
-    assert(sq < SquareCNT);
-    return PieceKeys[piece * (unsigned)SquareCNT + sq];
+    assert(square < SquareCNT);
+    return PieceKeys[piece * (size_t)SquareCNT + square];
 }
 
 ZobristKey side() {
     return SideKey;
 }
 
-ZobristKey en_passant(File file) {
+ZobristKey en_passant(const File file) {
     assert(file <= FileCNT);
     return EnPassantKeys[file];
 }
 
-ZobristKey castling(CastleFlag flag) {
+ZobristKey castling(const CastleFlag flag) {
     assert(flag < CastleFlagCNT);
     return CastlingKeys[flag];
 }

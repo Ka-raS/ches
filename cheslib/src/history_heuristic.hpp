@@ -9,13 +9,12 @@ namespace cheslib {
 
 class HistoryHeuristic {
   public:
-    HistoryHeuristic();
     Score get(Piece piece, Square to) const;
-    void update(const Position &position, Move move, uint8_t depth);
+    void update(const Position &position, Move move, unsigned depth);
     void reset();
 
   private:
-    std::atomic_int16_t _entries[PieceCNT][SquareCNT];
+    std::atomic_int16_t _scores[PieceCNT][SquareCNT] = {0};
     static_assert(std::atomic_int16_t::is_always_lock_free);
 };
 
