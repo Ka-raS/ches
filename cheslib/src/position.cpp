@@ -1,7 +1,5 @@
-#include <cstring>
-
-#include "attacks.hpp"
 #include "position.hpp"
+#include "attacks.hpp"
 #include "zobrist.hpp"
 
 namespace cheslib {
@@ -38,18 +36,15 @@ bool Position::is_50move_draw() const {
 }
 
 bool Position::is_3fold_repetition() const {
-    int count = 1;
+    int count = 1; // current position
 
-    for (long i = (long)_history.size() - 2; i >= 0; i -= 2) {
-        if (_history[i].key == _key) {
+    for (const HistoryEntry &entry : _history) {
+        if (entry.key == _key) {
             ++count;
-            if (count == 3) {
-                return true;
-            }
         }
     }
 
-    return false;
+    return count >= 3;
 }
 
 bool Position::is_insufficient_material() const {
@@ -61,21 +56,13 @@ bool Position::is_insufficient_material() const {
 }
 
 void Position::trim_history() {
-    long size = _history.size();
-
     // first move is irreversible
-    assert(size == 0 || _history[0].state.rule50_count() == 0);
+    assert(_history.size() > 0 && _history[0].state.rule50_count() == 0);
 
-    for (long i = size - 1; i > 0; --i) {
-        const bool is_irreversible = _history[i].state.rule50_count() == 0;
-        if (is_irreversible) {
-            size -= i;
-            assert(size < 100); // size < 50 moves rule
-
-            std::memmove(_history.begin(), _history.begin() + i, size * sizeof(HistoryEntry));
-            _history.resize(size);
-            return;
-        }
+    const HistoryEntry &back = _history[_history.size() - 1];
+    if (back.state.rule50_count() == 0) {
+        _history[0] = back;
+        _history.resize(1);
     }
 }
 
@@ -205,7 +192,7 @@ void Position::do_legal(const Move move) {
         _key ^= zobrist::piece(before, from) ^ zobrist::piece(after, to);
 
         // rule 50
-        if (move.is_capture() || before == types::piece_of(us, Pawn)) {
+        if (move.is_capture() || types::type_of(before) == Pawn) {
             _state.reset_rule50();
         } else {
             _state.increment_rule50();

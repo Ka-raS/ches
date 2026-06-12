@@ -1,6 +1,6 @@
-#include <cassert>
-
 #include "thread.hpp"
+
+#include <cassert>
 
 namespace cheslib {
 

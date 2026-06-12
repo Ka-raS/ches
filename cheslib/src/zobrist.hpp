@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
-
 #include "position_state.hpp"
+
+#include <array>
 
 namespace cheslib::zobrist {
 

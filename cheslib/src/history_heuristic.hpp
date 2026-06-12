@@ -1,9 +1,9 @@
 #pragma once
 
-#include <atomic>
-
 #include "position.hpp"
 #include "types.hpp"
+
+#include <atomic>
 
 namespace cheslib {
 

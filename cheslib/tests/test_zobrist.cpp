@@ -1,8 +1,8 @@
+#include "zobrist.hpp"
+
 #include <unordered_set>
 
 #include <catch2/catch_test_macros.hpp>
-
-#include "zobrist.hpp"
 
 using namespace cheslib;
 

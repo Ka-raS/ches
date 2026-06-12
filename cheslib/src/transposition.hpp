@@ -1,10 +1,9 @@
 #pragma once
 
-#include <atomic>
-
 #include "cheslib/move.hpp"
-
 #include "types.hpp"
+
+#include <atomic>
 
 namespace cheslib {
 

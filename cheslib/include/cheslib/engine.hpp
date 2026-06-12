@@ -1,13 +1,13 @@
 #pragma once
 
-#include <array>
-
 #include "cheslib/array.hpp"
 #include "cheslib/move.hpp"
 
+#include <array>
+
 namespace cheslib {
 
-enum class ChessStatus : unsigned {
+enum class ChessState : unsigned {
     OnGoing,
     WhiteWin,
     BlackWin,
@@ -26,7 +26,7 @@ class Engine {
      */
     Engine(unsigned search_depth, int thread_count);
 
-    ChessStatus status() const;
+    ChessState state() const;
     const Array<Move, 256> &legal_moves() const;
     const std::array<Piece, SquareCNT> &board() const;
 
@@ -34,20 +34,20 @@ class Engine {
     void reset_game();
 
     /**
-     * @throw `std::logic_error` if `status() != ChessStatus::OnGoing`
+     * @throw `std::logic_error` if `state() != ChessState::OnGoing`
      * @throw `std::invalid_argument` if `move` not in `legal_moves()`
      */
-    [[nodiscard]] ChessStatus do_move(Move move);
+    [[nodiscard]] ChessState do_move(Move move);
 
     /**
      * non blocking, do nothing if `is_searching()`
-     * @throw `std::logic_error` if `status() != ChessStatus::OnGoing`
+     * @throw `std::logic_error` if `state() != ChessState::OnGoing`
      */
     void start_move_search();
 
     /**
      * non blocking, do nothing if `!is_searching()`
-     * @note `is_searching()` won't be `false` right away
+     * @note `is_searching()` won't be `false` right after this call
      */
     void stop_move_search();
 

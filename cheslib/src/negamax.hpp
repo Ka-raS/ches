@@ -1,12 +1,12 @@
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "history_heuristic.hpp"
 #include "position.hpp"
 #include "thread.hpp"
 #include "transposition.hpp"
+
+#include <memory>
+#include <vector>
 
 namespace cheslib {
 

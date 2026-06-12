@@ -1,11 +1,11 @@
 #pragma once
 
+#include "cheslib/move.hpp"
+#include "cheslib/types.hpp"
+
 #include <bit>
 #include <concepts>
 #include <cstddef>
-
-#include "cheslib/move.hpp"
-#include "cheslib/types.hpp"
 
 namespace cheslib {
 

@@ -1,9 +1,9 @@
-#include <algorithm>
-#include <iostream>
-
+#include "negamax.hpp"
 #include "evaluate.hpp"
 #include "movegen.hpp"
-#include "negamax.hpp"
+
+#include <algorithm>
+#include <iostream>
 
 namespace cheslib {
 

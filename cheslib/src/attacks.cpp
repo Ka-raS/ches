@@ -1,7 +1,7 @@
+#include "attacks.hpp"
+
 #include <array>
 #include <span>
-
-#include "attacks.hpp"
 
 namespace cheslib::attacks {
 

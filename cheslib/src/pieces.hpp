@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
-
 #include "types.hpp"
+
+#include <array>
 
 namespace cheslib {
 

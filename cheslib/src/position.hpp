@@ -1,7 +1,6 @@
 #pragma once
 
 #include "cheslib/array.hpp"
-
 #include "pieces.hpp"
 #include "position_state.hpp"
 
@@ -21,11 +20,10 @@ class Position {
     bool is_3fold_repetition() const;
     bool is_insufficient_material() const;
 
-    /// @return false if pseudo move fails king safety
-    [[nodiscard]] bool try_do_pseudo(Move move);
+    [[nodiscard]] bool try_do_pseudo(Move move); ///< @return `false` if pseudo move fails king safety
     void do_legal(Move move);
     void undo(Move move);
-    void trim_history();
+    void trim_history(); ///< `Engine` calls this after each `do_legal`
 
   private:
     bool is_attacking(Square at, Side us) const;
