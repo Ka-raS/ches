@@ -4,7 +4,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-using namespace cheslib;
+using namespace ::cheslib;
 
 TEST_CASE("Zobrist: thats some good keys", "[zobrist]") {
     std::unordered_set<ZobristKey> keys;

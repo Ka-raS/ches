@@ -24,7 +24,7 @@ using ZobristKey = uint64_t;
 
 using Score = int32_t;
 
-struct MoveScore {
+struct alignas(4) MoveScore {
     Move move;
     int16_t score;
 };
@@ -48,8 +48,6 @@ enum Direction : int8_t {
     NorthWest = -SouthEast
 };
 
-namespace types {
-
 /**
  * @return the square behind `square` from `us` view,
  * example: square_behind(White, SquareE4) == SquareE3
@@ -66,15 +64,6 @@ constexpr Square square_behind(const Side us, const Square square) {
 
     assert(behind < SquareCNT);
     return behind;
-}
-
-constexpr Square flip_rank(const Square square) {
-    assert(square < SquareCNT);
-
-    const Square flipped = Square(square ^ 0b111'000); /// flip only the rank bits
-
-    assert(flipped < SquareCNT);
-    return flipped;
 }
 
 constexpr Square pop_lsb(Bitboard &board) {
@@ -120,7 +109,5 @@ constexpr void set_square(Bitboard &board, const Square square) {
 constexpr void unset_square(Bitboard &board, const Square square) {
     board &= ~bitboard_of(square);
 }
-
-} // namespace types
 
 } // namespace cheslib

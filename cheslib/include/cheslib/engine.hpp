@@ -7,7 +7,7 @@
 
 namespace cheslib {
 
-enum class ChessState : unsigned {
+enum class ChessStatus : uint8_t {
     OnGoing,
     WhiteWin,
     BlackWin,
@@ -21,12 +21,12 @@ class Engine {
   public:
     /**
      * init to starting position, white ready to play
-     * @param search_depth clamped to `[1, 16]`
+     * @param search_depth clamped to `[2, 15]`
      * @param thread_count clamped to `[1, hardware_concurrency]`, if `<= 0` use `hardware_concurrency + thread_count`
      */
     Engine(unsigned search_depth, int thread_count);
 
-    ChessState state() const;
+    ChessStatus status() const;
     const Array<Move, 256> &legal_moves() const;
     const std::array<Piece, SquareCNT> &board() const;
 
@@ -34,14 +34,14 @@ class Engine {
     void reset_game();
 
     /**
-     * @throw `std::logic_error` if `state() != ChessState::OnGoing`
+     * @throw `std::logic_error` if `status() != ChessStatus::OnGoing`
      * @throw `std::invalid_argument` if `move` not in `legal_moves()`
      */
-    [[nodiscard]] ChessState do_move(Move move);
+    [[nodiscard]] ChessStatus do_move(Move move);
 
     /**
      * non blocking, do nothing if `is_searching()`
-     * @throw `std::logic_error` if `state() != ChessState::OnGoing`
+     * @throw `std::logic_error` if `status() != ChessStatus::OnGoing`
      */
     void start_move_search();
 
@@ -75,9 +75,9 @@ class Engine {
     const Impl *pimpl() const;
 
   private:
-    static constexpr size_t BufferAlign = 8;
+    static constexpr size_t BufferAlign = 16;
 
-    alignas(BufferAlign) std::byte _buffer[3848];
+    alignas(BufferAlign) std::byte _buffer[3872];
     Array<Move, 256> _legal_moves;
 };
 

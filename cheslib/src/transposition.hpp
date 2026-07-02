@@ -7,7 +7,7 @@
 
 namespace cheslib {
 
-class Transposition {
+class alignas(8) Transposition {
   public:
     Transposition() = default;
     Transposition(ZobristKey key, MoveScore move_score, Bound bound, unsigned depth);
@@ -27,6 +27,8 @@ class Transposition {
 
 class TranspositionTable {
   public:
+    TranspositionTable() = default;
+
     /// @return `Transposition` entry without checking `Transposition::is_match()`
     Transposition get(ZobristKey key) const;
     void store(ZobristKey key, MoveScore move_score, Bound bound, unsigned depth);

@@ -2,7 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-using namespace cheslib;
+using namespace ::cheslib;
 
 TEST_CASE("Move: Contructor encodes, methods decode", "[move]") {
     SECTION("Quiet move") {

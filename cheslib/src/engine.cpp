@@ -19,8 +19,7 @@ Engine::Engine(const unsigned search_depth, const int thread_count) {
         .position{Position::initial()}, //
         .negamax{search_depth, thread_count}
     };
-
-    movegen::legals(impl->position, _legal_moves);
+    _legal_moves = movegen::legals(impl->position);
 }
 
 Engine::~Engine() {
@@ -41,6 +40,7 @@ void Engine::reset_game() {
     auto &[position, negamax] = *pimpl();
     negamax.reset();
     position = Position::initial();
+    _legal_moves = movegen::legals(position);
 }
 
 const std::array<Piece, SquareCNT> &Engine::board() const {
@@ -69,7 +69,7 @@ Move Engine::search_result() const {
 
 void Engine::start_move_search() {
 #ifdef __cpp_exceptions
-    if (state() != ChessState::OnGoing) {
+    if (status() != ChessStatus::OnGoing) {
         throw std::logic_error("game over");
     }
 #endif
@@ -78,9 +78,9 @@ void Engine::start_move_search() {
     negamax.start_search(position, _legal_moves);
 }
 
-ChessState Engine::do_move(const Move move) {
+ChessStatus Engine::do_move(const Move move) {
 #ifdef __cpp_exceptions
-    if (state() != ChessState::OnGoing) {
+    if (status() != ChessStatus::OnGoing) {
         throw std::logic_error("game over");
     }
     if (std::ranges::find(_legal_moves, move) == _legal_moves.end()) {
@@ -91,35 +91,36 @@ ChessState Engine::do_move(const Move move) {
     Position &position = pimpl()->position;
     position.do_legal(move);
     position.trim_history();
-    movegen::legals(position, _legal_moves);
-    return state();
+    _legal_moves = movegen::legals(position);
+
+    return status();
 }
 
-ChessState Engine::state() const {
+ChessStatus Engine::status() const {
     const Position &position = pimpl()->position;
 
     if (_legal_moves.size() == 0) {
         if (!position.is_in_check()) {
-            return ChessState::Stalemate;
+            return ChessStatus::Stalemate;
         }
         if (position.state().side_to_move() == White) {
-            return ChessState::BlackWin;
+            return ChessStatus::BlackWin;
         } else {
-            return ChessState::WhiteWin;
+            return ChessStatus::WhiteWin;
         }
     }
 
     if (position.is_50move_draw()) {
-        return ChessState::Draw50Move;
+        return ChessStatus::Draw50Move;
     }
     if (position.is_3fold_repetition()) {
-        return ChessState::Draw3Repetition;
+        return ChessStatus::Draw3Repetition;
     }
     if (position.is_insufficient_material()) {
-        return ChessState::DrawInsufficientMaterial;
+        return ChessStatus::DrawInsufficientMaterial;
     }
 
-    return ChessState::OnGoing;
+    return ChessStatus::OnGoing;
 }
 
 } // namespace cheslib

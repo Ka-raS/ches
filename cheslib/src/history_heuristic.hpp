@@ -9,6 +9,7 @@ namespace cheslib {
 
 class HistoryHeuristic {
   public:
+    HistoryHeuristic() = default;
     Score get(Piece piece, Square to) const;
     void update(const Position &position, Move move, unsigned depth);
     void reset();

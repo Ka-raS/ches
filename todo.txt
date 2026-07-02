@@ -1,11 +1,16 @@
+- inline tranposition, heuristics
+- Engine::undo_move() and _move_history
 - Negamax INT16_MAX is weird
-- braces init
-- check msvc __cpp_exceptions
-- folder structure the sources
+- cpu pinning
+- test with no assets
+- param structs, config file
 - app.rc
-- -Wnrvo
+- -Wnrvo, -Rpass-analysis=[inline, loop-unroll, loop-vectorize]
 
 - /D_HAS_EXCEPTIONS=0
+- AudioManager
 - switch to the 4bit flag version of Move for easy switch case
+- optimize do/undo move, movegen
 - clang tidy
 - android support somehow
+

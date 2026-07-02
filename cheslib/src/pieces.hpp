@@ -15,7 +15,7 @@ class Pieces {
     static std::array<Piece, SquareCNT> initial();
 
     const std::array<Piece, SquareCNT> &board() const;
-    Piece at(Square sq) const;
+    Piece at(Square square) const;
     int count(Piece piece) const;
     Square king_of(Side us) const;
 
@@ -24,9 +24,9 @@ class Pieces {
     Bitboard get(Piece piece) const;
     Bitboard get(Side us, PieceType type) const;
 
-    void put(Square sq, Piece piece);
+    void put(Piece piece, Square at);
     void move(Square from, Square to);
-    Piece remove(Square sq);
+    Piece remove(Square at);
 
   private:
     std::array<Piece, SquareCNT> _board;

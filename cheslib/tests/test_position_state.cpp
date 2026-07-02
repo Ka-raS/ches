@@ -2,7 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-using namespace cheslib;
+using namespace ::cheslib;
 
 TEST_CASE("PositionState: Initial state", "[state]") {
     const PositionState s = PositionState::initial();

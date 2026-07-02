@@ -1,26 +1,37 @@
 #pragma once
-#include <filesystem>
+
 #include <raylib.h>
 
-namespace config {
+namespace ches::config {
 
-inline constexpr int WINDOW_WIDTH = 800;
-inline constexpr int WINDOW_HEIGHT = 600;
-inline constexpr const char *WINDOW_TITLE = "Ches";
-inline constexpr Color BACKGROUND_COLOR = {48, 46, 43, 255};
+constexpr inline unsigned EngineDepth = 6;
+constexpr inline int EngineThreadCount = -2; // hardware concurrency - 2
 
-inline const std::filesystem::path ASSETS = "assets";
-inline const std::filesystem::path WHITE_PAWN_PNG = ASSETS / "white_pawn.png";
-inline const std::filesystem::path WHITE_KNIGHT_PNG = ASSETS / "white_knight.png";
-inline const std::filesystem::path WHITE_BISHOP_PNG = ASSETS / "white_bishop.png";
-inline const std::filesystem::path WHITE_ROOK_PNG = ASSETS / "white_rook.png";
-inline const std::filesystem::path WHITE_QUEEN_PNG = ASSETS / "white_queen.png";
-inline const std::filesystem::path WHITE_KING_PNG = ASSETS / "white_king.png";
-inline const std::filesystem::path BLACK_PAWN_PNG = ASSETS / "black_pawn.png";
-inline const std::filesystem::path BLACK_KNIGHT_PNG = ASSETS / "black_knight.png";
-inline const std::filesystem::path BLACK_BISHOP_PNG = ASSETS / "black_bishop.png";
-inline const std::filesystem::path BLACK_ROOK_PNG = ASSETS / "black_rook.png";
-inline const std::filesystem::path BLACK_QUEEN_PNG = ASSETS / "black_queen.png";
-inline const std::filesystem::path BLACK_KING_PNG = ASSETS / "black_king.png";
+constexpr inline int FPSTarget = 120;
+constexpr inline int WindowWidth = 1600;
+constexpr inline int WindowHeight = 1200;
+constexpr inline char GameTitle[] = "Ches";
+constexpr inline ::ConfigFlags WindowConfigs = ::ConfigFlags(::FLAG_WINDOW_RESIZABLE | ::FLAG_MSAA_4X_HINT);
 
-} // namespace config
+constexpr inline ::Color Background{0x30, 0x2E, 0x2B, 0xFF};      // #302E2BFF
+constexpr inline ::Color LightSquare{0xEF, 0xD8, 0xB4, 0xFF};     // #EFD8B4FF
+constexpr inline ::Color DarkSquare{0xB4, 0x87, 0x62, 0xFF};      // #B48762FF
+constexpr inline ::Color Highlight{0xAB, 0xCC, 0x20, 0x80};       // #ABCC2080
+constexpr inline ::Color MoveHint{0x12, 0x52, 0x1C, 0x79};        // #12521C79
+constexpr inline ::Color PanelBackground{0x20, 0x20, 0x20, 0x80}; // #20202080
+
+constexpr inline char IconPath[] = "assets/icon.png";
+constexpr inline char FontPath[] = "assets/NotoSans-Bold.ttf";
+constexpr inline char PiecesSpritePath[] = "assets/pieces-spritesheet.png";
+
+constexpr inline int SquareSize = 128;
+constexpr inline ::Vector2 BoardPos = {88, 88};
+
+constexpr ::Rectangle UIPanelRect{
+    .x = 1200, //
+    .y = 88,
+    .width = WindowWidth - 1200 - 88,
+    .height = 1024
+};
+
+} // namespace ches::config

@@ -2,8 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-using namespace cheslib;
-using namespace cheslib::types;
+using namespace ::cheslib;
 
 TEST_CASE("Types: square_behind", "[types]") {
     SECTION("White") {

@@ -2,7 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-using namespace cheslib;
+using namespace ::cheslib;
 
 namespace {
 
@@ -16,7 +16,7 @@ void check_consistency(const Position &pos) {
     const Pieces &pieces = pos.pieces();
     const std::array<Piece, SquareCNT> &board = pieces.board();
 
-    auto count = [&board](const Piece target) {
+    auto count = [&board](const Piece target) -> int {
         int cnt = 0;
         for (const Piece piece : board) {
             if (piece == target) {
@@ -35,7 +35,7 @@ void check_consistency(const Position &pos) {
         CHECK(count(piece) == std::popcount(bb));
 
         all |= bb;
-        if (types::side_of(piece) == White) {
+        if (side_of(piece) == White) {
             white |= bb;
         } else {
             black |= bb;
@@ -51,10 +51,10 @@ void check_consistency(const Position &pos) {
         const Piece piece = board[sq];
         const bool has_piece = piece < PieceCNT;
 
-        CHECK(types::has_square(all, sq) == has_piece);
+        CHECK(has_square(all, sq) == has_piece);
         if (has_piece) {
             const Bitboard bb = pieces.get(piece);
-            CHECK(types::has_square(bb, sq));
+            CHECK(has_square(bb, sq));
         }
     }
 }
@@ -63,10 +63,9 @@ void check_consistency(const Position &pos) {
 
 TEST_CASE("Position: Quiet move keeps full consistency", "[position]") {
     const Position pos_init = Position::initial();
-    const Move move{SquareG1, SquareF3, QuietMove};
 
     Position pos = pos_init;
-    pos.do_legal(move);
+    pos.do_legal(Move{SquareG1, SquareF3, QuietMove});
 
     const PositionState state = pos.state();
     const std::array<Piece, SquareCNT> &board = pos.pieces().board();
@@ -78,7 +77,7 @@ TEST_CASE("Position: Quiet move keeps full consistency", "[position]") {
     CHECK(state.rule50_count() == 1);
 
     check_consistency(pos);
-    pos.undo(move);
+    pos.undo_move();
     check_consistency(pos);
     check_equality(pos, pos_init);
 }
@@ -91,10 +90,9 @@ TEST_CASE("Position: Double pawn push updates en passant", "[position]") {
         board[SquareD4] = BlackPawn;
         return board;
     }()};
-    const Move move{SquareE2, SquareE4, DoublePawnPush};
 
     Position pos = pos_init;
-    pos.do_legal(move);
+    pos.do_legal(Move{SquareE2, SquareE4, DoublePawnPush});
 
     const PositionState state = pos.state();
     const std::array<Piece, SquareCNT> &board = pos.pieces().board();
@@ -106,7 +104,7 @@ TEST_CASE("Position: Double pawn push updates en passant", "[position]") {
     CHECK(state.rule50_count() == 0);
 
     check_consistency(pos);
-    pos.undo(move);
+    pos.undo_move();
     check_consistency(pos);
     check_equality(pos, pos_init);
 }
@@ -121,10 +119,9 @@ TEST_CASE("Position: Capture restores captured piece", "[position]") {
         board[SquareA8] = BlackKnight;
         return board;
     }()};
-    const Move move{SquareA1, SquareA8, Capture};
 
     Position pos = pos_init;
-    pos.do_legal(move);
+    pos.do_legal(Move{SquareA1, SquareA8, Capture});
 
     const PositionState state = pos.state();
     const Pieces &pieces = pos.pieces();
@@ -137,7 +134,7 @@ TEST_CASE("Position: Capture restores captured piece", "[position]") {
     CHECK(state.rule50_count() == 0);
 
     check_consistency(pos);
-    pos.undo(move);
+    pos.undo_move();
     check_consistency(pos);
     check_equality(pos, pos_init);
 }
@@ -152,10 +149,9 @@ TEST_CASE("Position: En passant is reversible", "[position]") {
         board[SquareD5] = BlackPawn;
         return board;
     }()};
-    const Move move{SquareE5, SquareD6, EnPassant};
 
     Position pos = pos_init;
-    pos.do_legal(move);
+    pos.do_legal(Move{SquareE5, SquareD6, EnPassant});
 
     const PositionState state = pos.state();
     const std::array<Piece, SquareCNT> &board = pos.pieces().board();
@@ -168,7 +164,7 @@ TEST_CASE("Position: En passant is reversible", "[position]") {
     CHECK(state.rule50_count() == 0);
 
     check_consistency(pos);
-    pos.undo(move);
+    pos.undo_move();
     check_consistency(pos);
     check_equality(pos, pos_init);
 }
@@ -182,10 +178,9 @@ TEST_CASE("Position: Short castle moves king and rook", "[position]") {
         board[SquareE8] = BlackKing;
         return board;
     }()};
-    const Move move{SquareE1, SquareG1, ShortCastle};
 
     Position pos = pos_init;
-    pos.do_legal(move);
+    pos.do_legal(Move{SquareE1, SquareG1, ShortCastle});
 
     const PositionState state = pos.state();
     const std::array<Piece, SquareCNT> &board = pos.pieces().board();
@@ -199,7 +194,7 @@ TEST_CASE("Position: Short castle moves king and rook", "[position]") {
     CHECK_FALSE(state.can_castles(WhiteShortCastles));
 
     check_consistency(pos);
-    pos.undo(move);
+    pos.undo_move();
     check_consistency(pos);
     check_equality(pos, pos_init);
 }
@@ -214,10 +209,9 @@ TEST_CASE("Position: Promotion capture is reversible", "[position]") {
         board[SquareB8] = BlackRook;
         return board;
     }()};
-    const Move move{SquareA7, SquareB8, QueenPromoCap};
 
     Position pos = pos_init;
-    pos.do_legal(move);
+    pos.do_legal(Move{SquareA7, SquareB8, QueenPromoCap});
 
     const PositionState state = pos.state();
     const Pieces &pieces = pos.pieces();
@@ -232,7 +226,7 @@ TEST_CASE("Position: Promotion capture is reversible", "[position]") {
     CHECK(state.rule50_count() == 0);
 
     check_consistency(pos);
-    pos.undo(move);
+    pos.undo_move();
     check_consistency(pos);
     check_equality(pos, pos_init);
 }
@@ -245,45 +239,39 @@ TEST_CASE("Position: Castling rights updated", "[position]") {
         board[SquareA1] = board[SquareH1] = WhiteRook;
         return board;
     }()};
-    const Move move1{SquareA1, SquareA2, QuietMove};
-    const Move move2{SquareE1, SquareE2, QuietMove};
 
     Position pos = pos_init;
-    pos.do_legal(move1);
+    pos.do_legal(Move{SquareA1, SquareA2, QuietMove});
 
     CHECK_FALSE(pos.state().can_castles(WhiteLongCastles));
     CHECK(pos.state().can_castles(WhiteShortCastles));
 
-    pos.undo(move1);
+    pos.undo_move();
     check_equality(pos, pos_init);
 
-    pos.do_legal(move2);
+    pos.do_legal(Move{SquareE1, SquareE2, QuietMove});
     CHECK_FALSE(pos.state().can_castles(WhiteLongCastles));
     CHECK_FALSE(pos.state().can_castles(WhiteShortCastles));
 
-    pos.undo(move2);
+    pos.undo_move();
     check_equality(pos, pos_init);
 }
 
 TEST_CASE("Position: Multiple dos then undos", "[position]") {
     const Position pos_init = Position::initial();
-    const Move moves1{SquareE2, SquareE4, DoublePawnPush};
-    const Move moves2{SquareA7, SquareA6, QuietMove};
-    const Move moves3{SquareG1, SquareF3, QuietMove};
-    const Move moves4{SquareB8, SquareC6, QuietMove};
 
     Position pos = pos_init;
-    pos.do_legal(moves1);
-    pos.do_legal(moves2);
-    pos.do_legal(moves3);
-    pos.do_legal(moves4);
+    pos.do_legal(Move{SquareE2, SquareE4, DoublePawnPush});
+    pos.do_legal(Move{SquareA7, SquareA6, QuietMove});
+    pos.do_legal(Move{SquareG1, SquareF3, QuietMove});
+    pos.do_legal(Move{SquareB8, SquareC6, QuietMove});
 
     check_consistency(pos);
 
-    pos.undo(moves4);
-    pos.undo(moves3);
-    pos.undo(moves2);
-    pos.undo(moves1);
+    pos.undo_move();
+    pos.undo_move();
+    pos.undo_move();
+    pos.undo_move();
 
     check_consistency(pos);
     check_equality(pos, pos_init);
@@ -299,10 +287,9 @@ TEST_CASE("Position: Capturing rook revokes castling right", "[position]") {
         board[SquareH4] = BlackQueen;
         return board;
     }()};
-    const Move move{SquareH4, SquareH1, Capture};
 
     Position pos = pos_init;
-    pos.do_legal(move);
+    pos.do_legal(Move{SquareH4, SquareH1, Capture});
 
     const PositionState state = pos.state();
     const std::array<Piece, SquareCNT> &board = pos.pieces().board();
@@ -312,7 +299,7 @@ TEST_CASE("Position: Capturing rook revokes castling right", "[position]") {
     CHECK_FALSE(state.can_castles(WhiteShortCastles));
 
     check_consistency(pos);
-    pos.undo(move);
+    pos.undo_move();
     check_consistency(pos);
     check_equality(pos, pos_init);
 }

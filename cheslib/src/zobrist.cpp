@@ -7,8 +7,8 @@ namespace {
 // see: https://en.wikipedia.org/wiki/Xorshift
 class XorShift64 {
   public:
-    explicit consteval XorShift64(const uint64_t seed)
-        : _x{seed} {}
+    consteval explicit XorShift64(const uint64_t seed) :
+        _x{seed} {}
 
     consteval uint64_t next() {
         _x ^= _x << 13;

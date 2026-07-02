@@ -22,15 +22,16 @@ class Position {
 
     [[nodiscard]] bool try_do_pseudo(Move move); ///< @return `false` if pseudo move fails king safety
     void do_legal(Move move);
-    void undo(Move move);
+    void undo_move();
     void trim_history(); ///< `Engine` calls this after each `do_legal`
 
   private:
     bool is_attacking(Square at, Side us) const;
 
-    struct HistoryEntry {
+    struct alignas(16) HistoryEntry {
         ZobristKey key;
         PositionState state;
+        Move move;
         Piece captured;
     };
 

@@ -5,30 +5,30 @@
 using namespace ::cheslib;
 
 TEST_CASE("Array: constructor", "[array]") {
-    SECTION("Default initialization") {
+    SECTION("Default constructor") {
         Array<int, 4> values;
         CHECK(values.size() == 0);
         CHECK(values.begin() == values.end());
     }
 
     SECTION("Empty brace initialization") {
-        Array<int, 4> values{};
-        values.resize(4);
-        CHECK(values.size() == 4);
-        CHECK(values.begin() + 4 == values.end());
+        Array<int, 4> values = {};
+        CHECK(values.size() == 0);
+        CHECK(values.begin() == values.end());
 
-        for (int value : values) {
+        for (size_t i = 0; i < 4; ++i) {
+            const int value = *(values.begin() + i);
             CHECK(value == 0);
         }
     }
 }
 
-TEST_CASE("Array: push", "[array]") {
+TEST_CASE("Array: emplace_back", "[array]") {
     Array<int, 4> values;
 
-    values.push(10);
-    values.push(20);
-    values.push(30);
+    values.emplace_back(10);
+    values.emplace_back(20);
+    values.emplace_back(30);
 
     CHECK(values.size() == 3);
     CHECK(values[0] == 10);
@@ -36,25 +36,27 @@ TEST_CASE("Array: push", "[array]") {
     CHECK(values[2] == 30);
 }
 
-TEST_CASE("Array: pop", "[array]") {
+TEST_CASE("Array: pop_back", "[array]") {
     Array<int, 4> values;
 
-    values.push(1);
-    values.push(2);
-    values.push(3);
+    values.emplace_back(1);
+    values.emplace_back(2);
+    values.emplace_back(3);
 
-    CHECK(values.pop() == 3);
-    CHECK(values.pop() == 2);
+    CHECK(values.back() == 3);
+    values.pop_back();
+    CHECK(values.back() == 2);
+    values.pop_back();
     CHECK(values.size() == 1);
     CHECK(values[0] == 1);
 }
 
 TEST_CASE("Array: iteration", "[array]") {
-    int samples[4] = {4, 5, 6, 7};
+    const int samples[4] = {4, 5, 6, 7};
 
     Array<int, 4> values;
     for (int sample : samples) {
-        values.push(sample);
+        values.emplace_back(sample);
     }
 
     size_t index = 0;

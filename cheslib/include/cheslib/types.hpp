@@ -68,8 +68,6 @@ constexpr Piece operator++(Piece &piece) {
     return piece = Piece(piece + 1u);
 }
 
-namespace types {
-
 constexpr Square square_of(const File file, const Rank rank) {
     assert(file < FileCNT);
     assert(rank < RankCNT);
@@ -80,15 +78,6 @@ constexpr Square square_of(const File file, const Rank rank) {
     return square;
 }
 
-constexpr File file_of(const Square square) {
-    assert(square < SquareCNT);
-
-    const File file = File(square & 0b111); // square % FileCNT
-
-    assert(file < FileCNT);
-    return file;
-}
-
 constexpr Rank rank_of(const Square square) {
     assert(square < SquareCNT);
 
@@ -96,6 +85,15 @@ constexpr Rank rank_of(const Square square) {
 
     assert(rank < RankCNT);
     return rank;
+}
+
+constexpr File file_of(const Square square) {
+    assert(square < SquareCNT);
+
+    const File file = File(square & 0b111); // square % FileCNT
+
+    assert(file < FileCNT);
+    return file;
 }
 
 constexpr PieceType type_of(const Piece piece) {
@@ -115,12 +113,28 @@ constexpr Side side_of(const Piece piece) {
 constexpr Piece piece_of(const Side us, const PieceType type) {
     assert(type < PieceTypeCNT);
 
-    const Piece piece = Piece(type << 1 | us); // lsb is side bit
+    const Piece piece = Piece(type << 1 | us); // lsb is Side
 
     assert(piece < PieceCNT);
     return piece;
 }
 
-} // namespace types
+constexpr Square flip_rank(const Square square) {
+    assert(square < SquareCNT);
+
+    const Square flipped = Square(square ^ 0b111'000);
+
+    assert(flipped < SquareCNT);
+    return flipped;
+}
+
+constexpr Square flip_file(const Square square) {
+    assert(square < SquareCNT);
+
+    const Square flipped = Square(square ^ 0b111);
+
+    assert(flipped < SquareCNT);
+    return flipped;
+}
 
 } // namespace cheslib

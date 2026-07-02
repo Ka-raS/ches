@@ -2,7 +2,7 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-using namespace cheslib;
+using namespace ::cheslib;
 
 TEST_CASE("Transposition: simple store and get", "[transposition]") {
     const ZobristKey key = 0x123456789ABCDEF;

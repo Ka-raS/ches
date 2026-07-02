@@ -25,7 +25,7 @@
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_CXX_FLAGS": "-fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-instr-generate -fprofile-update=atomic -funroll-loops -g -march=native -pipe"
+                "CMAKE_CXX_FLAGS": "-ffast-math -fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-instr-generate -fprofile-update=atomic -funroll-loops -g -march=native -pipe"
             }
         },
         {
@@ -35,7 +35,7 @@
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_CXX_FLAGS": "-fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-use=${sourceDir}/build/pgo-generate/ches/default.profdata -funroll-loops -g -march=native -pipe"
+                "CMAKE_CXX_FLAGS": "-ffast-math -fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-use=${sourceDir}/build/pgo-generate/ches/default.profdata -funroll-loops -g -march=native -pipe"
             }
         }
     ]

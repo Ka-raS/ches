@@ -22,11 +22,14 @@ class Negamax {
     void reset();
 
   private:
-    MoveScore iterative_deepening(Position position, std::vector<MoveScore> legal_moves);
+    struct RootNode {
+        Position position;
+        Array<MoveScore, 256> legal_moves;
+    };
+
+    MoveScore iterative_deepening(RootNode root);
     Score negamax(Position &position, unsigned depth, Score alpha, Score beta);
     Score score_move(Move move, const Position &position) const; ///< for move ordering
-
-    static size_t calculate_thread_count(int requested);
 
   private:
     std::unique_ptr<TranspositionTable> _transpositions;

@@ -37,8 +37,8 @@ class Move {
   public:
     constexpr Move() = default;
 
-    constexpr Move(Square from, Square to, MoveFlag flag)
-        : _data(from | (to << 6) | (flag << 12)) {
+    constexpr Move(Square from, Square to, MoveFlag flag) :
+        _data(from | (to << 6) | (flag << 12)) {
         assert(from < SquareCNT);
         assert(to < SquareCNT);
         assert(flag <= QueenPromoCap && flag != 6 && flag != 7);

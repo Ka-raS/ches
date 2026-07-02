@@ -16,6 +16,7 @@ endif()
 # ches project
 
 add_executable(ches)
+
 target_compile_features(ches PRIVATE cxx_std_20)
 
 target_link_libraries(ches
@@ -23,10 +24,15 @@ target_link_libraries(ches
     PRIVATE cheslib
 )
 
+target_include_directories(ches PRIVATE src/)
+
 target_sources(ches PRIVATE
+    src/asset_manager.cpp
+    src/game_states.cpp
+    src/game.cpp
     src/main.cpp
-    # src/game.cpp
-    # src/window.cpp
+    src/ui.cpp
+    src/window.cpp
 )
 
 add_custom_command(TARGET ches POST_BUILD

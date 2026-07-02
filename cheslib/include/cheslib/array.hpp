@@ -6,32 +6,37 @@
 
 namespace cheslib {
 
-/// stack based std::vector
+/// basically std::inplace_vector
 template <typename T, size_t N>
-    requires std::is_trivial_v<T>
+    requires std::is_trivially_default_constructible_v<T> && std::is_trivially_copyable_v<T>
 class Array {
   public:
+    constexpr Array() = default;
+
     constexpr size_t size() const {
         return _size;
     }
 
-    constexpr void resize(size_t size) {
-        assert(size <= N);
-        _size = size;
+    constexpr void clear() {
+        _size = 0;
     }
 
-    template <typename... Args>
-        requires std::constructible_from<T, Args...>
-    constexpr void push(Args &&...args) {
-        assert(_size < N);
-        _data[_size] = T{std::forward<Args>(args)...};
-        ++_size;
+    constexpr const T &back() const {
+        assert(_size > 0);
+        return _data[_size - 1];
     }
 
-    constexpr T pop() {
+    constexpr void pop_back() {
         assert(_size > 0);
         --_size;
-        return _data[_size];
+    }
+
+    constexpr void emplace_back(auto &&...args)
+        requires std::is_constructible_v<T, decltype(args)...>
+    {
+        assert(_size < N);
+        _data[_size] = T{std::forward<decltype(args)>(args)...};
+        ++_size;
     }
 
     constexpr T &operator[](size_t index) {

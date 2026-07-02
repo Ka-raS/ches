@@ -3,24 +3,27 @@
 #include "movegen.hpp"
 
 #include <algorithm>
-#include <iostream>
 
 namespace cheslib {
 
-Negamax::Negamax(const unsigned search_depth, const int thread_count)
-    : _transpositions{std::make_unique<TranspositionTable>()},
-      _heuristics{},
-      _max_depth{std::clamp(search_depth, 1u, 16u)},
-      _result{MoveScore{Move::none()}},
-      _threads(calculate_thread_count(thread_count)) {}
+namespace {
 
-size_t Negamax::calculate_thread_count(int requested) {
+size_t calculate_thread_count(int requested) {
     const int max_count = std::thread::hardware_concurrency();
     if (requested <= 0) {
         requested += max_count;
     }
     return std::clamp(requested, 1, max_count);
 }
+
+} // namespace
+
+Negamax::Negamax(const unsigned search_depth, const int thread_count) :
+    _transpositions{std::make_unique<TranspositionTable>()},
+    _heuristics{},
+    _max_depth{std::clamp(search_depth, 2u, 15u)},
+    _result{MoveScore{Move::none()}},
+    _threads(calculate_thread_count(thread_count)) {}
 
 void Negamax::reset() {
     stop_search();
@@ -37,11 +40,11 @@ void Negamax::wait_while_searching() const {
 
 Move Negamax::result() const {
     assert(!is_searching());
-    return _result.load(std::memory_order_acquire).move;
+    return _result.load(std::memory_order::acquire).move;
 }
 
 void Negamax::stop_search() {
-    _stop.store(true, std::memory_order_release);
+    _stop.store(true, std::memory_order::release);
 }
 
 bool Negamax::is_searching() const {
@@ -83,68 +86,59 @@ void Negamax::start_search(const Position &position, const Array<Move, 256> &leg
         return;
     }
 
-    auto sort_moves = [this, &position, &legal_moves] {
-        Array<MoveScore, 256> moves;
-        for (const Move move : legal_moves) {
-            moves.push(move, (int16_t)score_move(move, position));
-        }
-
-        std::ranges::sort(moves, std::ranges::greater{}, &MoveScore::score);
-        return moves;
-    };
-
+    std::atomic_size_t next_worker = 0;
+    std::atomic_size_t assigned_count = 0;
     const size_t worker_count = std::min(_threads.size(), legal_moves.size());
-    std::atomic_size_t pending_assignments = worker_count;
 
-    auto assign_moves = [worker_count, &pending_assignments, sorted_moves = sort_moves()](const size_t worker_index) {
-        assert(worker_index < sorted_moves.size());
+    auto assign_root_node = [&]() -> RootNode {
+        const size_t worker_index = next_worker.fetch_add(1, std::memory_order::relaxed);
+        assert(worker_index < worker_count);
 
-        std::vector<MoveScore> moves;
-        moves.reserve(1 + (sorted_moves.size() - 1 - worker_index) / worker_count);
-
-        for (size_t i = worker_index; i < sorted_moves.size(); i += worker_count) {
-            moves.push_back(sorted_moves[i]);
+        RootNode root{.position = position};
+        Array<MoveScore, 256> &moves = root.legal_moves;
+        for (size_t i = worker_index; i < legal_moves.size(); i += worker_count) {
+            moves.emplace_back(legal_moves[i]);
         }
+        assert(moves.size() > 0);
 
-        pending_assignments.fetch_sub(1, std::memory_order_acq_rel);
-        assert(!moves.empty());
-        return moves;
+        assigned_count.fetch_add(1, std::memory_order::relaxed);
+        // assign_root_node object is now out of scope
+        return root;
     };
 
-    _result.store(MoveScore{Move::none(), -INT16_MAX}, std::memory_order_release);
-    _stop.store(false, std::memory_order_release);
+    _result.store(MoveScore{Move::none(), -INT16_MAX}, std::memory_order::release);
+    _stop.store(false, std::memory_order::release);
 
     for (size_t i = 0; i < worker_count; ++i) {
-        // TODO: this 32 bytes lamda causes std::function to heap alloc
+        // std::function wont heap alloc this 16 bytes lambda, neat
+        _threads[i].assign_job([this, &assign_root_node]() -> void {
+            const MoveScore best = iterative_deepening(assign_root_node());
+            // &assign_root_node is now a dangling reference
 
-        _threads[i].assign_job([this, &position, &assign_moves, i] {
-            const MoveScore best = iterative_deepening(Position{position}, assign_moves(i));
-            // &position and &assign_moves are now dangling references
-
-            MoveScore result = _result.load(std::memory_order_acquire);
-
-            while ( // compare and swap loop
-                best.score >= result.score &&
-                !_result.compare_exchange_weak(result, best, std::memory_order_release, std::memory_order_acquire)) {}
+            MoveScore result = _result.load(std::memory_order::acquire);
+            while (
+                result.score < best.score &&
+                !_result.compare_exchange_weak(result, best, std::memory_order::release, std::memory_order::acquire)) {}
         });
     }
 
-    while (pending_assignments.load(std::memory_order_acquire) > 0) {
+    while (assigned_count.load(std::memory_order::relaxed) < worker_count) {
         std::this_thread::yield();
     }
 }
 
-MoveScore Negamax::iterative_deepening(Position position, std::vector<MoveScore> legal_moves) {
-    assert(!legal_moves.empty());
+MoveScore Negamax::iterative_deepening(RootNode root) {
+    auto &[position, legal_moves] = root;
+    assert(legal_moves.size() > 0);
 
     MoveScore best;
 
-    for (unsigned depth = 1; depth < _max_depth; ++depth) {
+    for (unsigned depth = 2; depth <= _max_depth; ++depth) {
         // try transposition table move first
         if (const Transposition entry = _transpositions->get(position.key()); //
             entry.is_match(position.key())) {
 
-            const auto it = std::ranges::find(legal_moves, entry.move(), &MoveScore::move);
+            MoveScore *const it = std::ranges::find(legal_moves, entry.move(), &MoveScore::move);
             if (it != legal_moves.end()) {
                 it->score = INT16_MAX;
             }
@@ -155,8 +149,8 @@ MoveScore Negamax::iterative_deepening(Position position, std::vector<MoveScore>
 
         for (MoveScore &current : legal_moves) {
             position.do_legal(current.move);
-            current.score = -negamax(position, depth, -INT16_MAX, -best.score);
-            position.undo(current.move);
+            current.score = -negamax(position, depth - 1, -INT16_MAX, -best.score);
+            position.undo_move();
 
             if (best.score < current.score) {
                 best = current;
@@ -171,7 +165,7 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
     if (position.is_50move_draw() || position.is_3fold_repetition()) {
         return 0;
     }
-    if (depth == 0 || _stop.load(std::memory_order_acquire)) {
+    if (depth == 0 || _stop.load(std::memory_order::acquire)) {
         return evaluate::positional(position);
     }
 
@@ -184,10 +178,10 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
     if (const Transposition entry = _transpositions->get(position.key()); //
         entry.is_match(position.key())) {
 
-        const auto it = std::ranges::find(moves, entry.move(), &MoveScore::move);
+        MoveScore *const it = std::ranges::find(moves, entry.move(), &MoveScore::move);
         if (it != moves.end() && position.try_do_pseudo(entry.move())) {
             it->score = INT16_MAX;
-            position.undo(entry.move());
+            position.undo_move();
 
             if (entry.depth() >= depth) {
                 switch (entry.bound()) {
@@ -223,14 +217,16 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
         }
 
         const Score score = -negamax(position, depth - 1, -beta, -alpha);
-        position.undo(move);
+        position.undo_move();
 
         if (best.score < score) {
             best.score = score;
             best.move = move;
 
             if (score >= beta) {
-                _heuristics.update(position, move, depth);
+                if (move.flag() == QuietMove) {
+                    _heuristics.update(position, move, depth);
+                }
                 break;
             }
         }
@@ -240,11 +236,7 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
     if (best.move == Move::none()) {
         constexpr Score checkmated = -INT16_MAX;
         constexpr Score stalemate = 0;
-        if (position.is_in_check()) {
-            return checkmated;
-        } else {
-            return stalemate;
-        }
+        return position.is_in_check() ? checkmated : stalemate;
     }
 
     { // update transposition table

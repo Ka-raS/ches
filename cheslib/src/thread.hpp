@@ -8,14 +8,14 @@ namespace cheslib {
 
 class Thread {
   public:
-    enum class State {
+    enum class State : uint8_t {
         Waiting,
         Running,
         Terminating
     };
 
   public:
-    Thread();
+    Thread() = default;
     State state() const;
     void wait_while_running() const;
     void assign_job(std::function<void()> job);
@@ -31,8 +31,8 @@ class Thread {
 
   private:
     std::function<void()> _job;
-    std::atomic<State> _state;
-    std::thread _thread;
+    std::atomic<State> _state{State::Waiting};
+    std::thread _thread{&Thread::thread_loop, this};
 
     static_assert(std::atomic<State>::is_always_lock_free);
 };

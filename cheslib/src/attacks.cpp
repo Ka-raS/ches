@@ -20,13 +20,13 @@ struct Magic {
 
 consteval Square next_square(const Square from, const int8_t step) {
     // check rank wraparound
-    Square to = Square(from + step);
+    const Square to = Square(from + step);
     if (to >= SquareCNT) {
         return SquareCNT;
     }
 
     // check file wraparound
-    const int d_file = types::file_of(from) - types::file_of(to);
+    const int d_file = file_of(from) - file_of(to);
     if (-2 <= d_file && d_file <= 2) {
         return to;
     } else {
@@ -42,7 +42,7 @@ consteval std::array<Bitboard, SquareCNT> stepping_attacks(const std::span<const
         for (const int8_t step : steps) {
             Square next = next_square(sq, step);
             if (next < SquareCNT) {
-                types::set_square(result[sq], next);
+                set_square(result[sq], next);
             }
         }
     }
@@ -63,7 +63,7 @@ consteval Bitboard sliding_blockers(const Square from, const std::span<const Dir
         // exclude edge squares
         Square next = next_square(curr, dir);
         while (next < SquareCNT) {
-            types::set_square(result, curr);
+            set_square(result, curr);
             curr = next;
             next = next_square(curr, dir);
         }
@@ -78,20 +78,18 @@ consteval std::array<Magic, SquareCNT> magic_infos(
     std::array<Magic, SquareCNT> result = {};
 
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
-        uint32_t offset;
+        auto &[mask, magic, offset, shift] = result[sq];
+
+        mask = sliding_blockers(sq, directions);
+        magic = magic_numbers[sq];
+        shift = 64 - std::popcount(mask);
 
         if (sq == SquareA1) {
             offset = 0;
         } else {
-            uint32_t prev_table_size = 1ull << std::popcount(result[sq - 1].mask);
-            offset = result[sq - 1].offset + prev_table_size;
+            const uint32_t prev_size = 1ull << std::popcount(result[sq - 1].mask);
+            offset = result[sq - 1].offset + prev_size;
         }
-
-        const Bitboard mask = sliding_blockers(sq, directions);
-        const uint64_t magic = magic_numbers[sq];
-        const uint32_t shift = 64 - std::popcount(mask);
-
-        result[sq] = Magic{mask, magic, offset, shift};
     }
 
     return result;
@@ -107,8 +105,8 @@ consteval Bitboard sliding_attack_at(
         Square curr = next_square(from, dir);
 
         while (curr < SquareCNT) {
-            types::set_square(result, curr);
-            const bool is_blocked = types::has_square(occupancy, curr);
+            set_square(result, curr);
+            const bool is_blocked = has_square(occupancy, curr);
             if (is_blocked) {
                 break;
             }

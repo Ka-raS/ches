@@ -2,21 +2,21 @@
 
 namespace cheslib {
 
-Pieces::Pieces(const std::array<Piece, SquareCNT> &board)
-    : _board{board},
-      _bitboards{0},
-      _side{0},
-      _all{0} {
+Pieces::Pieces(const std::array<Piece, SquareCNT> &board) :
+    _board{board},
+    _bitboards{0},
+    _side{0},
+    _all{0} {
     for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
         const Piece piece = _board[sq];
         if (piece >= PieceCNT) {
             continue;
         }
 
-        const Side side = types::side_of(piece);
-        types::set_square(_all, sq);
-        types::set_square(_side[side], sq);
-        types::set_square(_bitboards[piece], sq);
+        const Side side = side_of(piece);
+        set_square(_all, sq);
+        set_square(_side[side], sq);
+        set_square(_bitboards[piece], sq);
     }
 }
 
@@ -50,9 +50,9 @@ const std::array<Piece, SquareCNT> &Pieces::board() const {
     return _board;
 }
 
-Piece Pieces::at(const Square sq) const {
-    assert(sq < SquareCNT);
-    return _board[sq];
+Piece Pieces::at(const Square square) const {
+    assert(square < SquareCNT);
+    return _board[square];
 }
 
 int Pieces::count(const Piece piece) const {
@@ -61,7 +61,7 @@ int Pieces::count(const Piece piece) const {
 }
 
 Square Pieces::king_of(const Side us) const {
-    const Piece king = types::piece_of(us, King);
+    const Piece king = piece_of(us, King);
     const Bitboard king_bb = _bitboards[king];
     assert(king_bb != 0);
     return (Square)std::countr_zero(king_bb);
@@ -82,37 +82,37 @@ Bitboard Pieces::get(const Piece piece) const {
 
 Bitboard Pieces::get(const Side us, const PieceType type) const {
     assert(type < PieceTypeCNT);
-    const Piece piece = types::piece_of(us, type);
+    const Piece piece = piece_of(us, type);
     return _bitboards[piece];
 }
 
-void Pieces::put(const Square sq, const Piece piece) {
+void Pieces::put(const Piece piece, const Square at) {
     assert(piece < PieceCNT);
-    assert(_board[sq] == PieceCNT);
-    const Side us = types::side_of(piece);
+    assert(_board[at] == PieceCNT);
+    const Side us = side_of(piece);
 
-    _board[sq] = piece;
-    types::set_square(_all, sq);
-    types::set_square(_side[us], sq);
-    types::set_square(_bitboards[piece], sq);
+    _board[at] = piece;
+    set_square(_all, at);
+    set_square(_side[us], at);
+    set_square(_bitboards[piece], at);
 }
 
-Piece Pieces::remove(const Square sq) {
-    assert(_board[sq] < PieceCNT);
-    const Piece piece = _board[sq];
-    const Side us = types::side_of(piece);
+Piece Pieces::remove(const Square at) {
+    assert(_board[at] < PieceCNT);
+    const Piece piece = _board[at];
+    const Side us = side_of(piece);
 
-    _board[sq] = PieceCNT;
-    types::unset_square(_all, sq);
-    types::unset_square(_side[us], sq);
-    types::unset_square(_bitboards[piece], sq);
+    _board[at] = PieceCNT;
+    unset_square(_all, at);
+    unset_square(_side[us], at);
+    unset_square(_bitboards[piece], at);
 
     return piece;
 }
 
 void Pieces::move(const Square from, const Square to) {
     const Piece piece = remove(from);
-    put(to, piece);
+    put(piece, to);
 }
 
 } // namespace cheslib

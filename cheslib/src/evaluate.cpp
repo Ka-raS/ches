@@ -1,8 +1,8 @@
 #include "evaluate.hpp"
 
-namespace cheslib::evaluate {
+namespace cheslib::evaluate { // see: https://www.chessprogramming.org/PeSTO%27s_Evaluation_Function
 
-namespace { // see: https://www.chessprogramming.org/PeSTO%27s_Evaluation_Function
+namespace {
 
 consteval std::array<std::array<Score, SquareCNT>, PieceCNT> positional_table(
     const Score piece_values[PieceTypeCNT], const Score pesto_table[PieceTypeCNT][SquareCNT]
@@ -10,12 +10,12 @@ consteval std::array<std::array<Score, SquareCNT>, PieceCNT> positional_table(
     std::array<std::array<Score, SquareCNT>, PieceCNT> result = {};
 
     for (PieceType type = Pawn; type <= King; ++type) {
-        const Piece white = types::piece_of(White, type);
-        const Piece black = types::piece_of(Black, type);
+        const Piece white = piece_of(White, type);
+        const Piece black = piece_of(Black, type);
 
         for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
             result[white][sq] = piece_values[type] + pesto_table[type][sq];
-            result[black][sq] = piece_values[type] + pesto_table[type][types::flip_rank(sq)];
+            result[black][sq] = piece_values[type] + pesto_table[type][flip_rank(sq)];
         }
     }
 
@@ -163,46 +163,42 @@ constexpr std::array<std::array<Score, SquareCNT>, PieceCNT> EndGameTable =
 
 } // namespace
 
-Score material(PieceType type) {
+Score material(const PieceType type) {
     assert(type < PieceTypeCNT);
     return MidGameValues[type];
 }
 
-Score material(Piece piece) {
+Score material(const Piece piece) {
     assert(piece < PieceCNT);
-    return MidGameValues[types::type_of(piece)];
+    return MidGameValues[type_of(piece)];
 }
 
 Score positional(const Position &position) {
+    const Pieces &pieces = position.pieces();
     Score phase = 0;
     Score mid_game[2] = {0, 0};
     Score end_game[2] = {0, 0};
-    const Pieces &pieces = position.pieces();
 
     for (Piece piece = Piece(0); piece < PieceCNT; ++piece) {
-        phase += pieces.count(piece) * PieceWeight[types::type_of(piece)];
+        phase += pieces.count(piece) * PieceWeight[type_of(piece)];
 
-        const Side side = types::side_of(piece);
+        const Side side = side_of(piece);
         Bitboard bb = pieces.get(piece);
 
         while (bb) {
-            Square at = types::pop_lsb(bb);
+            const Square at = pop_lsb(bb);
             mid_game[side] += MidGameTable[piece][at];
             end_game[side] += EndGameTable[piece][at];
         }
     }
 
     phase = std::min(phase, 24);
-    Score d_mid_game = mid_game[White] - mid_game[Black];
-    Score d_end_game = end_game[White] - end_game[Black];
-    Score score = (phase * d_mid_game + (24 - phase) * d_end_game) / 24;
+    const Score d_mid_game = mid_game[White] - mid_game[Black];
+    const Score d_end_game = end_game[White] - end_game[Black];
+    const Score score = (phase * d_mid_game + (24 - phase) * d_end_game) / 24;
 
     assert(-INT16_MAX <= score && score <= INT16_MAX); // TODO: change this
-    if (position.state().side_to_move() == White) {
-        return score;
-    } else {
-        return -score;
-    }
+    return (position.state().side_to_move() == White) ? score : -score;
 }
 
 } // namespace cheslib::evaluate

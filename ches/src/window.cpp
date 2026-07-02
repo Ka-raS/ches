@@ -1,52 +1,81 @@
 #include "window.hpp"
-#include "config.hpp"
-#include <algorithm>
-#include <raylib.h>
 
-Window::Window() {
-    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
-    InitWindow(config::WINDOW_WIDTH, config::WINDOW_HEIGHT, config::WINDOW_TITLE);
-    EnableEventWaiting();
-    _renderTarget = LoadRenderTexture(config::WINDOW_WIDTH, config::WINDOW_HEIGHT);
-    _drawables.reserve(5);
+#include <cassert>
+#include <cmath>
+
+namespace ches {
+
+Window::Window(
+    const int width, const int height, const char *const title, const ::ConfigFlags flags, const ::Color background,
+    std::shared_ptr<::Image> icon
+) :
+    _virtual_width{width},
+    _virtual_height{height},
+    _background{background},
+    _camera{.offset{0, 0}, .target{0, 0}, .rotation = 0, .zoom = 1},
+    _cursor{::MOUSE_CURSOR_DEFAULT},
+    _icon{std::move(icon)} {
+
+    ::SetConfigFlags(flags);
+    ::InitWindow(width, height, title);
+    ::SetWindowIcon(*_icon);
 }
 
 Window::~Window() {
-    UnloadRenderTexture(_renderTarget);
-    CloseWindow();
+    ::CloseWindow();
 }
 
-void Window::addDrawable(const Drawable &drawable) {
-    _drawables.emplace_back(drawable);
+bool Window::should_close() const {
+    return ::WindowShouldClose();
 }
 
-void Window::render() const {
-    // Draw to render target
-    BeginTextureMode(_renderTarget);
-    ClearBackground(config::BACKGROUND_COLOR);
-    for (const auto &drawable : _drawables) {
-        drawable.get().draw();
+void Window::set_cursor(const ::MouseCursor cursor) {
+    if (cursor != _cursor) {
+        _cursor = cursor;
+        ::SetMouseCursor(cursor);
     }
-    EndTextureMode();
-
-    // Draw the scaled render target to screen
-    BeginDrawing();
-    ClearBackground(config::BACKGROUND_COLOR);
-
-    float screenWidth = (float)GetScreenWidth();
-    float screenHeight = (float)GetScreenHeight();
-    float scale = std::min(screenWidth / config::WINDOW_WIDTH, screenHeight / config::WINDOW_HEIGHT);
-    float destWeight = config::WINDOW_WIDTH * scale;
-    float destHeight = config::WINDOW_HEIGHT * scale;
-
-    constexpr Rectangle source = {.x = 0, .y = 0, .width = config::WINDOW_WIDTH, .height = -config::WINDOW_HEIGHT};
-    Rectangle dest = {
-        .x = (screenWidth - destWeight) / 2,
-        .y = (screenHeight - destHeight) / 2,
-        .width = destWeight,
-        .height = destHeight
-    };
-
-    DrawTexturePro(_renderTarget.texture, source, dest, {0, 0}, 0.0f, WHITE);
-    EndDrawing();
 }
+
+void Window::update() {
+    if (!::IsWindowResized()) {
+        return;
+    }
+
+    const float width = (float)::GetScreenWidth();
+    const float height = (float)::GetScreenHeight();
+    const float scale = std::min(width / _virtual_width, height / _virtual_height);
+
+    _camera.zoom = scale;
+    _camera.offset.x = (width - _virtual_width * scale) / 2;
+    _camera.offset.y = (height - _virtual_height * scale) / 2;
+}
+
+MouseEvent Window::poll_mouse() const {
+    MouseEvent mouse{.position = ::GetScreenToWorld2D(::GetMousePosition(), _camera)};
+
+    if (::IsMouseButtonReleased(::MOUSE_BUTTON_LEFT)) {
+        mouse.left = KeyState::Released;
+    } else if (::IsMouseButtonUp(::MOUSE_BUTTON_LEFT)) {
+        mouse.left = KeyState::Idle;
+    } else if (::IsMouseButtonPressed(::MOUSE_BUTTON_LEFT)) {
+        mouse.left = KeyState::Pressed;
+    } else {
+        assert(::IsMouseButtonDown(::MOUSE_BUTTON_LEFT));
+        mouse.left = KeyState::Holding;
+    }
+
+    return mouse;
+}
+
+void Window::begin_frame() const {
+    ::BeginDrawing();
+    ::ClearBackground(_background);
+    ::BeginMode2D(_camera);
+}
+
+void Window::end_frame() const {
+    ::EndMode2D();
+    ::EndDrawing();
+}
+
+} // namespace ches

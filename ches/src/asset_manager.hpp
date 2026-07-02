@@ -1,18 +1,24 @@
 #pragma once
-#include <filesystem>
+
+#include <memory>
 #include <unordered_map>
+
 #include <raylib.h>
 
 namespace ches {
 
+// TODO: nuke this
 class AssetManager {
   public:
     AssetManager() = default;
-    ~AssetManager();
-    std::shared_ptr<const Texture2D> loadTexture(const std::filesystem::path &path);
+    std::shared_ptr<::Font> load_font(const char *path);
+    std::shared_ptr<::Image> load_image(const char *path);
+    std::shared_ptr<::Texture2D> load_texture(const char *path);
 
   private:
-    std::unordered_map<std::filesystem::path, std::weak_ptr<const Texture2D>> _textures;
+    std::unordered_map<std::string, std::weak_ptr<::Font>> _fonts;
+    std::unordered_map<std::string, std::weak_ptr<::Image>> _images;
+    std::unordered_map<std::string, std::weak_ptr<::Texture2D>> _textures;
 };
 
 } // namespace ches
