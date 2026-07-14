@@ -22,7 +22,6 @@ class Pieces {
     Bitboard all() const;
     Bitboard all_of(Side us) const;
     Bitboard get(Piece piece) const;
-    Bitboard get(Side us, PieceType type) const;
 
     void put(Piece piece, Square at);
     void move(Square from, Square to);

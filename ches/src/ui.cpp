@@ -210,7 +210,7 @@ cl::PieceType UIPanel::promotion_piece_at(const ::Vector2 mouse) const {
 void UIPanel::draw_default() const {
     ::DrawRectangleRec(_rect, _background);
     draw_text("New Game", _new_game);
-    draw_text(std::format("Searched: {:.3f}s", _searched_time).c_str(), _search_info);
+    draw_text(std::format("Searched: {:.2f}s", _searched_time).c_str(), _search_info);
 }
 
 void UIPanel::draw_status(const char *const text) const {

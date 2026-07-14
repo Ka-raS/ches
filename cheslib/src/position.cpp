@@ -71,12 +71,12 @@ bool Position::is_attacking(const Square at, const Side attacker) const {
     // us at Square can attack other Squares <=> us at other Squares can attack Square
 
     // clang-format off
-    return (_pieces.get(attacker, Pawn)   & attacks::pawn(at, !attacker)) ||
-           (_pieces.get(attacker, Knight) & attacks::knight(at))          ||
-           (_pieces.get(attacker, Bishop) & attacks::bishop(at, all))     ||
-           (_pieces.get(attacker, Rook)   & attacks::rook(at, all))       ||
-           (_pieces.get(attacker, Queen)  & attacks::queen(at, all))      ||
-           (_pieces.get(attacker, King)   & attacks::king(at));
+    return (_pieces.get(piece_of(attacker, Pawn))   & attacks::pawn(at, !attacker)) ||
+           (_pieces.get(piece_of(attacker, Knight)) & attacks::knight(at))          ||
+           (_pieces.get(piece_of(attacker, Bishop)) & attacks::bishop(at, all))     ||
+           (_pieces.get(piece_of(attacker, Rook))   & attacks::rook(at, all))       ||
+           (_pieces.get(piece_of(attacker, Queen))  & attacks::queen(at, all))      ||
+           (_pieces.get(piece_of(attacker, King))   & attacks::king(at));
     // clang-format on
 }
 
@@ -225,7 +225,7 @@ void Position::do_legal(const Move move) {
         if (move_flag == DoublePawnPush) {
             const Square ep_square = square_behind(us, to);
             const Bitboard enemy_mask = attacks::pawn(ep_square, us); // us attack enemy <=> enemy attack us
-            const bool can_enemy_en_passant = enemy_mask & _pieces.get(!us, Pawn);
+            const bool can_enemy_en_passant = enemy_mask & _pieces.get(piece_of(!us, Pawn));
             if (can_enemy_en_passant) {
                 new_ep = file_of(to);
             }

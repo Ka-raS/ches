@@ -40,7 +40,7 @@ class Engine {
     [[nodiscard]] ChessStatus do_move(Move move);
 
     /**
-     * non blocking, do nothing if `is_searching()`
+     * @throw `std::logic_error` if `is_searching()`
      * @throw `std::logic_error` if `status() != ChessStatus::OnGoing`
      */
     void start_move_search();
@@ -77,7 +77,7 @@ class Engine {
   private:
     static constexpr size_t BufferAlign = 16;
 
-    alignas(BufferAlign) std::byte _buffer[3872];
+    alignas(BufferAlign) std::byte _buffer[3880];
     Array<Move, 256> _legal_moves;
 };
 

@@ -1,15 +1,13 @@
 #include "game_states.hpp"
 #include "game.hpp"
 
-#include <thread>
-
 namespace ches::state {
 
 namespace cl = ::cheslib;
 
 namespace {
 
-constexpr char ResultTexts[][32] = {"White won",         "Black won",    "Stalemate draw",
+constexpr char ResultTexts[][18] = {"White won",         "Black won",    "Stalemate draw",
                                     "Insufficient draw", "50-move draw", "3 repetition draw"};
 
 GameState on_newgame(GameContext &c) {

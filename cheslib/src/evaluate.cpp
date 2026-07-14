@@ -4,10 +4,10 @@ namespace cheslib::evaluate { // see: https://www.chessprogramming.org/PeSTO%27s
 
 namespace {
 
-consteval std::array<std::array<Score, SquareCNT>, PieceCNT> positional_table(
-    const Score piece_values[PieceTypeCNT], const Score pesto_table[PieceTypeCNT][SquareCNT]
+consteval std::array<std::array<int16_t, SquareCNT>, PieceCNT> positional_table(
+    const int16_t piece_values[PieceTypeCNT], const int16_t pesto_table[PieceTypeCNT][SquareCNT]
 ) {
-    std::array<std::array<Score, SquareCNT>, PieceCNT> result = {};
+    std::array<std::array<int16_t, SquareCNT>, PieceCNT> result = {};
 
     for (PieceType type = Pawn; type <= King; ++type) {
         const Piece white = piece_of(White, type);
@@ -24,7 +24,7 @@ consteval std::array<std::array<Score, SquareCNT>, PieceCNT> positional_table(
 
 // clang-format off
 
-constexpr Score MidGamePeSTO[PieceTypeCNT][SquareCNT] = {
+constexpr int16_t MidGamePeSTO[PieceTypeCNT][SquareCNT] = {
     { // Pawn
           0,   0,   0,   0,   0,   0,  0,   0,
          98, 134,  61,  95,  68, 126, 34, -11,
@@ -87,7 +87,7 @@ constexpr Score MidGamePeSTO[PieceTypeCNT][SquareCNT] = {
     }
 };
 
-constexpr Score EndGamePeSTO[PieceTypeCNT][SquareCNT] = {
+constexpr int16_t EndGamePeSTO[PieceTypeCNT][SquareCNT] = {
     { // Pawn
           0,   0,   0,   0,   0,   0,   0,   0,
         178, 173, 158, 134, 147, 132, 165, 187,
@@ -151,39 +151,28 @@ constexpr Score EndGamePeSTO[PieceTypeCNT][SquareCNT] = {
 };
 // clang-format on
 
-constexpr Score PieceWeight[PieceTypeCNT] = {0, 1, 1, 2, 4, 0};
-constexpr Score MidGameValues[PieceTypeCNT] = {82, 337, 365, 477, 1025, 0};
-constexpr Score EndGameValues[PieceTypeCNT] = {94, 281, 297, 512, 936, 0};
+constexpr uint8_t PieceWeight[PieceCNT] = {0, 0, 1, 1, 1, 1, 2, 2, 4, 4, 0, 0};
+constexpr int16_t MidGameValues[PieceTypeCNT] = {82, 337, 365, 477, 1025, 0};
+constexpr int16_t EndGameValues[PieceTypeCNT] = {94, 281, 297, 512, 936, 0};
 
-constexpr std::array<std::array<Score, SquareCNT>, PieceCNT> MidGameTable =
+constexpr std::array<std::array<int16_t, SquareCNT>, PieceCNT> MidGameTable =
     positional_table(MidGameValues, MidGamePeSTO);
 
-constexpr std::array<std::array<Score, SquareCNT>, PieceCNT> EndGameTable =
+constexpr std::array<std::array<int16_t, SquareCNT>, PieceCNT> EndGameTable =
     positional_table(EndGameValues, EndGamePeSTO);
 
 } // namespace
 
-Score material(const PieceType type) {
-    assert(type < PieceTypeCNT);
-    return MidGameValues[type];
-}
-
-Score material(const Piece piece) {
-    assert(piece < PieceCNT);
-    return MidGameValues[type_of(piece)];
-}
-
-Score positional(const Position &position) {
+Score pesto(const Position &position) {
     const Pieces &pieces = position.pieces();
-    Score phase = 0;
+    int phase = 0;
     Score mid_game[2] = {0, 0};
     Score end_game[2] = {0, 0};
 
-    for (Piece piece = Piece(0); piece < PieceCNT; ++piece) {
-        phase += pieces.count(piece) * PieceWeight[type_of(piece)];
-
+    for (Piece piece = Piece{0}; piece < PieceCNT; ++piece) {
         const Side side = side_of(piece);
         Bitboard bb = pieces.get(piece);
+        phase += PieceWeight[piece] * std::popcount(bb);
 
         while (bb) {
             const Square at = pop_lsb(bb);

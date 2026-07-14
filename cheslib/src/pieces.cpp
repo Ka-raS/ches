@@ -80,12 +80,6 @@ Bitboard Pieces::get(const Piece piece) const {
     return _bitboards[piece];
 }
 
-Bitboard Pieces::get(const Side us, const PieceType type) const {
-    assert(type < PieceTypeCNT);
-    const Piece piece = piece_of(us, type);
-    return _bitboards[piece];
-}
-
 void Pieces::put(const Piece piece, const Square at) {
     assert(piece < PieceCNT);
     assert(_board[at] == PieceCNT);

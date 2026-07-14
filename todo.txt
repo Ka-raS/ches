@@ -1,4 +1,6 @@
-- inline tranposition, heuristics
+- objdump -d -M intel build/ches/ches > assembly.s
+- icon
+- 64 depth
 - Engine::undo_move() and _move_history
 - Negamax INT16_MAX is weird
 - cpu pinning
@@ -7,7 +9,8 @@
 - app.rc
 - -Wnrvo, -Rpass-analysis=[inline, loop-unroll, loop-vectorize]
 
-- /D_HAS_EXCEPTIONS=0
+- FEN string
+- Engine validate custom Position
 - AudioManager
 - switch to the 4bit flag version of Move for easy switch case
 - optimize do/undo move, movegen

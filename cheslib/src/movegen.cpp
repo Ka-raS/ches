@@ -16,7 +16,7 @@ void generate_non_pawn_moves(Array<MoveScore, 256> &moves, const Pieces &pieces)
     const Bitboard occupancy = pieces.all();
 
     for (PieceType type = Knight; type <= King; ++type) {
-        Bitboard bb = pieces.get(Us, type);
+        Bitboard bb = pieces.get(piece_of(Us, type));
 
         while (bb) {
             const Square from = pop_lsb(bb);
@@ -30,6 +30,7 @@ void generate_non_pawn_moves(Array<MoveScore, 256> &moves, const Pieces &pieces)
             case Bishop:
                 attacks &= attacks::bishop(from, occupancy);
                 break;
+
             case Rook:
                 attacks &= attacks::rook(from, occupancy);
                 break;

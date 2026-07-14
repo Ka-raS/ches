@@ -68,13 +68,17 @@ Move Engine::search_result() const {
 }
 
 void Engine::start_move_search() {
+    auto &[position, negamax] = *pimpl();
+
 #ifdef __cpp_exceptions
+    if (negamax.is_searching()) {
+        throw std::logic_error("already searching");
+    }
     if (status() != ChessStatus::OnGoing) {
         throw std::logic_error("game over");
     }
 #endif
 
-    auto &[position, negamax] = *pimpl();
     negamax.start_search(position, _legal_moves);
 }
 

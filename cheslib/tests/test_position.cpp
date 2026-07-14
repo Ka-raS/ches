@@ -30,7 +30,7 @@ void check_consistency(const Position &pos) {
     Bitboard white = 0;
     Bitboard black = 0;
 
-    for (Piece piece = Piece(0); piece < PieceCNT; ++piece) {
+    for (Piece piece = Piece{0}; piece < PieceCNT; ++piece) {
         const Bitboard bb = pieces.get(piece);
         CHECK(count(piece) == std::popcount(bb));
 

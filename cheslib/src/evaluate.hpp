@@ -4,8 +4,6 @@
 
 namespace cheslib::evaluate {
 
-Score material(Piece piece);
-Score material(PieceType type);
-Score positional(const Position &position);
+Score pesto(const Position &position);
 
 } // namespace cheslib::evaluate

@@ -16,8 +16,7 @@ class Thread {
 
   public:
     Thread() = default;
-    State state() const;
-    void wait_while_running() const;
+    const std::atomic<State> &state() const;
     void assign_job(std::function<void()> job);
 
     ~Thread();

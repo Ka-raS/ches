@@ -22,7 +22,7 @@ using Bitboard = uint64_t;
  */
 using ZobristKey = uint64_t;
 
-using Score = int32_t;
+using Score = int;
 
 struct alignas(4) MoveScore {
     Move move;

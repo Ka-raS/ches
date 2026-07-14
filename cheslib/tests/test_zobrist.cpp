@@ -27,7 +27,7 @@ TEST_CASE("Zobrist: thats some good keys", "[zobrist]") {
         insert(zobrist::en_passant(file));
     }
 
-    for (Piece piece = Piece(0); piece < PieceCNT; ++piece) {
+    for (Piece piece = Piece{0}; piece < PieceCNT; ++piece) {
         for (Square sq = SquareA1; sq <= SquareH8; ++sq) {
             insert(zobrist::piece(piece, sq));
         }

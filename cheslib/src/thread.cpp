@@ -11,12 +11,8 @@ Thread::~Thread() {
     _thread.join();
 }
 
-Thread::State Thread::state() const {
-    return _state.load(std::memory_order::acquire);
-}
-
-void Thread::wait_while_running() const {
-    _state.wait(State::Running, std::memory_order::acquire);
+const std::atomic<Thread::State> &Thread::state() const {
+    return _state;
 }
 
 void Thread::assign_job(std::function<void()> job) {

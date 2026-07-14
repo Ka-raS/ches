@@ -186,7 +186,7 @@ TEST_CASE("Pieces: alternating pawns", "[pieces]") {
     CHECK(pieces.all_of(White) == 0);
     CHECK(pieces.all_of(Black) == 0);
 
-    for (Piece piece = Piece(0); piece < PieceCNT; ++piece) {
+    for (Piece piece = {0}; piece < PieceCNT; ++piece) {
         CHECK(pieces.get(piece) == 0);
     }
 }
