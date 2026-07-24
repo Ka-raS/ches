@@ -17,7 +17,7 @@ namespace cheslib {
 using Bitboard = uint64_t;
 
 /**
- * Zobrist hash key
+ * Zobrist hash key represents a Position
  * see: https://www.chessprogramming.org/Zobrist_Hashing
  */
 using ZobristKey = uint64_t;

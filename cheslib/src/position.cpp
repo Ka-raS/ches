@@ -7,7 +7,7 @@ namespace cheslib {
 Position::Position(const PositionState state, const std::array<Piece, SquareCNT> &board) :
     _pieces{board},
     _state{state},
-    _key{zobrist::hash(board, _state)} {}
+    _key{zobrist::hash(board, state)} {}
 
 Position Position::initial() {
     return Position{PositionState::initial(), Pieces::initial()};

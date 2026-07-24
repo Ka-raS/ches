@@ -7,12 +7,16 @@
 
 namespace cheslib {
 
+/// heuristic for quiet moves
 class HistoryHeuristic {
   public:
     HistoryHeuristic() = default;
-    Score get(Piece piece, Square to) const;
-    void update(const Position &position, Move move, unsigned depth);
+
     void reset();
+    Score get(Piece piece, Square to) const;
+
+    /// @param back the move that caused cutoff
+    void update(const MoveScore *front, const MoveScore *back, const Pieces &pieces, Score bonus);
 
   private:
     std::atomic_int16_t _scores[PieceCNT][SquareCNT] = {0};
