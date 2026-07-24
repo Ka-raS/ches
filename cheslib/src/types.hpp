@@ -30,10 +30,10 @@ struct alignas(4) MoveScore {
 };
 
 /// negamax alpha beta pruning bound
-enum class Bound : uint8_t {
-    Exact,
-    Lower,
-    Upper
+enum Bound : uint8_t {
+    BoundExact,
+    BoundLower,
+    BoundUpper
 };
 
 enum Direction : int8_t {

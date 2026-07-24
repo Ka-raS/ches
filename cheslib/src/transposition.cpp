@@ -3,21 +3,23 @@
 namespace cheslib {
 
 Transposition::Transposition(
-    const ZobristKey key, const MoveScore move_score, const Bound bound, const unsigned depth
+    const ZobristKey key, const Move move, const Score score, const Bound bound, const unsigned depth
 ) :
-    _data{depth | (uint32_t(bound) << 4) | (encode(key) << 6)},
-    _move_score{move_score} {}
+    _data(depth | (bound << 4) | (key << 6)),
+    _move{move},
+    _score(score) {}
 
 bool Transposition::is_match(const ZobristKey key) const {
-    return encode(key) == (_data >> 6);
+    constexpr uint64_t low26 = (1 << 26) - 1;
+    return (key & low26) == (_data >> 6);
 }
 
 Move Transposition::move() const {
-    return _move_score.move;
+    return _move;
 }
 
 Score Transposition::score() const {
-    return _move_score.score;
+    return _score;
 }
 
 Bound Transposition::bound() const {
@@ -28,20 +30,15 @@ unsigned Transposition::depth() const {
     return _data & 0b1111;
 }
 
-uint32_t Transposition::encode(const ZobristKey key) {
-    return (key * 0x94D049BB133111EB) >> (64 - 26);
-}
-
 //
 
 void TranspositionTable::store(
-    const ZobristKey key, const MoveScore move_score, const Bound bound, const unsigned depth
+    const ZobristKey key, const Move move, const Score score, const Bound bound, const unsigned depth
 ) {
     std::atomic<Transposition> &entry = _entries[index(key)];
     const unsigned current_depth = entry.load(std::memory_order::relaxed).depth();
-
     if (depth >= current_depth) {
-        entry.store(Transposition{key, move_score, bound, depth}, std::memory_order::relaxed);
+        entry.store(Transposition{key, move, score, bound, depth}, std::memory_order::relaxed);
     }
 }
 
@@ -56,7 +53,7 @@ void TranspositionTable::reset() {
 }
 
 size_t TranspositionTable::index(const ZobristKey key) {
-    return (key * 0xBF58476D1CE4E5B9) >> (64 - 20);
+    return key >> (64 - 20);
 }
 
 } // namespace cheslib

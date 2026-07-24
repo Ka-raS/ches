@@ -1,6 +1,4 @@
-- objdump -d -M intel build/ches/ches > assembly.s
 - icon
-- 64 depth
 - Engine::undo_move() and _move_history
 - Negamax INT16_MAX is weird
 - cpu pinning

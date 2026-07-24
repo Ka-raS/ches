@@ -9,7 +9,7 @@ namespace cheslib {
 namespace {
 
 // clang-format off
-constexpr uint16_t MVV_LVA[PieceTypeCNT - 1][PieceTypeCNT] = { // [victim][aggressor]
+constexpr uint16_t VictimAggressor[PieceTypeCNT - 1][PieceTypeCNT] = {
     //           Pawn Knight Bishop   Rook  Queen   King
     /*Pawn  */ {17500, 17400, 17300, 17200, 17100, 17000},
     /*Knight*/ {18500, 18400, 18300, 18200, 18100, 18000},
@@ -72,10 +72,11 @@ int16_t Negamax::scoring(const Move move, const Pieces &pieces) const {
     const Piece moved = pieces.at(move.from());
 
     if (move.is_capture()) {
-        return (move.flag() == EnPassant) ? MVV_LVA[Pawn][Pawn] : MVV_LVA[type_of(pieces.at(to))][type_of(moved)];
+        return (move.flag() == EnPassant) ? VictimAggressor[Pawn][Pawn]
+                                          : VictimAggressor[type_of(pieces.at(to))][type_of(moved)];
     }
     if (move.is_promotion()) {
-        return MVV_LVA[move.promoted_piece()][Pawn];
+        return VictimAggressor[move.promoted_piece()][Pawn];
     }
 
     return _heuristics.get(moved, to);
@@ -182,14 +183,14 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
             position.undo_move();
 
             switch (entry.bound()) {
-            case Bound::Exact:
+            case BoundExact:
                 return entry.score();
 
-            case Bound::Lower:
+            case BoundLower:
                 alpha = std::max(alpha, entry.score());
                 break;
 
-            case Bound::Upper:
+            case BoundUpper:
                 beta = std::min(beta, entry.score());
                 break;
             }
@@ -217,7 +218,7 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
         position.undo_move();
 
         if (score >= beta) {
-            _transpositions->store(position.key(), move, score, Bound::Lower, depth);
+            _transpositions->store(position.key(), move, score, BoundLower, depth);
             _heuristics.update(moves.begin(), it, position.pieces(), 300 * depth - 250);
             return score;
         }
@@ -237,7 +238,7 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
     }
 
     assert(best_score < beta);
-    const Bound bound = (best_score <= original_alpha) ? Bound::Upper : Bound::Exact;
+    const Bound bound = (best_score <= original_alpha) ? BoundUpper : BoundExact;
     _transpositions->store(position.key(), best_move, best_score, bound, depth);
 
     return best_score;

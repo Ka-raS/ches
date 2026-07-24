@@ -8,7 +8,7 @@ TEST_CASE("Transposition: simple store and get", "[transposition]") {
     const ZobristKey key = 0x123456789ABCDEF;
     const Move move{SquareE2, SquareE4, DoublePawnPush};
     const Score score = 1234;
-    const Bound bound = Bound::Lower;
+    const Bound bound = BoundLower;
     const unsigned depth = 5u;
 
     std::unique_ptr<TranspositionTable> table = std::make_unique<TranspositionTable>();
@@ -28,14 +28,14 @@ TEST_CASE("Transposition: no overwrite with shallower depth", "[transposition]")
     const Move move2(SquareE2, SquareE3, QuietMove);
 
     std::unique_ptr<TranspositionTable> table = std::make_unique<TranspositionTable>();
-    table->store(key, move1, 10, Bound::Lower, 6u);
-    table->store(key, move2, 20, Bound::Lower, 4u);
+    table->store(key, move1, 10, BoundLower, 6u);
+    table->store(key, move2, 20, BoundLower, 4u);
 
     const Transposition entry = table->get(key);
     REQUIRE(entry.is_match(key));
     CHECK(entry.move() == move1);
     CHECK(entry.score() == 10);
-    CHECK(entry.bound() == Bound::Lower);
+    CHECK(entry.bound() == BoundLower);
     CHECK(entry.depth() == 6u);
 }
 
@@ -45,13 +45,13 @@ TEST_CASE("Transposition: overwrites with deeper depth", "[transposition]") {
     const Move move2(SquareA2, SquareA4, DoublePawnPush);
 
     std::unique_ptr<TranspositionTable> table = std::make_unique<TranspositionTable>();
-    table->store(key, move1, 1, Bound::Upper, 3u);
-    table->store(key, move2, 2, Bound::Upper, 8u);
+    table->store(key, move1, 1, BoundUpper, 3u);
+    table->store(key, move2, 2, BoundUpper, 8u);
 
     const Transposition entry = table->get(key);
     REQUIRE(entry.is_match(key));
     CHECK(entry.move() == move2);
     CHECK(entry.score() == 2);
-    CHECK(entry.bound() == Bound::Upper);
+    CHECK(entry.bound() == BoundUpper);
     CHECK(entry.depth() == 8u);
 }

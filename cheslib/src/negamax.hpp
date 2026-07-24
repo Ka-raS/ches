@@ -5,9 +5,6 @@
 #include "thread.hpp"
 #include "transposition.hpp"
 
-#include <memory>
-#include <vector>
-
 namespace cheslib {
 
 class Negamax {
@@ -29,17 +26,19 @@ class Negamax {
 
     MoveScore iterative_deepening(RootNode root);
     Score negamax(Position &position, unsigned depth, Score alpha, Score beta);
-    Score score_move(Move move, const Position &position) const; ///< for move ordering
+    int16_t scoring(Move move, const Pieces &pieces) const; ///< for move ordering
 
   private:
     std::unique_ptr<TranspositionTable> _transpositions;
     HistoryHeuristic _heuristics;
 
-    const unsigned _max_depth; // TODO: allow modifying
     std::atomic<MoveScore> _result;
     std::atomic_bool _stop;
+    const uint8_t _max_depth; // TODO: allow modifying
 
     std::vector<Thread> _threads;
+
+    static_assert(std::atomic<MoveScore>::is_always_lock_free);
 };
 
 } // namespace cheslib

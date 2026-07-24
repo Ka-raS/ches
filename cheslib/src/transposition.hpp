@@ -10,19 +10,18 @@ namespace cheslib {
 class alignas(8) Transposition {
   public:
     Transposition() = default;
-    Transposition(ZobristKey key, MoveScore move_score, Bound bound, unsigned depth);
-    bool is_match(ZobristKey key) const;
+    Transposition(ZobristKey key, Move move, Score score, Bound bound, unsigned depth);
+
     Move move() const;
     Score score() const;
     Bound bound() const;
     unsigned depth() const;
+    bool is_match(ZobristKey key) const;
 
   private:
-    static uint32_t encode(ZobristKey key);
-
-  private:
-    uint32_t _data; // 4bit depth, 2bit Bound, 26bit encoded ZobristKey
-    MoveScore _move_score;
+    uint32_t _data; // 4bit depth, 2bit Bound, 26bit ZobristKey
+    Move _move;
+    int16_t _score;
 };
 
 class TranspositionTable {
@@ -31,7 +30,7 @@ class TranspositionTable {
 
     /// @return `Transposition` entry without checking `Transposition::is_match()`
     Transposition get(ZobristKey key) const;
-    void store(ZobristKey key, MoveScore move_score, Bound bound, unsigned depth);
+    void store(ZobristKey key, Move move, Score score, Bound bound, unsigned depth);
     void reset();
 
   private:
