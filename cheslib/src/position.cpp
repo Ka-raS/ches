@@ -2,6 +2,8 @@
 #include "attacks.hpp"
 #include "zobrist.hpp"
 
+#include <algorithm>
+
 namespace cheslib {
 
 Position::Position(const PositionState state, const std::array<Piece, SquareCNT> &board) :
@@ -38,7 +40,7 @@ bool Position::is_50move_draw() const {
 bool Position::is_3fold_repetition() const {
     int count = 1; // current position
 
-    for (const HistoryEntry &entry : _history) {
+    for (const MoveEntry &entry : _history) {
         if (entry.key == _key) {
             ++count;
         }
@@ -55,15 +57,18 @@ bool Position::is_insufficient_material() const {
            (_pieces.count(BlackBishop) + _pieces.count(BlackKnight) <= 1);
 }
 
-void Position::trim_history() {
+void Position::trim_history(std::vector<MoveEntry> &buffer) {
     // first move is irreversible
     assert(_history.size() > 0 && _history[0].state.rule50_count() == 0);
 
-    const HistoryEntry top = _history.back();
-    if (top.state.rule50_count() == 0) {
-        _history.clear();
-        _history.emplace_back(top);
+    const MoveEntry top = _history.back();
+    if (top.state.rule50_count() > 0) {
+        return;
     }
+
+    buffer.insert(buffer.end(), _history.begin(), _history.end() - 1);
+    _history.clear();
+    _history.emplace_back(top);
 }
 
 bool Position::is_attacking(const Square at, const Side attacker) const {
@@ -78,6 +83,25 @@ bool Position::is_attacking(const Square at, const Side attacker) const {
            (_pieces.get(piece_of(attacker, Queen))  & attacks::queen(at, all))      ||
            (_pieces.get(piece_of(attacker, King))   & attacks::king(at));
     // clang-format on
+}
+
+void Position::undo_move_restore_history(std::vector<MoveEntry> &buffer) {
+    if (_history.size() == 0) { // if starting position
+        return;
+    }
+    undo_move();
+    if (_history.size() > 0 || buffer.empty()) {
+        return;
+    }
+
+    const auto r_it = std::find_if(buffer.rbegin(), buffer.rend(), [](const MoveEntry &entry) {
+        return entry.state.rule50_count() == 0;
+    });
+    assert(r_it != buffer.rend());
+    const auto it = r_it.base() - 1;
+
+    _history.assign(it, buffer.end());
+    buffer.erase(it, buffer.end());
 }
 
 bool Position::try_do_pseudo(const Move move) {
@@ -134,6 +158,7 @@ constexpr std::array<CastleFlag, SquareCNT> CastlingMasks = [] {
 } // namespace
 
 void Position::undo_move() {
+    assert(_history.size() > 0);
     const auto [key, state, move, captured] = _history.back();
     _history.pop_back();
 

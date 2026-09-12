@@ -4,7 +4,16 @@
 #include "pieces.hpp"
 #include "position_state.hpp"
 
+#include <vector>
+
 namespace cheslib {
+
+struct alignas(16) MoveEntry {
+    ZobristKey key;
+    PositionState state;
+    Move move;
+    Piece captured;
+};
 
 class Position {
   public:
@@ -23,23 +32,22 @@ class Position {
     [[nodiscard]] bool try_do_pseudo(Move move); ///< @return `false` if pseudo move fails king safety
     void do_legal(Move move);
     void undo_move();
-    void trim_history(); ///< `Engine` calls this after each `do_legal`
+
+    /**
+     * `Engine` calls this after each `do_legal`
+     * @param buffer stores the trimmed `MoveEntry`
+     */
+    void trim_history(std::vector<MoveEntry> &buffer);
+    void undo_move_restore_history(std::vector<MoveEntry> &buffer);
 
   private:
     bool is_attacking(Square at, Side us) const;
-
-    struct alignas(16) HistoryEntry {
-        ZobristKey key;
-        PositionState state;
-        Move move;
-        Piece captured;
-    };
 
   private:
     Pieces _pieces;
     PositionState _state;
     ZobristKey _key;
-    Array<HistoryEntry, 128> _history;
+    Array<MoveEntry, 128> _history;
 };
 
 } // namespace cheslib

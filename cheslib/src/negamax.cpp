@@ -9,7 +9,7 @@ namespace cheslib {
 namespace {
 
 // clang-format off
-constexpr uint16_t VictimAggressor[PieceTypeCNT - 1][PieceTypeCNT] = {
+constexpr int16_t VictimAggressor[PieceTypeCNT - 1][PieceTypeCNT] = {
     //           Pawn Knight Bishop   Rook  Queen   King
     /*Pawn  */ {17500, 17400, 17300, 17200, 17100, 17000},
     /*Knight*/ {18500, 18400, 18300, 18200, 18100, 18000},
@@ -19,8 +19,8 @@ constexpr uint16_t VictimAggressor[PieceTypeCNT - 1][PieceTypeCNT] = {
 };
 // clang-format on
 
-size_t calculate_thread_count(int requested) {
-    const int max_count = std::thread::hardware_concurrency();
+uint8_t calculate_thread_count(int requested) {
+    const int max_count = std::clamp(std::thread::hardware_concurrency(), 1u, 255u);
     if (requested <= 0) {
         requested += max_count;
     }
@@ -33,8 +33,27 @@ Negamax::Negamax(const unsigned search_depth, const int thread_count) :
     _transpositions{std::make_unique<TranspositionTable>()},
     _heuristics{},
     _result{MoveScore{Move::none()}},
-    _max_depth(std::clamp(search_depth, 2u, 15u)),
-    _threads(calculate_thread_count(thread_count)) {}
+    _search_depth(std::clamp(search_depth, 2u, 15u)),
+    _thread_count{calculate_thread_count(thread_count)},
+    _threads{std::make_unique<Thread[]>(std::clamp(std::thread::hardware_concurrency(), 1u, 255u))} {}
+
+unsigned Negamax::search_depth() const {
+    return _search_depth;
+}
+
+unsigned Negamax::thread_count() const {
+    return _thread_count;
+}
+
+void Negamax::set_search_depth(unsigned search_depth) {
+    assert(!is_searching());
+    _search_depth = std::clamp(search_depth, 2u, 15u);
+}
+
+void Negamax::set_thread_count(int thread_count) {
+    assert(!is_searching());
+    _thread_count = calculate_thread_count(thread_count);
+}
 
 void Negamax::reset() {
     stop_search();
@@ -44,23 +63,22 @@ void Negamax::reset() {
 }
 
 void Negamax::wait_while_searching() const {
-    for (const Thread &thread : _threads) {
-        thread.state().wait(Thread::State::Running, std::memory_order::acquire);
+    for (size_t i = 0; i < _thread_count; ++i) {
+        _threads[i].state().wait(Thread::State::Running, std::memory_order::acquire);
     }
 }
 
 Move Negamax::result() const {
-    assert(!is_searching());
     return _result.load(std::memory_order::acquire).move;
 }
 
 void Negamax::stop_search() {
-    _stop.store(true, std::memory_order::release);
+    _stop.store(true, std::memory_order::relaxed);
 }
 
 bool Negamax::is_searching() const {
-    for (const Thread &thread : _threads) {
-        if (thread.state().load(std::memory_order::acquire) == Thread::State::Running) {
+    for (size_t i = 0; i < _thread_count; ++i) {
+        if (_threads[i].state().load(std::memory_order::acquire) == Thread::State::Running) {
             return true;
         }
     }
@@ -88,7 +106,7 @@ void Negamax::start_search(const Position &position, const Array<Move, 256> &leg
 
     std::atomic_size_t next_worker = 0;
     std::atomic_size_t assigned_count = 0;
-    const size_t worker_count = std::min(_threads.size(), legal_moves.size());
+    const size_t worker_count = std::min<size_t>(_thread_count, legal_moves.size());
 
     auto assign_root_node = [&]() -> RootNode {
         const size_t worker_index = next_worker.fetch_add(1, std::memory_order::relaxed);
@@ -107,7 +125,7 @@ void Negamax::start_search(const Position &position, const Array<Move, 256> &leg
     };
 
     _result.store(MoveScore{Move::none(), INT16_MIN}, std::memory_order::release);
-    _stop.store(false, std::memory_order::release);
+    _stop.store(false, std::memory_order::relaxed);
 
     for (size_t i = 0; i < worker_count; ++i) {
         // std::function wont heap alloc this 16 bytes lambda, neat
@@ -131,7 +149,7 @@ MoveScore Negamax::iterative_deepening(RootNode root) {
     MoveScore best;
     auto &[position, legal_moves] = root;
 
-    for (unsigned depth = 2; depth <= _max_depth; ++depth) {
+    for (unsigned depth = 2; depth <= _search_depth; ++depth) {
         // try transposition table move first
         if (const Transposition entry = _transpositions->get(position.key()); //
             entry.is_match(position.key())) {
@@ -160,7 +178,7 @@ MoveScore Negamax::iterative_deepening(RootNode root) {
 }
 
 Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Score beta) {
-    if (position.is_50move_draw() || position.is_3fold_repetition() || _stop.load(std::memory_order::acquire)) {
+    if (position.is_50move_draw() || position.is_3fold_repetition() || _stop.load(std::memory_order::relaxed)) {
         return 0;
     }
     if (depth == 0) {
@@ -217,6 +235,9 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
         const Score score = -negamax(position, depth - 1, -beta, -alpha);
         position.undo_move();
 
+        if (_stop.load(std::memory_order::relaxed)) {
+            return 0;
+        }
         if (score >= beta) {
             _transpositions->store(position.key(), move, score, BoundLower, depth);
             _heuristics.update(moves.begin(), it, position.pieces(), 300 * depth - 250);
@@ -229,7 +250,7 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
             best_move = move;
         }
     }
-    // const best
+    // const best_move, best_score
 
     if (best_score == INT16_MIN) {
         constexpr Score checkmated = 1 - INT16_MAX;

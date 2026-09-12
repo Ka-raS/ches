@@ -11,6 +11,11 @@ class Negamax {
   public:
     Negamax(unsigned search_depth, int thread_count);
 
+    unsigned search_depth() const;
+    unsigned thread_count() const;
+    void set_search_depth(unsigned search_depth);
+    void set_thread_count(int thread_count);
+
     void start_search(const Position &position, const Array<Move, 256> &legal_moves);
     void stop_search();
     void wait_while_searching() const;
@@ -34,9 +39,10 @@ class Negamax {
 
     std::atomic<MoveScore> _result;
     std::atomic_bool _stop;
-    const uint8_t _max_depth; // TODO: allow modifying
+    uint8_t _search_depth;
+    uint8_t _thread_count;
 
-    std::vector<Thread> _threads;
+    std::unique_ptr<Thread[]> _threads;
 
     static_assert(std::atomic<MoveScore>::is_always_lock_free);
 };

@@ -7,7 +7,7 @@
 
 namespace cheslib {
 
-enum class ChessStatus : uint8_t {
+enum ChessStatus : uint8_t {
     OnGoing,
     WhiteWin,
     BlackWin,
@@ -22,11 +22,14 @@ class Engine {
     /**
      * init to starting position, white ready to play
      * @param search_depth clamped to `[2, 15]`
-     * @param thread_count clamped to `[1, hardware_concurrency]`, if `<= 0` use `hardware_concurrency + thread_count`
+     * @param thread_count clamped to `[1, min(255 hardware_concurrency)]`, if `<= 0` use `hardware_concurrency + count`
      */
     Engine(unsigned search_depth, int thread_count);
 
     ChessStatus status() const;
+    unsigned search_depth() const;
+    unsigned thread_count() const;
+    Side side_to_move() const;
     const Array<Move, 256> &legal_moves() const;
     const std::array<Piece, SquareCNT> &board() const;
 
@@ -34,15 +37,27 @@ class Engine {
     void reset_game();
 
     /**
-     * @throw `std::logic_error` if `status() != ChessStatus::OnGoing`
+     * @param search_depth clamped to `[2, 15]`
+     * @throw `std::logic_error` if `is_searching()`
+     */
+    void set_search_depth(unsigned search_depth);
+
+    /**
+     * @param thread_count clamped to `[1, min(255 hardware_concurrency)]`, if `<= 0` use `hardware_concurrency + count`
+     * @throw `std::logic_error` if `is_searching()`
+     */
+    void set_thread_count(int thread_count);
+
+    /**
+     * @throw `std::logic_error` if game over
      * @throw `std::invalid_argument` if `move` not in `legal_moves()`
      */
     [[nodiscard]] ChessStatus do_move(Move move);
 
-    /**
-     * @throw `std::logic_error` if `is_searching()`
-     * @throw `std::logic_error` if `status() != ChessStatus::OnGoing`
-     */
+    // do nothing if in starting position, any move searching is discarded
+    void undo_move();
+
+    /// @throw `std::logic_error` if `is_searching()` or game over
     void start_move_search();
 
     /**
@@ -77,7 +92,7 @@ class Engine {
   private:
     static constexpr size_t BufferAlign = 16;
 
-    alignas(BufferAlign) std::byte _buffer[3880];
+    alignas(BufferAlign) std::byte _buffer[3856];
     Array<Move, 256> _legal_moves;
 };
 

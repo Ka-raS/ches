@@ -1,10 +1,6 @@
-- icon
-- Engine::undo_move() and _move_history
+- app.rc
 - Negamax INT16_MAX is weird
 - cpu pinning
-- test with no assets
-- param structs, config file
-- app.rc
 - -Wnrvo, -Rpass-analysis=[inline, loop-unroll, loop-vectorize]
 
 - FEN string
@@ -14,4 +10,3 @@
 - optimize do/undo move, movegen
 - clang tidy
 - android support somehow
-

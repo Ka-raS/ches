@@ -9,6 +9,7 @@ namespace cheslib {
 struct Engine::Impl {
     Position position;
     Negamax negamax;
+    std::vector<MoveEntry> history; ///< stores trimmed `MoveEntry` from `Position::_history`
 };
 
 Engine::Engine(const unsigned search_depth, const int thread_count) {
@@ -17,8 +18,10 @@ Engine::Engine(const unsigned search_depth, const int thread_count) {
 
     Impl *const impl = new (_buffer) Impl{
         .position{Position::initial()}, //
-        .negamax{search_depth, thread_count}
+        .negamax{search_depth, thread_count},
+        .history{}
     };
+    impl->history.reserve(512);
     _legal_moves = movegen::legals(impl->position);
 }
 
@@ -37,10 +40,22 @@ const Engine::Impl *Engine::pimpl() const {
 }
 
 void Engine::reset_game() {
-    auto &[position, negamax] = *pimpl();
+    auto &[position, negamax, _] = *pimpl();
     negamax.reset();
     position = Position::initial();
     _legal_moves = movegen::legals(position);
+}
+
+unsigned Engine::search_depth() const {
+    return pimpl()->negamax.search_depth();
+}
+
+unsigned Engine::thread_count() const {
+    return pimpl()->negamax.thread_count();
+}
+
+Side Engine::side_to_move() const {
+    return pimpl()->position.state().side_to_move();
 }
 
 const std::array<Piece, SquareCNT> &Engine::board() const {
@@ -67,14 +82,38 @@ Move Engine::search_result() const {
     return pimpl()->negamax.result();
 }
 
+void Engine::set_search_depth(unsigned search_depth) {
+    Negamax &negamax = pimpl()->negamax;
+
+#ifdef __cpp_exceptions
+    if (negamax.is_searching()) {
+        throw std::logic_error("cannot set search depth while searching");
+    }
+#endif
+
+    negamax.set_search_depth(search_depth);
+}
+
+void Engine::set_thread_count(int thread_count) {
+    Negamax &negamax = pimpl()->negamax;
+
+#ifdef __cpp_exceptions
+    if (negamax.is_searching()) {
+        throw std::logic_error("cannot set thread count while searching");
+    }
+#endif
+
+    negamax.set_thread_count(thread_count);
+}
+
 void Engine::start_move_search() {
-    auto &[position, negamax] = *pimpl();
+    auto &[position, negamax, _] = *pimpl();
 
 #ifdef __cpp_exceptions
     if (negamax.is_searching()) {
         throw std::logic_error("already searching");
     }
-    if (status() != ChessStatus::OnGoing) {
+    if (status() != OnGoing) {
         throw std::logic_error("game over");
     }
 #endif
@@ -84,7 +123,7 @@ void Engine::start_move_search() {
 
 ChessStatus Engine::do_move(const Move move) {
 #ifdef __cpp_exceptions
-    if (status() != ChessStatus::OnGoing) {
+    if (status() != OnGoing) {
         throw std::logic_error("game over");
     }
     if (std::ranges::find(_legal_moves, move) == _legal_moves.end()) {
@@ -92,12 +131,20 @@ ChessStatus Engine::do_move(const Move move) {
     }
 #endif
 
-    Position &position = pimpl()->position;
+    auto &[position, _, history] = *pimpl();
     position.do_legal(move);
-    position.trim_history();
+    position.trim_history(history);
     _legal_moves = movegen::legals(position);
 
     return status();
+}
+
+void Engine::undo_move() {
+    auto &[position, negamax, history] = *pimpl();
+    negamax.stop_search();
+    position.undo_move_restore_history(history);
+    _legal_moves = movegen::legals(position);
+    negamax.wait_while_searching();
 }
 
 ChessStatus Engine::status() const {
@@ -105,26 +152,26 @@ ChessStatus Engine::status() const {
 
     if (_legal_moves.size() == 0) {
         if (!position.is_in_check()) {
-            return ChessStatus::Stalemate;
+            return Stalemate;
         }
         if (position.state().side_to_move() == White) {
-            return ChessStatus::BlackWin;
+            return BlackWin;
         } else {
-            return ChessStatus::WhiteWin;
+            return WhiteWin;
         }
     }
 
     if (position.is_50move_draw()) {
-        return ChessStatus::Draw50Move;
+        return Draw50Move;
     }
     if (position.is_3fold_repetition()) {
-        return ChessStatus::Draw3Repetition;
+        return Draw3Repetition;
     }
     if (position.is_insufficient_material()) {
-        return ChessStatus::DrawInsufficientMaterial;
+        return DrawInsufficientMaterial;
     }
 
-    return ChessStatus::OnGoing;
+    return OnGoing;
 }
 
 } // namespace cheslib
