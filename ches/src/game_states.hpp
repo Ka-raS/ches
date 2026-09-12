@@ -15,9 +15,12 @@ namespace state {
 
 class SelectingPiece {
   public:
-    SelectingPiece() = default;
+    SelectingPiece(float previous_search_time = 0);
     StateResult update(GameContext &context, MouseEvent mouse) const;
     void draw(const GameContext &context) const;
+
+  private:
+    float _previous_search_time;
 };
 
 class DraggingPiece {

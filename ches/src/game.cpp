@@ -6,42 +6,14 @@ namespace ches {
 namespace cl = ::cheslib;
 
 Game::Game() :
-    // clang-format off
-    _assets{},
-    _window{
-        config::WindowWidth,
-        config::WindowHeight,
-        config::GameTitle,
-        config::WindowConfigs,
-        config::Background,
-        _assets.load_image(config::IconPath)
-    },
+    _window{},
     _state{state::SelectingPiece{}},
     _context{
-        .engine{
-            config::EngineDepth,
-            config::EngineThreadCount
-        },
-        .board_ui{
-            config::SquareSize,
-            config::BoardPos,
-            config::DarkSquare,
-            config::LightSquare,
-            config::Highlight,
-            config::MoveHint,
-            cl::Side::White,
-            _assets.load_font(config::FontPath),
-            _assets.load_texture(config::PiecesSpritePath)
-        },
-        .ui_panel{
-            config::UIPanelRect,
-            config::PanelBackground,
-            _assets.load_font(config::FontPath),
-            _assets.load_texture(config::PiecesSpritePath)
-        },
+        .assets{}, //
+        .engine{config::EngineDepth, config::EngineThreadCount},
         .user{cl::Side::White}
-    } // clang-format on
-{
+    } {
+    _window.set_icon(_context.assets.icon());
     ::SetTargetFPS(config::FPSTarget);
     ::EnableEventWaiting();
 };

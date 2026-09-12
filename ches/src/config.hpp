@@ -4,34 +4,77 @@
 
 namespace ches::config {
 
-constexpr inline unsigned EngineDepth = 6;
+constexpr inline unsigned EngineDepth = 10;
 constexpr inline int EngineThreadCount = -2; // hardware concurrency - 2
 
 constexpr inline int FPSTarget = 120;
-constexpr inline int WindowWidth = 1600;
-constexpr inline int WindowHeight = 1200;
+constexpr inline int WindowWidth = 1024;
+constexpr inline int WindowHeight = 1088;
 constexpr inline char GameTitle[] = "Ches";
 constexpr inline ::ConfigFlags WindowConfigs = ::ConfigFlags(::FLAG_WINDOW_RESIZABLE | ::FLAG_MSAA_4X_HINT);
 
-constexpr inline ::Color Background{0x30, 0x2E, 0x2B, 0xFF};      // #302E2BFF
-constexpr inline ::Color LightSquare{0xEF, 0xD8, 0xB4, 0xFF};     // #EFD8B4FF
-constexpr inline ::Color DarkSquare{0xB4, 0x87, 0x62, 0xFF};      // #B48762FF
-constexpr inline ::Color Highlight{0xAB, 0xCC, 0x20, 0x80};       // #ABCC2080
-constexpr inline ::Color MoveHint{0x12, 0x52, 0x1C, 0x79};        // #12521C79
-constexpr inline ::Color PanelBackground{0x20, 0x20, 0x20, 0x80}; // #20202080
+constexpr inline ::Color Background{0x30, 0x2E, 0x2B, 0xFF};     // #302E2BFF
+constexpr inline ::Color LightSquare{0xEF, 0xD8, 0xB4, 0xFF};    // #EFD8B4FF
+constexpr inline ::Color DarkSquare{0xB4, 0x87, 0x62, 0xFF};     // #B48762FF
+constexpr inline ::Color Highlight{0xAB, 0xCC, 0x20, 0x80};      // #ABCC2080
+constexpr inline ::Color DimHighlight{0x26, 0x24, 0x21, 0xB2};   // #262421B2
+constexpr inline ::Color MoveHint{0x12, 0x52, 0x1C, 0x79};       // #12521C79
+constexpr inline ::Color TextBackground{0x27, 0x27, 0x27, 0xFF}; // #272727FF
 
 constexpr inline char IconPath[] = "assets/icon.png";
 constexpr inline char FontPath[] = "assets/NotoSans-Bold.ttf";
 constexpr inline char PiecesSpritePath[] = "assets/pieces-spritesheet.png";
 
+constexpr inline int FontSize = 32;
 constexpr inline int SquareSize = 128;
-constexpr inline ::Vector2 BoardPos = {88, 88};
 
-constexpr ::Rectangle UIPanelRect{
-    .x = 1200, //
-    .y = 88,
-    .width = WindowWidth - 1200 - 88,
-    .height = 1024
+constexpr inline ::Rectangle UIPanelRect{
+    .x = 0, //
+    .y = 0,
+    .width = WindowWidth,
+    .height = 64
+};
+
+constexpr inline ::Rectangle BoardRect = {
+    .x = 0, //
+    .y = UIPanelRect.height,
+    .width = SquareSize * 8,
+    .height = SquareSize * 8
+};
+
+constexpr inline ::Rectangle NewGameButtonRect{
+    .x = 8, //
+    .y = 8,
+    .width = UIPanelRect.width / 5 - 16,
+    .height = UIPanelRect.height - 16
+};
+
+constexpr inline ::Rectangle UndoButtonRect{
+    .x = UIPanelRect.width * 0.2f + 8, //
+    .y = 8,
+    .width = NewGameButtonRect.width,
+    .height = NewGameButtonRect.height
+};
+
+constexpr inline ::Rectangle StatusRect{
+    .x = UIPanelRect.width * 0.4f + 8, //
+    .y = 8,
+    .width = NewGameButtonRect.width,
+    .height = NewGameButtonRect.height
+};
+
+constexpr inline ::Rectangle DepthSpinnerRect{
+    .x = UIPanelRect.width * 0.6f + 8, //
+    .y = 8,
+    .width = NewGameButtonRect.width,
+    .height = NewGameButtonRect.height
+};
+
+constexpr inline ::Rectangle ThreadSpinnerRect{
+    .x = UIPanelRect.width * 0.8f + 8, //
+    .y = 8,
+    .width = NewGameButtonRect.width,
+    .height = NewGameButtonRect.height
 };
 
 } // namespace ches::config

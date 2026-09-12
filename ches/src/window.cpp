@@ -1,24 +1,16 @@
 #include "window.hpp"
+#include "config.hpp"
 
 #include <cassert>
 #include <cmath>
 
 namespace ches {
 
-Window::Window(
-    const int width, const int height, const char *const title, const ::ConfigFlags flags, const ::Color background,
-    std::shared_ptr<::Image> icon
-) :
-    _virtual_width{width},
-    _virtual_height{height},
-    _background{background},
+Window::Window() :
     _camera{.offset{0, 0}, .target{0, 0}, .rotation = 0, .zoom = 1},
-    _cursor{::MOUSE_CURSOR_DEFAULT},
-    _icon{std::move(icon)} {
-
-    ::SetConfigFlags(flags);
-    ::InitWindow(width, height, title);
-    ::SetWindowIcon(*_icon);
+    _cursor{::MOUSE_CURSOR_DEFAULT} {
+    ::SetConfigFlags(config::WindowConfigs);
+    ::InitWindow(config::WindowWidth, config::WindowHeight, config::GameTitle);
 }
 
 Window::~Window() {
@@ -27,6 +19,10 @@ Window::~Window() {
 
 bool Window::should_close() const {
     return ::WindowShouldClose();
+}
+
+void Window::set_icon(const ::Image &icon) const {
+    ::SetWindowIcon(icon);
 }
 
 void Window::set_cursor(const ::MouseCursor cursor) {
@@ -43,33 +39,33 @@ void Window::update() {
 
     const float width = (float)::GetScreenWidth();
     const float height = (float)::GetScreenHeight();
-    const float scale = std::min(width / _virtual_width, height / _virtual_height);
+    const float scale = std::min(width / config::WindowWidth, height / config::WindowHeight);
 
     _camera.zoom = scale;
-    _camera.offset.x = (width - _virtual_width * scale) / 2;
-    _camera.offset.y = (height - _virtual_height * scale) / 2;
+    _camera.offset.x = (width - config::WindowWidth * scale) / 2;
+    _camera.offset.y = (height - config::WindowHeight * scale) / 2;
 }
 
 MouseEvent Window::poll_mouse() const {
-    MouseEvent mouse{.position = ::GetScreenToWorld2D(::GetMousePosition(), _camera)};
+    KeyState left;
 
     if (::IsMouseButtonReleased(::MOUSE_BUTTON_LEFT)) {
-        mouse.left = KeyState::Released;
+        left = KeyState::Released;
     } else if (::IsMouseButtonUp(::MOUSE_BUTTON_LEFT)) {
-        mouse.left = KeyState::Idle;
+        left = KeyState::Idle;
     } else if (::IsMouseButtonPressed(::MOUSE_BUTTON_LEFT)) {
-        mouse.left = KeyState::Pressed;
+        left = KeyState::Pressed;
     } else {
         assert(::IsMouseButtonDown(::MOUSE_BUTTON_LEFT));
-        mouse.left = KeyState::Holding;
+        left = KeyState::Holding;
     }
 
-    return mouse;
+    return MouseEvent{::GetScreenToWorld2D(::GetMousePosition(), _camera), left};
 }
 
 void Window::begin_frame() const {
     ::BeginDrawing();
-    ::ClearBackground(_background);
+    ::ClearBackground(config::Background);
     ::BeginMode2D(_camera);
 }
 

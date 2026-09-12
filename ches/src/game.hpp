@@ -1,15 +1,13 @@
 #pragma once
 
-#include "asset_manager.hpp"
+#include "assets.hpp"
 #include "game_states.hpp"
-#include "ui.hpp"
 
 namespace ches {
 
 struct GameContext {
+    Assets assets;
     cheslib::Engine engine;
-    BoardUI board_ui;
-    UIPanel ui_panel;
     cheslib::Side user;
 };
 
@@ -23,7 +21,6 @@ class Game {
     void render() const;
 
   private:
-    AssetManager _assets;
     Window _window;
     GameState _state;
     GameContext _context;

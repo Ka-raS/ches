@@ -27,7 +27,7 @@ target_link_libraries(ches
 target_include_directories(ches PRIVATE src/)
 
 target_sources(ches PRIVATE
-    src/asset_manager.cpp
+    src/assets.cpp
     src/game_states.cpp
     src/game.cpp
     src/main.cpp

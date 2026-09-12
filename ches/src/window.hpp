@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <memory>
 
 #include <raylib.h>
 
@@ -22,13 +21,12 @@ struct MouseEvent {
 /// manages game window, input polling and begin/end frame
 class Window {
   public:
-    Window(
-        int width, int height, const char *title, ::ConfigFlags flags, ::Color background, std::shared_ptr<::Image> icon
-    );
+    Window();
 
     bool should_close() const;
     MouseEvent poll_mouse() const;
     void set_cursor(::MouseCursor cursor);
+    void set_icon(const ::Image &icon) const;
 
     void update();
     void begin_frame() const;
@@ -41,13 +39,8 @@ class Window {
     Window &operator=(const Window &) = delete;
 
   private:
-    const int _virtual_width;
-    const int _virtual_height;
-    const ::Color _background;
-
     ::Camera2D _camera;
     ::MouseCursor _cursor;
-    std::shared_ptr<::Image> _icon;
 };
 
 } // namespace ches

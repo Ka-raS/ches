@@ -1,248 +1,191 @@
 #include "ui.hpp"
+#include "config.hpp"
 
-#include <format>
+#include <cstdio>
 
-namespace ches {
+namespace ches::ui {
 
 namespace cl = ::cheslib;
 
-BoardUI::BoardUI(
-    const int square_size, const ::Vector2 position, const ::Color dark_square, const ::Color light_square,
-    const ::Color highlight, const ::Color move_hint, const cl::Side viewer, std::shared_ptr<::Font> font,
-    std::shared_ptr<::Texture2D> pieces_sprite
-) :
-    _font{std::move(font)},
-    _pieces_sprite{std::move(pieces_sprite)},
-    _square_size{square_size},
-    _position{position},
-    _dark_square{dark_square},
-    _light_square{light_square},
-    _highlight{highlight},
-    _move_hint{move_hint},
-    _viewer{viewer} {}
+cl::Square screen_to_square(const ::Vector2 mouse, const cl::Side viewer) {
+    assert(::CheckCollisionPointRec(mouse, config::BoardRect));
 
-void BoardUI::set_viewer(const cl::Side viewer) {
-    _viewer = viewer;
-}
-
-void BoardUI::switch_viewer() {
-    _viewer = !_viewer;
-}
-
-cl::Square BoardUI::screen_to_square(const ::Vector2 mouse) const {
-    const int col = (mouse.x - _position.x) / _square_size;
-    const int row = (mouse.y - _position.y) / _square_size;
-    if (0 > col || col >= cl::FileCNT || 0 > row || row >= cl::RankCNT) {
-        return cl::SquareCNT;
-    }
-
+    const int col = (mouse.x - config::BoardRect.x) / config::SquareSize;
+    const int row = (mouse.y - config::BoardRect.y) / config::SquareSize;
     const cl::Square cell = cl::square_of(cl::File(col), cl::Rank(row));
-    if (_viewer == cl::White) {
+
+    if (viewer == cl::White) {
         return cl::flip_rank(cell);
     } else {
         return cl::flip_file(cell);
     }
 }
 
-::Vector2 BoardUI::square_to_screen(const cl::Square square) const {
+::Vector2 square_to_screen(const cl::Square square, const cl::Side viewer) {
     assert(square < cl::SquareCNT);
 
-    const cl::Square cell = (_viewer == cl::White) ? cl::flip_rank(square) : cl::flip_file(square);
+    const cl::Square cell = (viewer == cl::White) ? cl::flip_rank(square) : cl::flip_file(square);
     const int row = cl::rank_of(cell);
     const int col = cl::file_of(cell);
 
     return ::Vector2{
-        .x = col * _square_size + _position.x, //
-        .y = row * _square_size + _position.y
+        .x = col * config::SquareSize + config::BoardRect.x, //
+        .y = row * config::SquareSize + config::BoardRect.y
     };
 }
 
-void BoardUI::draw_highlight(const cl::Square square) const {
+void draw_highlight(const cl::Square square, const cl::Side viewer) {
     assert(square < cl::SquareCNT);
-
-    const auto [x, y] = square_to_screen(square);
-    ::DrawRectangle(x, y, _square_size, _square_size, _highlight);
+    const auto [x, y] = square_to_screen(square, viewer);
+    ::DrawRectangle(x, y, config::SquareSize, config::SquareSize, config::Highlight);
 }
 
-void BoardUI::draw_move_hint(const cl::Square from, const cl::Array<cl::Move, 256> &moves) const {
+void draw_move_hint(const cl::Square from, const cl::Array<cl::Move, 256> &moves, const cl::Side viewer) {
     for (const cl::Move move : moves) {
         if (move.from() == from) {
-            const auto [x, y] = square_to_screen(move.to());
-            ::DrawCircle(x + _square_size / 2, y + _square_size / 2, _square_size / 6, _move_hint);
+            const auto [x, y] = square_to_screen(move.to(), viewer);
+            ::DrawCircle(
+                x + config::SquareSize / 2, y + config::SquareSize / 2, config::SquareSize / 6, config::MoveHint
+            );
         }
     }
 }
 
-void BoardUI::draw_squares() const {
+void draw_squares(const cl::Side viewer, const ::Font &font) {
     // draw 64 squares
-    ::DrawRectangle(_position.x, _position.y, _square_size * cl::FileCNT, _square_size * cl::RankCNT, _light_square);
+    ::DrawRectangleRec(config::BoardRect, config::LightSquare);
     for (int row = 0; row < cl::RankCNT; ++row) {
         for (int col = (row % 2 == 0); col < cl::FileCNT; col += 2) {
-            const int x = col * _square_size + _position.x;
-            const int y = row * _square_size + _position.y;
+            const int x = col * config::SquareSize + config::BoardRect.x;
+            const int y = row * config::SquareSize + config::BoardRect.y;
 
-            ::DrawRectangle(x, y, _square_size, _square_size, _dark_square);
+            ::DrawRectangle(x, y, config::SquareSize, config::SquareSize, config::DarkSquare);
         }
     }
 
     // draw rank labels
     for (int row = 0; row < cl::RankCNT; ++row) {
-        const int rank = (_viewer == cl::White) ? (cl::Rank8 - row) : row;
-        const char label[2] = {char('1' + rank), '\0'};
-        const ::Vector2 label_size = ::MeasureTextEx(*_font, label, _font->baseSize, 0);
+        const int label = '1' + ((viewer == cl::White) ? (cl::Rank8 - row) : row);
+        const ::Color color = (row % 2 == 0) ? config::LightSquare : config::DarkSquare;
+        const ::Vector2 position{
+            .x = config::SquareSize * cl::FileCNT + config::BoardRect.x - ::GetGlyphAtlasRec(font, label).width * 1.5f,
+            .y = config::SquareSize * row + config::BoardRect.y
+        };
 
-        constexpr int col = cl::FileCNT;
-        const float x = col * _square_size + _position.x - label_size.x * 1.5f;
-        const float y = row * _square_size + _position.y;
-        const ::Color color = (row % 2 == 0) ? _light_square : _dark_square;
-
-        ::DrawTextEx(*_font, label, ::Vector2{x, y}, _font->baseSize, 0, color);
+        ::DrawTextCodepoint(font, label, position, config::FontSize, color);
     }
 
     // draw file labels
     for (int col = 0; col < cl::FileCNT; ++col) {
-        const int file = (_viewer == cl::White) ? col : (cl::FileH - col);
-        const char label[2] = {char('a' + file), '\0'};
-        const ::Vector2 label_size = ::MeasureTextEx(*_font, label, _font->baseSize, 0);
+        const int label = 'a' + ((viewer == cl::White) ? col : (cl::FileH - col));
+        const ::Color color = (col % 2 == 0) ? config::LightSquare : config::DarkSquare;
+        const ::Vector2 position{
+            .x = config::SquareSize * col + config::BoardRect.x + ::GetGlyphAtlasRec(font, label).width / 2,
+            .y = config::SquareSize * cl::RankCNT + config::BoardRect.y - config::FontSize
+        };
 
-        constexpr int row = cl::RankCNT;
-        const float x = col * _square_size + _position.x + label_size.x / 2;
-        const float y = row * _square_size + _position.y - label_size.y;
-        const ::Color color = (col % 2 == 0) ? _light_square : _dark_square;
-
-        ::DrawTextEx(*_font, label, ::Vector2{x, y}, _font->baseSize, 0, color);
+        ::DrawTextCodepoint(font, label, position, config::FontSize, color);
     }
 }
 
-void BoardUI::draw_pieces(const std::array<cl::Piece, cl::SquareCNT> &board) const {
-    for (cl::Square sq = cl::SquareA1; sq <= cl::SquareH8; ++sq) {
-        const cl::Piece piece = board[sq];
-        if (piece < cl::PieceCNT) {
-            draw_piece(piece, square_to_screen(sq));
-        }
-    }
-}
-
-void BoardUI::draw_pieces_except(const cl::Square dismiss, const std::array<cl::Piece, cl::SquareCNT> &board) const {
-    for (cl::Square sq = cl::SquareA1; sq <= cl::SquareH8; ++sq) {
-        const cl::Piece piece = board[sq];
-        if (piece < cl::PieceCNT && sq != dismiss) {
-            draw_piece(piece, square_to_screen(sq));
-        }
-    }
-}
-
-void BoardUI::draw_piece_centered(const cl::Piece piece, const ::Vector2 center) const {
-    const ::Vector2 position{
-        .x = center.x - _pieces_sprite->height / 2, //
-        .y = center.y - _pieces_sprite->height / 2
-    };
-    draw_piece(piece, position);
-}
-
-void BoardUI::draw_piece(const cl::Piece piece, const ::Vector2 position) const {
+void draw_piece(const cl::Piece piece, const ::Vector2 center, const ::Texture2D &pieces_sprite) {
     assert(piece < cl::PieceCNT);
 
+    const ::Vector2 position{
+        .x = center.x - config::SquareSize / 2, //
+        .y = center.y - config::SquareSize / 2
+    };
     const ::Rectangle source{
-        .x = (float)piece * _pieces_sprite->height, //
+        .x = (float)piece * config::SquareSize, //
         .y = 0,
-        .width = (float)_pieces_sprite->height,
-        .height = (float)_pieces_sprite->height
+        .width = config::SquareSize,
+        .height = config::SquareSize
     };
 
-    ::DrawTextureRec(*_pieces_sprite, source, position, ::WHITE);
+    ::DrawTextureRec(pieces_sprite, source, position, ::WHITE);
+}
+
+void draw_pieces(
+    const std::array<cl::Piece, cl::SquareCNT> &board, const cl::Side viewer, const ::Texture2D &pieces_sprite
+) {
+    for (cl::Square sq = cl::SquareA1; sq <= cl::SquareH8; ++sq) {
+        const cl::Piece piece = board[sq];
+        if (piece >= cl::PieceCNT) {
+            continue;
+        }
+
+        const ::Rectangle source{
+            .x = (float)piece * config::SquareSize, //
+            .y = 0,
+            .width = config::SquareSize,
+            .height = config::SquareSize
+        };
+        ::DrawTextureRec(pieces_sprite, source, square_to_screen(sq, viewer), ::WHITE);
+    }
+}
+
+void draw_promotion(const cl::Square at, const ::Texture2D &pieces_sprite) {
+    assert(cl::rank_of(at) == cl::Rank1 || cl::rank_of(at) == cl::Rank8);
+
+    const cl::Side side = (cl::rank_of(at) == cl::Rank8) ? cl::White : cl::Black;
+    const ::Vector2 square_pos = square_to_screen(at, side);
+    ::DrawRectangle(square_pos.x, square_pos.y, config::SquareSize, config::SquareSize * 4, config::DimHighlight);
+
+    for (cl::PieceType type = cl::Knight; type <= cl::Queen; ++type) {
+        const ::Rectangle source{
+            .x = config::SquareSize * (float)cl::piece_of(side, type),
+            .y = 0,
+            .width = config::SquareSize,
+            .height = config::SquareSize
+        };
+        const ::Vector2 position{
+            .x = square_pos.x, //
+            .y = square_pos.y + config::SquareSize * (float)(cl::Queen - type)
+        };
+        ::DrawTextureRec(pieces_sprite, source, position, ::WHITE);
+    }
 }
 
 //
 
-UIPanel::UIPanel(
-    const ::Rectangle rect, const ::Color background, std::shared_ptr<::Font> font,
-    std::shared_ptr<::Texture2D> pieces_sprite
-) :
-    _font{std::move(font)},
-    _pieces_sprite{std::move(pieces_sprite)},
-    _rect{rect},
-    _new_game{
-        .x = rect.x + 50, //
-        .y = rect.y + 50,
-        .width = rect.width - 100,
-        .height = 40
-    },
-    _search_info{
-        .x = rect.x + 50, //
-        .y = rect.y + 100,
-        .width = rect.width - 100,
-        .height = 40
-    },
-    _status{
-        .x = rect.x + 50, //
-        .y = rect.y + 150,
-        .width = rect.width - 100,
-        .height = 40
-    },
-    _promo_select{
-        .x = rect.x + (rect.width - _pieces_sprite->height) / 2, //
-        .y = rect.y + rect.height - _pieces_sprite->height * 4 - (rect.width - _pieces_sprite->height) / 2,
-        .width = (float)_pieces_sprite->height,
-        .height = (float)_pieces_sprite->height * 4
-    },
-    _background{background},
-    _searched_time{0.0f} {};
+namespace {
 
-void UIPanel::set_searched_time(float seconds) {
-    _searched_time = seconds;
-}
+constexpr char ResultTexts[][18] = {"White won",    "Black won",         "Stalemate draw",
+                                    "50-move draw", "3 repetition draw", "Insufficient draw"};
 
-bool UIPanel::is_newgame_button(const ::Vector2 mouse) const {
-    return ::CheckCollisionPointRec(mouse, _new_game);
-}
-
-cl::PieceType UIPanel::promotion_piece_at(const ::Vector2 mouse) const {
-    if (!::CheckCollisionPointRec(mouse, _promo_select)) {
-        return cl::PieceTypeCNT;
-    }
-
-    const cl::PieceType type = cl::PieceType(1 + (mouse.y - _promo_select.y) / _promo_select.width);
-    assert(cl::Knight <= type && type <= cl::Queen);
-    return type;
-}
-
-void UIPanel::draw_default() const {
-    ::DrawRectangleRec(_rect, _background);
-    draw_text("New Game", _new_game);
-    draw_text(std::format("Searched: {:.2f}s", _searched_time).c_str(), _search_info);
-}
-
-void UIPanel::draw_status(const char *const text) const {
-    draw_text(text, _status);
-}
-
-void UIPanel::draw_promotion(const cl::Side side) const {
-    for (cl::PieceType type = cl::Knight; type <= cl::Queen; ++type) {
-        const cl::Piece piece = cl::piece_of(side, type);
-        const ::Rectangle source{
-            .x = (float)piece * _pieces_sprite->height,
-            .y = 0,
-            .width = (float)_pieces_sprite->height,
-            .height = (float)_pieces_sprite->height
-        };
-        const ::Vector2 position{
-            .x = _promo_select.x, //
-            .y = _promo_select.y + (type - cl::Knight) * _promo_select.width
-        };
-
-        ::DrawTextureRec(*_pieces_sprite, source, position, ::WHITE);
-    }
-}
-
-void UIPanel::draw_text(const char *const text, const ::Rectangle &rect) const {
-    const ::Vector2 size = ::MeasureTextEx(*_font, text, _font->baseSize, 0);
+void draw_textbox(const char *const text, const ::Rectangle rect, const ::Font &font) {
+    const ::Vector2 size = ::MeasureTextEx(font, text, config::FontSize, 0);
     const ::Vector2 position{
         .x = rect.x + (rect.width - size.x) / 2, //
         .y = rect.y + (rect.height - size.y) / 2
     };
-    ::DrawRectangleRec(rect, _background);
-    ::DrawTextEx(*_font, text, position, _font->baseSize, 0, ::WHITE);
+    ::DrawRectangleRec(rect, config::TextBackground);
+    ::DrawTextEx(font, text, position, config::FontSize, 0, ::WHITE);
 }
 
-} // namespace ches
+} // namespace
+
+void draw_ui_panel(const cl::Engine &engine, const ::Font &font) {
+    draw_textbox("New Game", config::NewGameButtonRect, font);
+    draw_textbox("Undo Move", config::UndoButtonRect, font);
+
+    char text[20];
+    std::sprintf(text, "-    Depth: %2u    +", engine.search_depth());
+    draw_textbox(text, config::DepthSpinnerRect, font);
+
+    std::sprintf(text, "-  Threads: %3u  +", engine.thread_count());
+    draw_textbox(text, config::ThreadSpinnerRect, font);
+}
+
+void draw_search_status(const float time, const ::Font &font) {
+    char text[16];
+    std::sprintf(text, "Time: %8.3fs", std::min(time, 9999.000f));
+    draw_textbox(text, config::StatusRect, font);
+}
+
+void draw_gameover_status(const cl::ChessStatus status, const ::Font &font) {
+    assert(status != cl::OnGoing);
+    draw_textbox(ResultTexts[status - 1], config::StatusRect, font);
+}
+
+} // namespace ches::ui

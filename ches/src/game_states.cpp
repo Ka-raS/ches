@@ -1,5 +1,7 @@
 #include "game_states.hpp"
+#include "config.hpp"
 #include "game.hpp"
+#include "ui.hpp"
 
 namespace ches::state {
 
@@ -7,36 +9,81 @@ namespace cl = ::cheslib;
 
 namespace {
 
-constexpr char ResultTexts[][18] = {"White won",         "Black won",    "Stalemate draw",
-                                    "Insufficient draw", "50-move draw", "3 repetition draw"};
+/// @param result init with the current state
+StateResult handle_ui_panel(GameContext &c, const MouseEvent mouse, StateResult result) {
+    if (::CheckCollisionPointRec(mouse.position, config::NewGameButtonRect)) {
+        if (mouse.left == KeyState::Pressed) {
+            c.engine.reset_game();
+            c.user = !c.user;
 
-GameState on_newgame(GameContext &c) {
-    c.engine.reset_game();
-    c.user = !c.user;
-    c.board_ui.set_viewer(c.user);
-
-    if (c.user == cl::White) {
-        return SelectingPiece{};
-    } else {
-        return EnginePlaying{c.engine};
+            if (c.user == cl::White) {
+                ::EnableEventWaiting();
+                result.next_state = SelectingPiece{};
+            } else {
+                result.next_state = EnginePlaying{c.engine};
+            }
+        }
+        result.cursor = ::MOUSE_CURSOR_POINTING_HAND;
+        return result;
     }
+
+    if (::CheckCollisionPointRec(mouse.position, config::UndoButtonRect)) {
+        if (mouse.left == KeyState::Pressed) {
+            ::EnableEventWaiting();
+            result.next_state = SelectingPiece{};
+            c.engine.undo_move();
+            if (c.user != c.engine.side_to_move()) {
+                c.engine.undo_move();
+            }
+        }
+        result.cursor = ::MOUSE_CURSOR_POINTING_HAND;
+        return result;
+    }
+
+    if (c.engine.is_searching()) {
+        return result;
+    }
+
+    if (::CheckCollisionPointRec(mouse.position, config::DepthSpinnerRect)) {
+        const int direction =
+            (mouse.position.x > config::DepthSpinnerRect.x + config::DepthSpinnerRect.width * 0.825f) -
+            (mouse.position.x < config::DepthSpinnerRect.x + config::DepthSpinnerRect.width * 0.125f);
+
+        if (direction != 0) {
+            if (mouse.left == KeyState::Pressed) {
+                c.engine.set_search_depth(c.engine.search_depth() + direction);
+            }
+            result.cursor = ::MOUSE_CURSOR_POINTING_HAND;
+        }
+        return result;
+    }
+
+    if (::CheckCollisionPointRec(mouse.position, config::ThreadSpinnerRect)) {
+        const int direction =
+            (mouse.position.x > config::ThreadSpinnerRect.x + config::ThreadSpinnerRect.width * 0.825f) -
+            (mouse.position.x < config::ThreadSpinnerRect.x + config::ThreadSpinnerRect.width * 0.125f);
+
+        if (direction != 0) {
+            if (mouse.left == KeyState::Pressed) {
+                c.engine.set_thread_count(c.engine.thread_count() + direction);
+            }
+            result.cursor = ::MOUSE_CURSOR_POINTING_HAND;
+        }
+    }
+    return result;
 }
 
 } // namespace
 
+SelectingPiece::SelectingPiece(const float previous_search_time) :
+    _previous_search_time{previous_search_time} {}
+
 StateResult SelectingPiece::update(GameContext &c, const MouseEvent mouse) const {
-    if (c.ui_panel.is_newgame_button(mouse.position)) {
-        return {
-            .next_state = (mouse.left == KeyState::Pressed) ? on_newgame(c) : *this,
-            .cursor = ::MOUSE_CURSOR_POINTING_HAND
-        };
+    if (!::CheckCollisionPointRec(mouse.position, config::BoardRect)) {
+        return handle_ui_panel(c, mouse, StateResult{*this});
     }
 
-    const cl::Square square = c.board_ui.screen_to_square(mouse.position);
-    if (square >= cl::SquareCNT) {
-        return StateResult{*this};
-    }
-
+    const cl::Square square = ui::screen_to_square(mouse.position, c.user);
     const cl::Piece piece = c.engine.board()[square];
     if (piece >= cl::PieceCNT || c.user != cl::side_of(piece)) {
         return StateResult{*this};
@@ -50,9 +97,12 @@ StateResult SelectingPiece::update(GameContext &c, const MouseEvent mouse) const
 }
 
 void SelectingPiece::draw(const GameContext &c) const {
-    c.board_ui.draw_squares();
-    c.board_ui.draw_pieces(c.engine.board());
-    c.ui_panel.draw_default();
+    ui::draw_squares(c.user, c.assets.font());
+    ui::draw_pieces(c.engine.board(), c.user, c.assets.pieces_sprite());
+    ui::draw_ui_panel(c.engine, c.assets.font());
+    if (_previous_search_time > 0) {
+        ui::draw_search_status(_previous_search_time, c.assets.font());
+    }
 }
 
 //
@@ -67,11 +117,11 @@ StateResult DraggingPiece::update(GameContext &c, const MouseEvent mouse) const 
     }
 
     assert(mouse.left == KeyState::Released);
-
-    const cl::Square selected = c.board_ui.screen_to_square(mouse.position);
-    if (selected >= cl::SquareCNT) {
+    if (!::CheckCollisionPointRec(mouse.position, config::BoardRect)) {
         return StateResult{SelectingDestination{_selected_piece}};
     }
+
+    const cl::Square selected = ui::screen_to_square(mouse.position, c.user);
 
     cl::Move move = cl::Move::none();
     for (const cl::Move m : c.engine.legal_moves()) {
@@ -89,24 +139,23 @@ StateResult DraggingPiece::update(GameContext &c, const MouseEvent mouse) const 
     }
 
     const cl::ChessStatus status = c.engine.do_move(move);
-    if (status == cl::ChessStatus::OnGoing) {
+    if (status == cl::OnGoing) {
         return StateResult{EnginePlaying{c.engine}};
     } else {
         return StateResult{GameOver{status}};
     }
-
-    return StateResult{SelectingDestination{_selected_piece}};
 }
 
 void DraggingPiece::draw(const GameContext &c) const {
-    c.board_ui.draw_squares();
-    c.board_ui.draw_pieces_except(_selected_piece, c.engine.board());
-    c.board_ui.draw_move_hint(_selected_piece, c.engine.legal_moves());
+    ui::draw_squares(c.user, c.assets.font());
+    ui::draw_pieces(c.engine.board(), c.user, c.assets.pieces_sprite());
+    ui::draw_highlight(_selected_piece, c.user);
+    ui::draw_move_hint(_selected_piece, c.engine.legal_moves(), c.user);
 
     const cl::Piece piece = c.engine.board()[_selected_piece];
     assert(piece < cl::PieceCNT);
-    c.board_ui.draw_piece_centered(piece, _mouse_position);
-    c.ui_panel.draw_default();
+    ui::draw_piece(piece, _mouse_position, c.assets.pieces_sprite());
+    ui::draw_ui_panel(c.engine, c.assets.font());
 }
 
 //
@@ -115,17 +164,11 @@ SelectingDestination::SelectingDestination(const cl::Square selected_piece) :
     _selected_piece{selected_piece} {}
 
 StateResult SelectingDestination::update(GameContext &c, const MouseEvent mouse) const {
-    if (c.ui_panel.is_newgame_button(mouse.position)) {
-        return StateResult{
-            .next_state = (mouse.left == KeyState::Pressed) ? on_newgame(c) : *this,
-            .cursor = ::MOUSE_CURSOR_POINTING_HAND
-        };
+    if (!::CheckCollisionPointRec(mouse.position, config::BoardRect)) {
+        return handle_ui_panel(c, mouse, StateResult{*this});
     }
 
-    const cl::Square selected = c.board_ui.screen_to_square(mouse.position);
-    if (selected >= cl::SquareCNT) {
-        return StateResult{*this};
-    }
+    const cl::Square selected = ui::screen_to_square(mouse.position, c.user);
 
     {
         const cl::Piece piece = c.engine.board()[selected];
@@ -148,7 +191,11 @@ StateResult SelectingDestination::update(GameContext &c, const MouseEvent mouse)
     }
 
     if (move == cl::Move::none()) {
-        return StateResult{*this};
+        if (mouse.left == KeyState::Pressed) {
+            return StateResult{SelectingPiece{}};
+        } else {
+            return StateResult{*this};
+        }
     }
     if (mouse.left != KeyState::Pressed) {
         return StateResult{*this, ::MOUSE_CURSOR_POINTING_HAND};
@@ -158,7 +205,7 @@ StateResult SelectingDestination::update(GameContext &c, const MouseEvent mouse)
     }
 
     const cl::ChessStatus status = c.engine.do_move(move);
-    if (status == cl::ChessStatus::OnGoing) {
+    if (status == cl::OnGoing) {
         return StateResult{EnginePlaying{c.engine}};
     } else {
         return StateResult{GameOver{status}};
@@ -166,11 +213,11 @@ StateResult SelectingDestination::update(GameContext &c, const MouseEvent mouse)
 }
 
 void SelectingDestination::draw(const GameContext &c) const {
-    c.board_ui.draw_squares();
-    c.board_ui.draw_highlight(_selected_piece);
-    c.board_ui.draw_pieces(c.engine.board());
-    c.board_ui.draw_move_hint(_selected_piece, c.engine.legal_moves());
-    c.ui_panel.draw_default();
+    ui::draw_squares(c.user, c.assets.font());
+    ui::draw_highlight(_selected_piece, c.user);
+    ui::draw_pieces(c.engine.board(), c.user, c.assets.pieces_sprite());
+    ui::draw_move_hint(_selected_piece, c.engine.legal_moves(), c.user);
+    ui::draw_ui_panel(c.engine, c.assets.font());
 }
 
 //
@@ -180,27 +227,31 @@ PromotingPawn::PromotingPawn(const cl::Square selected_pawn, const cl::Square pr
     _promotion_square{promotion_square} {}
 
 StateResult PromotingPawn::update(GameContext &c, const MouseEvent mouse) const {
-    if (c.ui_panel.is_newgame_button(mouse.position)) {
-        return {
-            .next_state = (mouse.left == KeyState::Pressed) ? on_newgame(c) : *this,
-            .cursor = ::MOUSE_CURSOR_POINTING_HAND
-        };
+    if (!::CheckCollisionPointRec(mouse.position, config::BoardRect)) {
+        return handle_ui_panel(c, mouse, StateResult{*this});
     }
 
-    const cl::PieceType promo = c.ui_panel.promotion_piece_at(mouse.position);
-    if (promo >= cl::PieceTypeCNT) {
-        return StateResult{*this};
+    const cl::Square selected = ui::screen_to_square(mouse.position, c.user);
+    const cl::MoveFlag promo =
+        cl::MoveFlag((c.user == cl::White) ? (4u + cl::rank_of(selected)) : (11u - cl::rank_of(selected)));
+
+    if (cl::KnightPromo > promo || promo > cl::QueenPromo || cl::file_of(selected) != cl::file_of(_promotion_square)) {
+        if (mouse.left == KeyState::Pressed) {
+            return StateResult{SelectingPiece{}};
+        } else {
+            return StateResult{*this};
+        }
     }
     if (mouse.left != KeyState::Pressed) {
         return StateResult{*this, ::MOUSE_CURSOR_POINTING_HAND};
     }
 
     const bool is_capture = (c.engine.board()[_promotion_square] < cl::PieceCNT);
-    const cl::MoveFlag flag = cl::MoveFlag(cl::KnightPromo | (promo - 1) | (is_capture ? cl::Capture : cl::QuietMove));
+    const cl::MoveFlag flag = cl::MoveFlag(promo | (is_capture ? cl::Capture : cl::QuietMove));
     const cl::Move move{_selected_pawn, _promotion_square, flag};
     const cl::ChessStatus status = c.engine.do_move(move);
 
-    if (status == cl::ChessStatus::OnGoing) {
+    if (status == cl::OnGoing) {
         return StateResult{EnginePlaying{c.engine}};
     } else {
         return StateResult{GameOver{status}};
@@ -208,11 +259,11 @@ StateResult PromotingPawn::update(GameContext &c, const MouseEvent mouse) const 
 }
 
 void PromotingPawn::draw(const GameContext &c) const {
-    c.board_ui.draw_squares();
-    c.board_ui.draw_highlight(_selected_pawn);
-    c.board_ui.draw_pieces(c.engine.board());
-    c.ui_panel.draw_default();
-    c.ui_panel.draw_promotion(c.user);
+    ui::draw_squares(c.user, c.assets.font());
+    ui::draw_highlight(_selected_pawn, c.user);
+    ui::draw_pieces(c.engine.board(), c.user, c.assets.pieces_sprite());
+    ui::draw_ui_panel(c.engine, c.assets.font());
+    ui::draw_promotion(_promotion_square, c.assets.pieces_sprite());
 }
 
 //
@@ -224,61 +275,44 @@ EnginePlaying::EnginePlaying(cl::Engine &engine) :
 }
 
 StateResult EnginePlaying::update(GameContext &c, const MouseEvent mouse) const {
-    c.ui_panel.set_searched_time((float)::GetTime() - _start_time);
-
-    if (c.ui_panel.is_newgame_button(mouse.position)) {
-        if (mouse.left == KeyState::Pressed) {
-            ::EnableEventWaiting();
-            return StateResult{on_newgame(c), ::MOUSE_CURSOR_POINTING_HAND};
-        } else {
-            return StateResult{*this, ::MOUSE_CURSOR_POINTING_HAND};
-        }
-    }
-
     if (c.engine.is_searching()) {
-        return StateResult{*this};
+        return handle_ui_panel(c, mouse, StateResult{*this});
     }
 
     ::EnableEventWaiting();
     const cl::Move move = c.engine.search_result();
     const cl::ChessStatus status = c.engine.do_move(move);
 
-    if (status == cl::ChessStatus::OnGoing) {
-        return StateResult{SelectingPiece{}};
+    if (status == cl::OnGoing) {
+        return StateResult{SelectingPiece{(float)::GetTime() - _start_time}};
     } else {
         return StateResult{GameOver{status}};
     }
 }
 
 void EnginePlaying::draw(const GameContext &c) const {
-    c.board_ui.draw_squares();
-    c.board_ui.draw_pieces(c.engine.board());
-    c.ui_panel.draw_default();
+    ui::draw_squares(c.user, c.assets.font());
+    ui::draw_pieces(c.engine.board(), c.user, c.assets.pieces_sprite());
+    ui::draw_ui_panel(c.engine, c.assets.font());
+    ui::draw_search_status((float)::GetTime() - _start_time, c.assets.font());
 }
 
 //
 
 GameOver::GameOver(const cl::ChessStatus result) :
     _result{result} {
-    assert(result != cl::ChessStatus::OnGoing);
+    assert(result != cl::OnGoing);
 }
 
 StateResult GameOver::update(GameContext &c, const MouseEvent mouse) const {
-    if (c.ui_panel.is_newgame_button(mouse.position)) {
-        return StateResult{
-            .next_state = (mouse.left == KeyState::Pressed) ? on_newgame(c) : *this,
-            .cursor = ::MOUSE_CURSOR_POINTING_HAND
-        };
-    }
-
-    return StateResult{*this};
+    return handle_ui_panel(c, mouse, StateResult{*this});
 }
 
 void GameOver::draw(const GameContext &c) const {
-    c.board_ui.draw_squares();
-    c.board_ui.draw_pieces(c.engine.board());
-    c.ui_panel.draw_default();
-    c.ui_panel.draw_status(ResultTexts[size_t(_result) - 1]);
+    ui::draw_squares(c.user, c.assets.font());
+    ui::draw_pieces(c.engine.board(), c.user, c.assets.pieces_sprite());
+    ui::draw_ui_panel(c.engine, c.assets.font());
+    ui::draw_gameover_status(_result, c.assets.font());
 }
 
 } // namespace ches::state
