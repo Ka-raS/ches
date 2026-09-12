@@ -95,7 +95,7 @@ Bitboard sliding_blockers(const Square from, const std::array<Direction, 4> &dir
 uint64_t find_magic(const Square from, const std::array<Direction, 4> &directions, std::mt19937_64 &rng) {
     constexpr size_t max_subsets = 1ull << 12;
     const Bitboard mask = sliding_blockers(from, directions);
-    const size_t shift = std::popcount(mask);
+    const size_t shift = 64u - std::popcount(mask);
 
     Bitboard attacks[max_subsets];
     Bitboard occupancies[max_subsets];
@@ -124,8 +124,8 @@ uint64_t find_magic(const Square from, const std::array<Direction, 4> &direction
         bool used_index[max_subsets] = {false};
         Bitboard used_attacks[max_subsets] = {0};
 
-        for (size_t i = 0; i < (1ULL << shift); ++i) {
-            size_t magic_index = (occupancies[i] * magic) >> (64 - shift);
+        for (size_t i = 0; i < (1ull << (64u - shift)); ++i) {
+            size_t magic_index = (occupancies[i] * magic) >> shift;
 
             if (!used_index[magic_index]) {
                 used_index[magic_index] = true;

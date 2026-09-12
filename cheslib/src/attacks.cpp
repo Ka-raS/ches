@@ -14,7 +14,7 @@ struct Magic {
     uint32_t shift;
 
     constexpr size_t index(const Bitboard occupancy) const {
-        return offset + (((occupancy & mask) * magic) >> (64 - std::popcount(mask)));
+        return offset + (((occupancy & mask) * magic) >> shift);
     }
 };
 
@@ -82,7 +82,7 @@ consteval std::array<Magic, SquareCNT> magic_infos(
 
         mask = sliding_blockers(sq, directions);
         magic = magic_numbers[sq];
-        shift = 64 - std::popcount(mask);
+        shift = 64u - std::popcount(mask);
 
         if (sq == SquareA1) {
             offset = 0;

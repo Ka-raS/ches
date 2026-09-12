@@ -2,11 +2,12 @@
 
 #include <cassert>
 #include <cstddef>
+#include <iterator>
 #include <utility>
 
 namespace cheslib {
 
-/// basically std::inplace_vector
+/// basically `std::inplace_vector`
 template <typename T, size_t N>
     requires std::is_trivially_default_constructible_v<T> && std::is_trivially_copyable_v<T>
 class Array {
@@ -31,12 +32,20 @@ class Array {
         --_size;
     }
 
-    constexpr void emplace_back(auto &&...args)
-        requires std::is_constructible_v<T, decltype(args)...>
-    {
+    template <typename... Args>
+        requires std::is_constructible_v<T, Args...>
+    constexpr void emplace_back(Args &&...args) {
         assert(_size < N);
-        _data[_size] = T{std::forward<decltype(args)>(args)...};
+        _data[_size] = T{std::forward<Args>(args)...};
         ++_size;
+    }
+
+    template <typename InputIt>
+        requires std::indirectly_copyable<InputIt, T *>
+    constexpr void assign(InputIt begin, InputIt end) {
+        assert(std::distance(begin, end) <= N);
+        std::copy(begin, end, _data);
+        _size = std::distance(begin, end);
     }
 
     constexpr T &operator[](size_t index) {

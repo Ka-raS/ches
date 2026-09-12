@@ -1,5 +1,7 @@
 #include "zobrist.hpp"
 
+#include <cstddef>
+
 namespace cheslib::zobrist {
 
 namespace {

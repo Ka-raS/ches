@@ -30,7 +30,7 @@ void PositionState::revoke_castles(CastleFlag revoke) {
 }
 
 bool PositionState::has_en_passant() const {
-    return _data & (1 << 4);
+    return !(_data & (1 << 7));
 }
 
 File PositionState::en_passant() const {
@@ -39,8 +39,8 @@ File PositionState::en_passant() const {
 
 void PositionState::set_en_passant(File file) {
     assert(file <= FileCNT);
-    constexpr uint16_t mask = 0b1111 << 4;
-    _data = (_data & ~mask) | (file << 4);
+    constexpr uint16_t mask = ~(0b1111 << 4);
+    _data = (_data & mask) | (file << 4);
 }
 
 Side PositionState::side_to_move() const {

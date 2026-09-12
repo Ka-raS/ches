@@ -6,13 +6,13 @@ Score HistoryHeuristic::get(const Piece piece, const Square to) const {
     assert(piece < PieceCNT);
     assert(to < SquareCNT);
 
-    return _scores[piece][to].load(std::memory_order::acquire);
+    return _scores[piece][to].load(std::memory_order::relaxed);
 }
 
 void HistoryHeuristic::reset() {
     for (auto &row : _scores) {
         for (std::atomic_int16_t &score : row) {
-            score.store(0, std::memory_order::release);
+            score.store(0, std::memory_order::relaxed);
         }
     }
 }

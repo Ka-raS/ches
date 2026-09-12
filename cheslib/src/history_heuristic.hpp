@@ -15,7 +15,10 @@ class HistoryHeuristic {
     void reset();
     Score get(Piece piece, Square to) const;
 
-    /// @param back the move that caused cutoff
+    /**
+     * update heuristics of seached moves
+     * @param back the move that caused cutoff
+     */
     void update(const MoveScore *front, const MoveScore *back, const Pieces &pieces, Score bonus);
 
   private:

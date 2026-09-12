@@ -5,7 +5,6 @@
 
 #include <bit>
 #include <concepts>
-#include <cstddef>
 
 namespace cheslib {
 
