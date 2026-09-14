@@ -11,7 +11,7 @@ Game::Game() :
     _context{
         .assets{}, //
         .engine{config::EngineDepth, config::EngineThreadCount},
-        .user{cl::Side::White}
+        .user = cl::Side::White
     } {
     _window.set_icon(_context.assets.icon());
     ::SetTargetFPS(config::FPSTarget);
