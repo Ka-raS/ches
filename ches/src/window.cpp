@@ -1,8 +1,8 @@
 #include "window.hpp"
 #include "config.hpp"
 
+#include <algorithm>
 #include <cassert>
-#include <cmath>
 
 namespace ches {
 

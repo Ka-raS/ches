@@ -92,7 +92,7 @@ class Engine {
   private:
     static constexpr size_t BufferAlign = 16;
 
-    alignas(BufferAlign) std::byte _buffer[3856];
+    alignas(BufferAlign) std::byte _buffer[3872];
     Array<Move, 256> _legal_moves;
 };
 
