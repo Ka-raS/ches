@@ -35,6 +35,14 @@ target_sources(ches PRIVATE
     src/window.cpp
 )
 
+if (WIN32)
+    set_target_properties(ches PROPERTIES WIN32_EXECUTABLE TRUE)
+    target_sources(ches PRIVATE 
+        src/app.rc
+        src/winmain.cpp
+    )
+endif()
+
 add_custom_command(TARGET ches POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
         ${CMAKE_CURRENT_SOURCE_DIR}/assets

@@ -22,11 +22,15 @@ target_sources(cheslib PRIVATE
     src/zobrist.cpp
 )
 
-target_compile_options(cheslib PRIVATE
-    $<$<CXX_COMPILER_ID:GNU>:-fconstexpr-ops-limit=200000000>
-    $<$<CXX_COMPILER_ID:Clang>:-fconstexpr-steps=200000000>
-    $<$<CXX_COMPILER_ID:MSVC>:/constexpr:steps200000000>
-)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    target_compile_options(cheslib PRIVATE "/constexpr:steps200000000")
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
+    target_compile_options(cheslib PRIVATE "/clang:-fconstexpr-steps=200000000")
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "AppleClang|Clang|IntelLLVM")
+    target_compile_options(cheslib PRIVATE "-fconstexpr-steps=200000000")
+else() # Fallback to GCC
+    target_compile_options(cheslib PRIVATE "-fconstexpr-ops-limit=200000000")
+endif()
 
 if(BUILD_TESTING)
     add_subdirectory(tests)
