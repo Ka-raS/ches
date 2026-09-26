@@ -1,8 +1,3 @@
-- app.rc
-- Negamax INT16_MAX is weird
-- cpu pinning
-- -Wnrvo, -Rpass-analysis=[inline, loop-unroll, loop-vectorize]
-
 - FEN string
 - Engine validate custom Position
 - AudioManager

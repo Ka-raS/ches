@@ -22,6 +22,9 @@
             "name": "pgo-generate",
             "inherits": "release",
             "binaryDir": "build/pgo-generate",
+            "environment": {
+                "LLVM_PROFILE_FILE": "default-%m.profraw"
+            },
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",

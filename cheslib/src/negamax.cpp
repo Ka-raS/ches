@@ -124,7 +124,7 @@ void Negamax::start_search(const Position &position, const Array<Move, 256> &leg
         return root;
     };
 
-    _result.store(MoveScore{Move::none(), INT16_MIN}, std::memory_order::release);
+    _result.store(MoveScore{Move::none(), -INT16_MAX}, std::memory_order::release);
     _stop.store(false, std::memory_order::relaxed);
 
     for (size_t i = 0; i < worker_count; ++i) {
@@ -165,7 +165,7 @@ MoveScore Negamax::iterative_deepening(RootNode root) {
 
         for (MoveScore &current : legal_moves) {
             position.do_legal(current.move);
-            current.score = -negamax(position, depth - 1, -INT16_MAX, -best.score);
+            current.score = -negamax(position, -INT16_MAX, -best.score, depth - 1, 1);
             position.undo_move();
 
             if (best.score < current.score) {
@@ -177,7 +177,7 @@ MoveScore Negamax::iterative_deepening(RootNode root) {
     return best;
 }
 
-Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Score beta) {
+Score Negamax::negamax(Position &position, Score alpha, Score beta, const unsigned depth, const unsigned ply) {
     if (position.is_50move_draw() || position.is_3fold_repetition() || _stop.load(std::memory_order::relaxed)) {
         return 0;
     }
@@ -221,7 +221,7 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
     // const beta
 
     Move best_move;
-    Score best_score = INT16_MIN;
+    Score best_score = -INT16_MAX;
 
     for (MoveScore *it = moves.begin(); it != moves.end(); ++it) {
         std::iter_swap(it, std::ranges::max_element(it, moves.end(), {}, &MoveScore::score));
@@ -232,7 +232,7 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
             continue;
         }
 
-        const Score score = -negamax(position, depth - 1, -beta, -alpha);
+        const Score score = -negamax(position, -beta, -alpha, depth - 1, ply + 1);
         position.undo_move();
 
         if (_stop.load(std::memory_order::relaxed)) {
@@ -252,10 +252,10 @@ Score Negamax::negamax(Position &position, const unsigned depth, Score alpha, Sc
     }
     // const best_move, best_score
 
-    if (best_score == INT16_MIN) {
-        constexpr Score checkmated = 1 - INT16_MAX;
+    if (best_score == -INT16_MAX) {
+        constexpr Score checkmated = -INT16_MAX;
         constexpr Score stalemate = 0;
-        return position.is_in_check() ? checkmated : stalemate;
+        return position.is_in_check() ? (checkmated + ply) : stalemate;
     }
 
     assert(best_score < beta);

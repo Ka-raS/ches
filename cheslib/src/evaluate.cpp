@@ -186,7 +186,7 @@ Score pesto(const Position &position) {
     const Score d_end_game = end_game[White] - end_game[Black];
     const Score score = (phase * d_mid_game + (24 - phase) * d_end_game) / 24;
 
-    assert(-INT16_MAX <= score && score <= INT16_MAX); // TODO: change this
+    assert(-INT16_MAX <= score && score <= INT16_MAX); // if legal position, for sure for sure
     return (position.state().side_to_move() == White) ? score : -score;
 }
 

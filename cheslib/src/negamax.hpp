@@ -30,8 +30,15 @@ class Negamax {
     };
 
     MoveScore iterative_deepening(RootNode root);
-    Score negamax(Position &position, unsigned depth, Score alpha, Score beta);
     int16_t scoring(Move move, const Pieces &pieces) const; ///< for move ordering
+
+    /**
+     * @param alpha lower bound of score
+     * @param beta upper bound of score
+     * @param depth remaining depth to search
+     * @param ply distance from root node
+     */
+    Score negamax(Position &position, Score alpha, Score beta, unsigned depth, unsigned ply);
 
   private:
     std::unique_ptr<TranspositionTable> _transpositions;

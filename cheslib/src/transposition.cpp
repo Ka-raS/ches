@@ -5,7 +5,7 @@ namespace cheslib {
 Transposition::Transposition(
     const ZobristKey key, const Move move, const Score score, const Bound bound, const unsigned depth
 ) :
-    _data(depth | (bound << 4) | (key << 6)),
+    _data(depth | (bound << 4) | uint32_t(key << 6)),
     _move{move},
     _score(score) {}
 
