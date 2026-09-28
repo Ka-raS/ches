@@ -40,9 +40,10 @@ const Engine::Impl *Engine::pimpl() const {
 }
 
 void Engine::reset_game() {
-    auto &[position, negamax, _] = *pimpl();
+    auto &[position, negamax, history] = *pimpl();
     negamax.reset();
     position = Position::initial();
+    history.clear();
     _legal_moves = movegen::legals(position);
 }
 

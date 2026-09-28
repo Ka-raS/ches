@@ -28,6 +28,9 @@ struct alignas(4) MoveScore {
     int16_t score;
 };
 
+inline constexpr Score MateScore = 32000;
+inline constexpr unsigned MaxDepth = 15u;
+
 /// negamax alpha beta pruning bound
 enum Bound : uint8_t {
     BoundExact,

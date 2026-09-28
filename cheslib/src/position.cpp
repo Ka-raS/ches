@@ -50,11 +50,26 @@ bool Position::is_3fold_repetition() const {
 }
 
 bool Position::is_insufficient_material() const {
-    return !_pieces.get(WhitePawn) && !_pieces.get(BlackPawn) && //
-           !_pieces.get(WhiteRook) && !_pieces.get(BlackRook) && //
-           !_pieces.get(WhiteQueen) && !_pieces.get(BlackQueen) &&
-           (_pieces.count(WhiteBishop) + _pieces.count(WhiteKnight) <= 1) &&
-           (_pieces.count(BlackBishop) + _pieces.count(BlackKnight) <= 1);
+    if (_pieces.get(WhitePawn) || _pieces.get(BlackPawn) || //
+        _pieces.get(WhiteRook) || _pieces.get(BlackRook) || //
+        _pieces.get(WhiteQueen) || _pieces.get(BlackQueen)) {
+        return false;
+    }
+
+    const int total_minors = _pieces.count(WhiteBishop) + _pieces.count(WhiteKnight) + //
+                             _pieces.count(BlackBishop) + _pieces.count(BlackKnight);
+    if (total_minors <= 1) {
+        return true;
+    }
+    if (total_minors != 2 || _pieces.count(WhiteBishop) != 1 || _pieces.count(BlackBishop) != 1) {
+        return false;
+    }
+
+    const Square white_bishop = (Square)std::countr_zero(_pieces.get(WhiteBishop));
+    const Square black_bishop = (Square)std::countr_zero(_pieces.get(BlackBishop));
+    const bool is_same_color = ((unsigned)file_of(white_bishop) + rank_of(white_bishop)) % 2 ==
+                               ((unsigned)file_of(black_bishop) + rank_of(black_bishop)) % 2;
+    return is_same_color;
 }
 
 void Position::trim_history(std::vector<MoveEntry> &buffer) {
@@ -94,6 +109,7 @@ void Position::undo_move_restore_history(std::vector<MoveEntry> &buffer) {
         return;
     }
 
+    // find the latest irreversible move in buffer
     const auto r_it = std::find_if(buffer.rbegin(), buffer.rend(), [](const MoveEntry &entry) {
         return entry.state.rule50_count() == 0;
     });

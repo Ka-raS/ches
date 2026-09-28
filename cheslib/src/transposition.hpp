@@ -13,7 +13,7 @@ class alignas(8) Transposition {
     Transposition(ZobristKey key, Move move, Score score, Bound bound, unsigned depth);
 
     Move move() const;
-    Score score() const;
+    Score score(unsigned ply) const;
     Bound bound() const;
     unsigned depth() const;
     bool is_match(ZobristKey key) const;
@@ -30,7 +30,7 @@ class TranspositionTable {
 
     /// @return `Transposition` entry without checking `Transposition::is_match()`
     Transposition get(ZobristKey key) const;
-    void store(ZobristKey key, Move move, Score score, Bound bound, unsigned depth);
+    void store(ZobristKey key, Move move, Score score, Bound bound, unsigned depth, unsigned ply);
     void reset();
 
   private:

@@ -33,7 +33,7 @@ Negamax::Negamax(const unsigned search_depth, const int thread_count) :
     _transpositions{std::make_unique<TranspositionTable>()},
     _heuristics{},
     _result{MoveScore{Move::none()}},
-    _search_depth(std::clamp(search_depth, 2u, 15u)),
+    _search_depth(std::clamp(search_depth, 2u, MaxDepth)),
     _thread_count{calculate_thread_count(thread_count)},
     _threads{std::make_unique<Thread[]>(std::clamp(std::thread::hardware_concurrency(), 1u, 255u))} {}
 
@@ -47,7 +47,7 @@ unsigned Negamax::thread_count() const {
 
 void Negamax::set_search_depth(unsigned search_depth) {
     assert(!is_searching());
-    _search_depth = std::clamp(search_depth, 2u, 15u);
+    _search_depth = std::clamp(search_depth, 2u, MaxDepth);
 }
 
 void Negamax::set_thread_count(int thread_count) {
@@ -199,22 +199,23 @@ Score Negamax::negamax(Position &position, Score alpha, Score beta, const unsign
         if (it != moves.end() && (it->score = INT16_MAX) && entry.depth() >= depth &&
             position.try_do_pseudo(entry.move())) {
             position.undo_move();
+            const Score entry_score = entry.score(ply);
 
             switch (entry.bound()) {
             case BoundExact:
-                return entry.score();
+                return entry_score;
 
             case BoundLower:
-                alpha = std::max(alpha, entry.score());
+                alpha = std::max(alpha, entry_score);
                 break;
 
             case BoundUpper:
-                beta = std::min(beta, entry.score());
+                beta = std::min(beta, entry_score);
                 break;
             }
 
             if (alpha >= beta) {
-                return entry.score();
+                return entry_score;
             }
         }
     }
@@ -239,7 +240,7 @@ Score Negamax::negamax(Position &position, Score alpha, Score beta, const unsign
             return 0;
         }
         if (score >= beta) {
-            _transpositions->store(position.key(), move, score, BoundLower, depth);
+            _transpositions->store(position.key(), move, score, BoundLower, depth, ply);
             _heuristics.update(moves.begin(), it, position.pieces(), 300 * depth - 250);
             return score;
         }
@@ -260,7 +261,7 @@ Score Negamax::negamax(Position &position, Score alpha, Score beta, const unsign
 
     assert(best_score < beta);
     const Bound bound = (best_score <= original_alpha) ? BoundUpper : BoundExact;
-    _transpositions->store(position.key(), best_move, best_score, bound, depth);
+    _transpositions->store(position.key(), best_move, best_score, bound, depth, ply);
 
     return best_score;
 }

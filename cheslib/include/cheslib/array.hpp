@@ -2,6 +2,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <cstring>
 #include <iterator>
 #include <utility>
 
@@ -40,12 +41,12 @@ class Array {
         ++_size;
     }
 
-    template <typename InputIt>
-        requires std::indirectly_copyable<InputIt, T *>
-    constexpr void assign(InputIt begin, InputIt end) {
-        assert(std::distance(begin, end) <= N);
-        std::copy(begin, end, _data);
+    template <typename It>
+        requires std::same_as<T, std::iter_value_t<It>> && std::contiguous_iterator<It>
+    constexpr void assign(const It begin, const It end) {
         _size = std::distance(begin, end);
+        assert(_size <= N);
+        std::memcpy(_data, std::to_address(begin), _size * sizeof(T));
     }
 
     constexpr T &operator[](size_t index) {
