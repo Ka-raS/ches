@@ -29,7 +29,7 @@ void Game::update() {
     _window.update();
 
     const auto [next_state, cursor] = std::visit([this](const auto &state) -> StateResult {
-        return state.update(_context, _window.poll_mouse());
+        return state.handle(_context, _window.poll_mouse());
     }, _state);
 
     _state = next_state;

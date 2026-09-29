@@ -76,7 +76,7 @@ StateResult handle_ui_panel(GameContext &c, const MouseEvent mouse, const GameSt
 SelectingPiece::SelectingPiece(const float previous_search_time) :
     _previous_search_time{previous_search_time} {}
 
-StateResult SelectingPiece::update(GameContext &c, const MouseEvent mouse) const {
+StateResult SelectingPiece::handle(GameContext &c, const MouseEvent mouse) const {
     if (!::CheckCollisionPointRec(mouse.position, config::BoardRect)) {
         return handle_ui_panel(c, mouse, *this);
     }
@@ -109,7 +109,7 @@ DraggingPiece::DraggingPiece(const ::Vector2 mouse_position, const cl::Square se
     _mouse_position{mouse_position},
     _selected_piece{selected_piece} {}
 
-StateResult DraggingPiece::update(GameContext &c, const MouseEvent mouse) const {
+StateResult DraggingPiece::handle(GameContext &c, const MouseEvent mouse) const {
     if (mouse.left == KeyState::Holding) {
         return StateResult{DraggingPiece{mouse.position, _selected_piece}, ::MOUSE_CURSOR_RESIZE_ALL};
     }
@@ -161,7 +161,7 @@ void DraggingPiece::draw(const GameContext &c) const {
 SelectingDestination::SelectingDestination(const cl::Square selected_piece) :
     _selected_piece{selected_piece} {}
 
-StateResult SelectingDestination::update(GameContext &c, const MouseEvent mouse) const {
+StateResult SelectingDestination::handle(GameContext &c, const MouseEvent mouse) const {
     if (!::CheckCollisionPointRec(mouse.position, config::BoardRect)) {
         return handle_ui_panel(c, mouse, *this);
     }
@@ -224,7 +224,7 @@ PromotingPawn::PromotingPawn(const cl::Square selected_pawn, const cl::Square pr
     _selected_pawn{selected_pawn},
     _promotion_square{promotion_square} {}
 
-StateResult PromotingPawn::update(GameContext &c, const MouseEvent mouse) const {
+StateResult PromotingPawn::handle(GameContext &c, const MouseEvent mouse) const {
     if (!::CheckCollisionPointRec(mouse.position, config::BoardRect)) {
         return handle_ui_panel(c, mouse, *this);
     }
@@ -272,7 +272,7 @@ EnginePlaying::EnginePlaying(cl::Engine &engine) :
     ::DisableEventWaiting();
 }
 
-StateResult EnginePlaying::update(GameContext &c, const MouseEvent mouse) const {
+StateResult EnginePlaying::handle(GameContext &c, const MouseEvent mouse) const {
     if (c.engine.is_searching()) {
         return handle_ui_panel(c, mouse, *this);
     }
@@ -302,7 +302,7 @@ GameOver::GameOver(const cl::ChessStatus result) :
     assert(result != cl::OnGoing);
 }
 
-StateResult GameOver::update(GameContext &c, const MouseEvent mouse) const {
+StateResult GameOver::handle(GameContext &c, const MouseEvent mouse) const {
     return handle_ui_panel(c, mouse, *this);
 }
 

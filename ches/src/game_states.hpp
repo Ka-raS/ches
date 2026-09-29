@@ -16,7 +16,7 @@ namespace state {
 class SelectingPiece {
   public:
     SelectingPiece(float previous_search_time = 0);
-    StateResult update(GameContext &context, MouseEvent mouse) const;
+    StateResult handle(GameContext &context, MouseEvent mouse) const;
     void draw(const GameContext &context) const;
 
   private:
@@ -26,7 +26,7 @@ class SelectingPiece {
 class DraggingPiece {
   public:
     DraggingPiece(::Vector2 mouse_position, cheslib::Square selected_piece);
-    StateResult update(GameContext &context, MouseEvent mouse) const;
+    StateResult handle(GameContext &context, MouseEvent mouse) const;
     void draw(const GameContext &context) const;
 
   private:
@@ -37,7 +37,7 @@ class DraggingPiece {
 class SelectingDestination {
   public:
     SelectingDestination(cheslib::Square selected_piece);
-    StateResult update(GameContext &context, MouseEvent mouse) const;
+    StateResult handle(GameContext &context, MouseEvent mouse) const;
     void draw(const GameContext &context) const;
 
   private:
@@ -47,7 +47,7 @@ class SelectingDestination {
 class PromotingPawn {
   public:
     PromotingPawn(cheslib::Square selected_pawn, cheslib::Square promotion_square);
-    StateResult update(GameContext &context, MouseEvent mouse) const;
+    StateResult handle(GameContext &context, MouseEvent mouse) const;
     void draw(const GameContext &context) const;
 
   private:
@@ -58,7 +58,7 @@ class PromotingPawn {
 class EnginePlaying {
   public:
     EnginePlaying(cheslib::Engine &engine);
-    StateResult update(GameContext &context, MouseEvent mouse) const;
+    StateResult handle(GameContext &context, MouseEvent mouse) const;
     void draw(const GameContext &context) const;
 
   private:
@@ -68,7 +68,7 @@ class EnginePlaying {
 class GameOver {
   public:
     GameOver(cheslib::ChessStatus result);
-    StateResult update(GameContext &context, MouseEvent mouse) const;
+    StateResult handle(GameContext &context, MouseEvent mouse) const;
     void draw(const GameContext &context) const;
 
   private:
