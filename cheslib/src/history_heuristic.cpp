@@ -21,18 +21,23 @@ void HistoryHeuristic::update(
     const MoveScore *const front, const MoveScore *const back, const Pieces &pieces, const Score bonus
 ) {
     constexpr Score max_heuristic = 1 << 14;
+    assert(bonus > 0);
 
     if (back->move.flag() == QuietMove) {
         std::atomic_int16_t &entry = _scores[pieces.at(back->move.from())][back->move.to()];
         const Score current = entry.load(std::memory_order::relaxed);
-        entry.store(current + bonus - (current * bonus) / max_heuristic, std::memory_order::relaxed);
+        if (current < max_heuristic) {
+            entry.store(current + bonus - (current * bonus) / max_heuristic, std::memory_order::relaxed);
+        }
     }
 
     for (const MoveScore *it = front; it != back; ++it) {
         if (it->move != Move::none() && it->move.flag() == QuietMove) {
             std::atomic_int16_t &entry = _scores[pieces.at(it->move.from())][it->move.to()];
             const Score current = entry.load(std::memory_order::relaxed);
-            entry.store(current - bonus - (current * bonus) / max_heuristic, std::memory_order::relaxed);
+            if (current > -max_heuristic) {
+                entry.store(current - bonus - (current * bonus) / max_heuristic, std::memory_order::relaxed);
+            }
         }
     }
 }

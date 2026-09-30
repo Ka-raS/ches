@@ -6,6 +6,7 @@
 
 namespace cheslib {
 
+/// A job-reassignable thread that must have exactly one owner thread
 class Thread {
   public:
     enum class State : uint8_t {
@@ -29,7 +30,7 @@ class Thread {
     void thread_loop();
 
   private:
-    std::function<void()> _job;
+    std::function<void()> _job{};
     std::atomic<State> _state{State::Waiting};
     std::thread _thread{&Thread::thread_loop, this};
 

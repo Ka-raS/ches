@@ -171,10 +171,10 @@ void draw_ui_panel(const cl::Engine &engine, const ::Font &font) {
 
     char text[20];
     std::sprintf(text, "-    Depth: %2u    +", engine.search_depth());
-    draw_textbox(text, config::DepthSpinnerRect, font);
+    draw_textbox(text, config::DepthStepperRect, font);
 
     std::sprintf(text, "-  Threads: %3u  +", engine.thread_count());
-    draw_textbox(text, config::ThreadSpinnerRect, font);
+    draw_textbox(text, config::ThreadStepperRect, font);
 }
 
 void draw_search_status(const float time, const ::Font &font) {

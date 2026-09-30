@@ -63,14 +63,14 @@ constexpr inline ::Rectangle StatusRect{
     .height = NewGameButtonRect.height
 };
 
-constexpr inline ::Rectangle DepthSpinnerRect{
+constexpr inline ::Rectangle DepthStepperRect{
     .x = UIPanelRect.width * 0.6f + 8, //
     .y = 8,
     .width = NewGameButtonRect.width,
     .height = NewGameButtonRect.height
 };
 
-constexpr inline ::Rectangle ThreadSpinnerRect{
+constexpr inline ::Rectangle ThreadStepperRect{
     .x = UIPanelRect.width * 0.8f + 8, //
     .y = 8,
     .width = NewGameButtonRect.width,

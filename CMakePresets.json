@@ -22,13 +22,12 @@
             "name": "pgo-generate",
             "inherits": "release",
             "binaryDir": "build/pgo-generate",
-            "environment": {
-                "LLVM_PROFILE_FILE": "default-%m.profraw"
-            },
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_CXX_FLAGS": "-ffast-math -fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-instr-generate -fprofile-update=atomic -funroll-loops -g -march=x86-64-v2"
+                "CMAKE_C_FLAGS": "-ffast-math -fno-omit-frame-pointer -fprofile-generate -fprofile-update=atomic -funroll-loops -g -march=x86-64-v2",
+                "CMAKE_CXX_FLAGS": "-ffast-math -fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-generate -fprofile-update=atomic -funroll-loops -g -march=x86-64-v2",
+                "CMAKE_EXE_LINKER_FLAGS": "-fprofile-generate"
             }
         },
         {
@@ -38,7 +37,9 @@
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "clang",
                 "CMAKE_CXX_COMPILER": "clang++",
-                "CMAKE_CXX_FLAGS": "-ffast-math -fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-use=${sourceDir}/build/pgo-generate/ches/default.profdata -funroll-loops -g -march=x86-64-v2"
+                "CMAKE_C_FLAGS": "-ffast-math -fno-omit-frame-pointer -fprofile-use=${sourceDir}/build/pgo-generate/ches/default.profdata -funroll-loops -g -march=x86-64-v2",
+                "CMAKE_CXX_FLAGS": "-ffast-math -fno-exceptions -fno-omit-frame-pointer -fno-rtti -fprofile-use=${sourceDir}/build/pgo-generate/ches/default.profdata -funroll-loops -g -march=x86-64-v2",
+                "CMAKE_EXE_LINKER_FLAGS": "-fprofile-use=${sourceDir}/build/pgo-generate/ches/default.profdata"
             }
         }
     ]

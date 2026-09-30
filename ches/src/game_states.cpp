@@ -47,9 +47,9 @@ StateResult handle_ui_panel(GameContext &c, const MouseEvent mouse, const GameSt
         return StateResult{current_state};
     }
 
-    if (::CheckCollisionPointRec(mouse.position, config::DepthSpinnerRect)) {
-        const int delta = (mouse.position.x > config::DepthSpinnerRect.width * 0.875f + config::DepthSpinnerRect.x) -
-                          (mouse.position.x < config::DepthSpinnerRect.width * 0.125f + config::DepthSpinnerRect.x);
+    if (::CheckCollisionPointRec(mouse.position, config::DepthStepperRect)) {
+        const int delta = (mouse.position.x > config::DepthStepperRect.width * 0.875f + config::DepthStepperRect.x) -
+                          (mouse.position.x < config::DepthStepperRect.width * 0.125f + config::DepthStepperRect.x);
         if (delta != 0) {
             if (mouse.left == KeyState::Pressed) {
                 c.engine.set_search_depth(c.engine.search_depth() + delta);
@@ -57,9 +57,9 @@ StateResult handle_ui_panel(GameContext &c, const MouseEvent mouse, const GameSt
             return StateResult{current_state, ::MOUSE_CURSOR_POINTING_HAND};
         }
 
-    } else if (::CheckCollisionPointRec(mouse.position, config::ThreadSpinnerRect)) {
-        const int delta = (mouse.position.x > config::ThreadSpinnerRect.width * 0.875f + config::ThreadSpinnerRect.x) -
-                          (mouse.position.x < config::ThreadSpinnerRect.width * 0.125f + config::ThreadSpinnerRect.x);
+    } else if (::CheckCollisionPointRec(mouse.position, config::ThreadStepperRect)) {
+        const int delta = (mouse.position.x > config::ThreadStepperRect.width * 0.875f + config::ThreadStepperRect.x) -
+                          (mouse.position.x < config::ThreadStepperRect.width * 0.125f + config::ThreadStepperRect.x);
         if (delta != 0) {
             if (mouse.left == KeyState::Pressed) {
                 c.engine.set_thread_count(c.engine.thread_count() + delta);

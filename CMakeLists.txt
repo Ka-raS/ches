@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
-project(ches VERSION 0.1.0 LANGUAGES CXX)
+project(ches VERSION 0.1.0 LANGUAGES C CXX)
 set(CMAKE_POLICY_DEFAULT_CMP0069 NEW)
 
 include(CTest)
