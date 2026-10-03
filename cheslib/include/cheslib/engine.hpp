@@ -22,9 +22,10 @@ class Engine {
     /**
      * init to starting position, white ready to play
      * @param search_depth clamped to `[2, 15]`
-     * @param thread_count clamped to `[1, min(255 hardware_concurrency)]`, if `<= 0` use `hardware_concurrency + count`
+     * @param thread_count clamped to `[1, min(255, hardware_concurrency)]`, default `0` to `hardware_concurrency / 2`
+     * @param transposition_table_kib size in KiB, clamped to `[1 KiB, 4 GiB]`, rounded down to nearest power of 2
      */
-    Engine(unsigned search_depth, int thread_count);
+    Engine(unsigned search_depth, unsigned thread_count, unsigned transposition_table_kib);
 
     ChessStatus status() const;
     unsigned search_depth() const;
@@ -43,10 +44,10 @@ class Engine {
     void set_search_depth(unsigned search_depth);
 
     /**
-     * @param thread_count clamped to `[1, min(255 hardware_concurrency)]`, if `<= 0` use `hardware_concurrency + count`
+     * @param thread_count clamped to `[1, min(255, hardware_concurrency)]`, default `0` to `hardware_concurrency / 2`
      * @throw `std::logic_error` if `is_searching()`
      */
-    void set_thread_count(int thread_count);
+    void set_thread_count(unsigned thread_count);
 
     /**
      * @throw `std::logic_error` if game over
@@ -92,7 +93,7 @@ class Engine {
   private:
     static constexpr size_t BufferAlign = 16;
 
-    alignas(BufferAlign) std::byte _buffer[3872];
+    alignas(BufferAlign) std::byte _buffer[3880];
     Array<Move, 256> _legal_moves;
 };
 

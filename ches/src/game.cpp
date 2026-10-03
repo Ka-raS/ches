@@ -10,7 +10,7 @@ Game::Game() :
     _state{state::SelectingPiece{}},
     _context{
         .assets{}, //
-        .engine{config::EngineDepth, config::EngineThreadCount},
+        .engine{config::EngineSearchDepth, config::EngineThreadCount, config::EngineTranspositionsKiB},
         .user = cl::Side::White
     } {
     _window.set_icon(_context.assets.icon());

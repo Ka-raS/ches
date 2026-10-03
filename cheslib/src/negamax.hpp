@@ -9,12 +9,12 @@ namespace cheslib {
 
 class Negamax {
   public:
-    Negamax(unsigned search_depth, int thread_count);
+    Negamax(unsigned search_depth, unsigned thread_count, unsigned transposition_table_kib);
 
     unsigned search_depth() const;
     unsigned thread_count() const;
     void set_search_depth(unsigned search_depth);
-    void set_thread_count(int thread_count);
+    void set_thread_count(unsigned thread_count);
 
     void start_search(const Position &position, const Array<Move, 256> &legal_moves);
     void stop_search();
@@ -41,7 +41,7 @@ class Negamax {
     Score negamax(Position &position, Score alpha, Score beta, unsigned depth, unsigned ply);
 
   private:
-    std::unique_ptr<TranspositionTable> _transpositions;
+    TranspositionTable _transpositions;
     HistoryHeuristic _heuristics;
 
     std::atomic<MoveScore> _result;

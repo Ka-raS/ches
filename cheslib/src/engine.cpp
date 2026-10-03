@@ -12,13 +12,13 @@ struct Engine::Impl {
     std::vector<MoveEntry> history; ///< stores trimmed `MoveEntry` from `Position::_history`
 };
 
-Engine::Engine(const unsigned search_depth, const int thread_count) {
+Engine::Engine(const unsigned search_depth, const unsigned thread_count, const unsigned transposition_table_kib) {
     static_assert(sizeof(_buffer) >= sizeof(Impl));
     static_assert(BufferAlign == alignof(Impl));
 
     Impl *const impl = new (_buffer) Impl{
         .position{Position::initial()}, //
-        .negamax{search_depth, thread_count},
+        .negamax{search_depth, thread_count, transposition_table_kib},
         .history{}
     };
     impl->history.reserve(512);
@@ -95,7 +95,7 @@ void Engine::set_search_depth(unsigned search_depth) {
     negamax.set_search_depth(search_depth);
 }
 
-void Engine::set_thread_count(int thread_count) {
+void Engine::set_thread_count(unsigned thread_count) {
     Negamax &negamax = pimpl()->negamax;
 
 #ifdef __cpp_exceptions

@@ -4,8 +4,9 @@
 
 namespace ches::config {
 
-constexpr inline unsigned EngineDepth = 10;
-constexpr inline int EngineThreadCount = -2; // hardware concurrency - 2
+constexpr inline unsigned EngineSearchDepth = 10;
+constexpr inline unsigned EngineThreadCount = 0; // hardware concurrency / 2
+constexpr inline unsigned EngineTranspositionsKiB = 256 * 1024;
 
 constexpr inline int WindowWidth = 1024;
 constexpr inline int WindowHeight = 1088;

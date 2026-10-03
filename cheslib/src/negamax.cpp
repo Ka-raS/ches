@@ -19,18 +19,19 @@ constexpr int16_t VictimAggressor[PieceTypeCNT - 1][PieceTypeCNT] = {
 };
 // clang-format on
 
-uint8_t calculate_thread_count(int requested) {
-    const int max_count = std::clamp(std::thread::hardware_concurrency(), 1u, 255u);
-    if (requested <= 0) {
-        requested += max_count;
+uint8_t calculate_thread_count(const unsigned requested) {
+    const unsigned hardware = std::thread::hardware_concurrency();
+    if (requested > 0) {
+        return std::min(requested, std::clamp(hardware, 1u, 255u));
+    } else {
+        return std::clamp(hardware / 2, 1u, 255u);
     }
-    return std::clamp(requested, 1, max_count);
 }
 
 } // namespace
 
-Negamax::Negamax(const unsigned search_depth, const int thread_count) :
-    _transpositions{std::make_unique<TranspositionTable>()},
+Negamax::Negamax(const unsigned search_depth, const unsigned thread_count, const unsigned transposition_table_kib) :
+    _transpositions{transposition_table_kib},
     _heuristics{},
     _result{MoveScore{Move::none()}},
     _search_depth(std::clamp(search_depth, 2u, MaxDepth)),
@@ -45,12 +46,12 @@ unsigned Negamax::thread_count() const {
     return _thread_count;
 }
 
-void Negamax::set_search_depth(unsigned search_depth) {
+void Negamax::set_search_depth(const unsigned search_depth) {
     assert(!is_searching());
     _search_depth = std::clamp(search_depth, 2u, MaxDepth);
 }
 
-void Negamax::set_thread_count(int thread_count) {
+void Negamax::set_thread_count(const unsigned thread_count) {
     assert(!is_searching());
     _thread_count = calculate_thread_count(thread_count);
 }
@@ -58,7 +59,7 @@ void Negamax::set_thread_count(int thread_count) {
 void Negamax::reset() {
     stop_search();
     wait_while_searching();
-    _transpositions->reset();
+    _transpositions.reset();
     _heuristics.reset();
 }
 
@@ -151,7 +152,7 @@ MoveScore Negamax::iterative_deepening(RootNode root) {
 
     for (unsigned depth = 2; depth <= _search_depth; ++depth) {
         // try transposition table move first
-        if (const Transposition entry = _transpositions->get(position.key()); //
+        if (const Transposition entry = _transpositions.get(position.key()); //
             entry.is_match(position.key())) {
 
             MoveScore *const it = std::ranges::find(legal_moves, entry.move(), &MoveScore::move);
@@ -192,7 +193,7 @@ Score Negamax::negamax(Position &position, Score alpha, Score beta, const unsign
     }
 
     // try to shrink alpha beta
-    if (const Transposition entry = _transpositions->get(position.key()); //
+    if (const Transposition entry = _transpositions.get(position.key()); //
         entry.is_match(position.key())) {
         MoveScore *const it = std::ranges::find(moves, entry.move(), &MoveScore::move);
 
@@ -240,7 +241,7 @@ Score Negamax::negamax(Position &position, Score alpha, Score beta, const unsign
             return 0;
         }
         if (score >= beta) {
-            _transpositions->store(position.key(), move, score, BoundLower, depth, ply);
+            _transpositions.store(position.key(), move, score, BoundLower, depth, ply);
             _heuristics.update(moves.begin(), it, position.pieces(), 300 * depth - 250);
             return score;
         }
@@ -261,7 +262,7 @@ Score Negamax::negamax(Position &position, Score alpha, Score beta, const unsign
 
     assert(best_score < beta);
     const Bound bound = (best_score <= original_alpha) ? BoundUpper : BoundExact;
-    _transpositions->store(position.key(), best_move, best_score, bound, depth, ply);
+    _transpositions.store(position.key(), best_move, best_score, bound, depth, ply);
 
     return best_score;
 }
