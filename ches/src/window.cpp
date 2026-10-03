@@ -9,7 +9,7 @@ namespace ches {
 Window::Window() :
     _camera{.offset{0, 0}, .target{0, 0}, .rotation = 0, .zoom = 1},
     _cursor{::MOUSE_CURSOR_DEFAULT} {
-    ::SetConfigFlags(config::WindowConfigs);
+    ::SetConfigFlags(config::WindowFlags);
     ::InitWindow(config::WindowWidth, config::WindowHeight, config::GameTitle);
 }
 

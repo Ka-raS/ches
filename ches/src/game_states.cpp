@@ -16,7 +16,6 @@ StateResult handle_ui_panel(GameContext &c, const MouseEvent mouse, const GameSt
             c.user = !c.user;
 
             if (c.user == cl::White) {
-                ::EnableEventWaiting();
                 return StateResult{SelectingPiece{}};
             } else {
                 return StateResult{EnginePlaying{c.engine}};
@@ -27,7 +26,6 @@ StateResult handle_ui_panel(GameContext &c, const MouseEvent mouse, const GameSt
 
     if (::CheckCollisionPointRec(mouse.position, config::UndoButtonRect)) {
         if (mouse.left == KeyState::Pressed) {
-            ::EnableEventWaiting();
             c.engine.undo_move();
             if (c.user != c.engine.side_to_move()) {
                 c.engine.undo_move();
@@ -274,7 +272,11 @@ EnginePlaying::EnginePlaying(cl::Engine &engine) :
 
 StateResult EnginePlaying::handle(GameContext &c, const MouseEvent mouse) const {
     if (c.engine.is_searching()) {
-        return handle_ui_panel(c, mouse, *this);
+        StateResult ui_result = handle_ui_panel(c, mouse, *this);
+        if (!std::holds_alternative<EnginePlaying>(ui_result.next_state)) {
+            ::EnableEventWaiting();
+        }
+        return ui_result;
     }
 
     ::EnableEventWaiting();

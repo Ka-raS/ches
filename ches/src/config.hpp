@@ -7,11 +7,10 @@ namespace ches::config {
 constexpr inline unsigned EngineDepth = 10;
 constexpr inline int EngineThreadCount = -2; // hardware concurrency - 2
 
-constexpr inline int FPSTarget = 120;
 constexpr inline int WindowWidth = 1024;
 constexpr inline int WindowHeight = 1088;
 constexpr inline char GameTitle[] = "Ches";
-constexpr inline ::ConfigFlags WindowConfigs = ::ConfigFlags(::FLAG_WINDOW_RESIZABLE | ::FLAG_MSAA_4X_HINT);
+constexpr inline int WindowFlags = ::FLAG_WINDOW_RESIZABLE | ::FLAG_MSAA_4X_HINT | ::FLAG_VSYNC_HINT;
 
 constexpr inline ::Color Background{0x30, 0x2E, 0x2B, 0xFF};     // #302E2BFF
 constexpr inline ::Color LightSquare{0xEF, 0xD8, 0xB4, 0xFF};    // #EFD8B4FF

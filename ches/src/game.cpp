@@ -14,7 +14,6 @@ Game::Game() :
         .user = cl::Side::White
     } {
     _window.set_icon(_context.assets.icon());
-    ::SetTargetFPS(config::FPSTarget);
     ::EnableEventWaiting();
 };
 
