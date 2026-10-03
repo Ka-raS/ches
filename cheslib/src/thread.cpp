@@ -5,6 +5,9 @@
 namespace cheslib {
 
 Thread::~Thread() {
+    if (!_thread.joinable()) {
+        return;
+    }
     _state.wait(State::Running, std::memory_order::acquire);
     _state.store(State::Terminating, std::memory_order::release);
     _state.notify_one();
@@ -19,6 +22,9 @@ void Thread::assign_job(std::function<void()> job) {
     assert(job);
     assert(_state.load(std::memory_order::acquire) == State::Waiting);
 
+    if (!_thread.joinable()) {
+        _thread = std::thread(&Thread::thread_loop, this);
+    }
     _job = std::move(job);
     _state.store(State::Running, std::memory_order::release);
     _state.notify_one();
