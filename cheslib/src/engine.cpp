@@ -9,7 +9,7 @@ namespace cheslib {
 struct Engine::Impl {
     Position position;
     Negamax negamax;
-    std::vector<MoveEntry> history; ///< stores trimmed `MoveEntry` from `Position::_history`
+    std::vector<MoveEntry> trimmed_history; ///< from the `Position::_history`
 };
 
 Engine::Engine(const unsigned search_depth, const unsigned thread_count, const unsigned transposition_table_kib) {
@@ -19,9 +19,9 @@ Engine::Engine(const unsigned search_depth, const unsigned thread_count, const u
     Impl *const impl = new (_buffer) Impl{
         .position{Position::initial()}, //
         .negamax{search_depth, thread_count, transposition_table_kib},
-        .history{}
+        .trimmed_history{}
     };
-    impl->history.reserve(512);
+    impl->trimmed_history.reserve(512);
     _legal_moves = movegen::legals(impl->position);
 }
 
@@ -40,10 +40,10 @@ const Engine::Impl *Engine::pimpl() const {
 }
 
 void Engine::reset_game() {
-    auto &[position, negamax, history] = *pimpl();
+    auto &[position, negamax, trimmed_history] = *pimpl();
     negamax.reset();
     position = Position::initial();
-    history.clear();
+    trimmed_history.clear();
     _legal_moves = movegen::legals(position);
 }
 
@@ -132,18 +132,18 @@ ChessStatus Engine::do_move(const Move move) {
     }
 #endif
 
-    auto &[position, _, history] = *pimpl();
+    auto &[position, _, trimmed_history] = *pimpl();
     position.do_legal(move);
-    position.trim_history(history);
+    position.trim_history(trimmed_history);
     _legal_moves = movegen::legals(position);
 
     return status();
 }
 
 void Engine::undo_move() {
-    auto &[position, negamax, history] = *pimpl();
+    auto &[position, negamax, trimmed_history] = *pimpl();
     negamax.stop_search();
-    position.undo_move_restore_history(history);
+    position.undo_move_restore_history(trimmed_history);
     _legal_moves = movegen::legals(position);
     negamax.wait_while_searching();
 }
